@@ -60,9 +60,9 @@
         .logo-img { max-height: 35px; border-radius: 8px; display: none; object-fit: contain; }
         .logo-text { 
             font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; 
-            color: var(--primary-light);
-            text-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            color: var(--text);
         }
+        .logo-text span { color: var(--primary-light); }
         
         .nav-right { display: flex; gap: 1.5rem; align-items: center; }
         .social-icons { display: flex; gap: 1rem; font-size: 1.25rem; align-items: center; }
@@ -175,10 +175,10 @@
         .tutorial-info h3 { font-size: 1.2rem; color: var(--primary-light); margin-bottom: 0.5rem; }
         .tutorial-info p { color: var(--text-muted); font-size: 0.95rem; }
 
-        /* General Modal Styling */
+        /* General Modal Styling - Z-INDEX DIPERBAIKI (Di atas Dashboard Admin) */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 2000; 
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 99999; 
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: 0.3s ease; padding: 1rem;
         }
@@ -250,10 +250,10 @@
         .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2);}
         .status-success { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2);}
 
-        /* Msg/Alert Modal */
+        /* Msg/Alert Modal Z-INDEX DIPERBAIKI */
         .msg-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.6); z-index: 9999; display: flex; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.6); z-index: 100000; display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(3px); padding: 1rem;
         }
         .msg-overlay.active { opacity: 1; pointer-events: all; }
@@ -270,6 +270,27 @@
         .msg-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text);}
         .msg-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
 
+        /* Tampilan Footer Baru Sesuai Referensi Foto */
+        .footer-new { background: #020617; padding: 3rem 5%; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2rem; margin-top: 2rem; }
+        .footer-left { display: flex; flex-direction: column; gap: 1rem; }
+        .footer-brand { display: flex; align-items: center; gap: 10px; }
+        .footer-brand img { height: 40px; border-radius: 8px; }
+        .footer-brand h2 { font-size: 1.5rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
+        .footer-brand h2 span { color: var(--primary-light); }
+        .footer-tagline { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+        .footer-socials { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .social-card { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 0.6rem 1.2rem; border-radius: 12px; transition: 0.3s; }
+        .social-card:hover { background: rgba(255,255,255,0.08); transform: translateY(-3px); }
+        .social-card-icon { width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+        .sc-ig { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; }
+        .sc-tt { background: white; color: black; }
+        .social-card-text { display: flex; flex-direction: column; line-height: 1.2; }
+        .social-card-text strong { font-size: 0.9rem; color: white; font-weight: 700; margin-bottom: 2px;}
+        .social-card-text span { font-size: 0.75rem; color: var(--text-muted); }
+        
+        .footer-right { font-size: 1.1rem; font-weight: 600; color: var(--text-muted); display: flex; flex-direction: column; align-items: flex-end; }
+        .footer-right span { color: var(--primary-light); font-weight: 700; margin-top: 5px; font-size: 1.3rem;}
+
         @media (max-width: 768px) {
             .nav-right nav { display: none; }
             .hero { padding: 3rem 5% 2rem; }
@@ -277,6 +298,8 @@
             .admin-nav { padding: 1rem; }
             .cart-total-box { flex-direction: column; align-items: flex-start; gap: 10px; }
             .hide-mobile { display: none !important; }
+            .footer-new { flex-direction: column; align-items: flex-start; }
+            .footer-right { align-items: flex-start; margin-top: 1rem; }
         }
     </style>
 </head>
@@ -289,7 +312,7 @@
                 <!-- Left: Logo -->
                 <div class="logo-area" onclick="handleLogoClick()">
                     <img id="site-logo-img" src="" alt="Logo" class="logo-img">
-                    <span id="site-logo-text" class="logo-text">VIPERCELL</span>
+                    <span id="site-logo-text" class="logo-text">VIPER<span>CELL</span></span>
                 </div>
                 
                 <!-- Right: Nav & Actions -->
@@ -297,6 +320,8 @@
                     <nav>
                         <a onclick="switchMainTab('katalog')" id="nav-katalog" class="active">Katalog</a>
                         <a onclick="switchMainTab('tutorial')" id="nav-tutorial">Cara Klaim</a>
+                        <!-- Tab Profil Hanya Tampil Jika Member Login -->
+                        <a onclick="switchMainTab('profil')" id="nav-profil" style="display:none;">Profil & Pesanan</a>
                     </nav>
                     <div class="social-icons" style="margin-right: 10px;">
                         <a href="#" id="header-ig" target="_blank" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
@@ -307,7 +332,9 @@
                             <i class="fa-solid fa-cart-shopping"></i> <span class="hide-mobile">Troli</span>
                             <span class="cart-badge" id="cart-count">0</span>
                         </button>
-                        <button class="btn btn-outline" onclick="openModal('modal-cek-pesanan')">
+                        
+                        <!-- Tombol Cek Pesanan (Hanya Untuk Anonymous) -->
+                        <button id="btn-cek-pesanan" class="btn btn-outline" onclick="openModal('modal-cek-pesanan')">
                             <i class="fa-solid fa-magnifying-glass"></i> <span class="hide-mobile">Cek Pesanan</span>
                         </button>
 
@@ -318,9 +345,6 @@
                         
                         <div id="user-profile-menu" style="display:none; align-items:center; gap:8px;">
                             <span id="user-email-display" style="font-size:0.8rem; color:var(--text-muted); max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" class="hide-mobile"></span>
-                            <button class="btn btn-outline" onclick="logoutUser()" title="Logout" style="padding: 0.5rem; color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">
-                                <i class="fa-solid fa-right-from-bracket"></i>
-                            </button>
                         </div>
                         
                         <!-- Panel Admin (Hanya untuk Admin) -->
@@ -382,15 +406,61 @@
             </div>
         </div>
 
-        <!-- Footer -->
-        <footer style="border-top: 1px solid var(--border); background: var(--surface); padding: 3rem 5%; text-align: center; margin-top: 2rem;">
-            <div class="container reveal">
-                <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:1rem;">
-                    <img id="footer-logo-img" src="" style="height:35px; border-radius:4px; display:none;">
-                    <h3 id="footer-logo-text" style="font-size: 1.5rem; font-weight: 800; color: var(--primary-light);">VIPERCELL</h3>
+        <!-- TAB: PROFIL & PESANAN (Khusus Login Member) -->
+        <div id="tab-profil" class="main-tab-content container">
+            <div class="section-header reveal">
+                <h2>Profil & Riwayat Pesanan</h2>
+                <p>Kelola akun dan pantau status pesananmu di sini.</p>
+            </div>
+            
+            <div class="reveal" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h3 style="color: white; margin-bottom: 5px;">Halo, Member!</h3>
+                    <p style="color: var(--text-muted);" id="profil-email-display"></p>
                 </div>
-                <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 400px; margin: 0 auto 1.5rem;">Platform top-up game & aplikasi premium otomatis dan terpercaya.</p>
-                <p style="font-size: 0.8rem; color: var(--border);">&copy; 2026 Vipercell. All rights reserved.</p>
+                <button class="btn btn-outline" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="logoutUser()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Keluar / Logout
+                </button>
+            </div>
+
+            <h3 class="reveal" style="margin-bottom: 1.5rem; color: var(--primary-light);">Riwayat Pesanan Kamu</h3>
+            <div class="grid reveal" id="user-order-grid" style="grid-template-columns: 1fr;">
+                <!-- User Order Cards go here -->
+            </div>
+        </div>
+
+        <!-- Tampilan Footer Baru Sesuai Referensi Gambar -->
+        <footer class="footer-new reveal">
+            <div class="footer-left">
+                <div class="footer-brand">
+                    <img id="footer-logo-img-2" src="" style="display:none;">
+                    <h2 id="footer-logo-text-2">VIPER<span>CELL</span></h2>
+                </div>
+                <div class="footer-tagline">Akun premium &bull; Harga pelajar &bull; Garansi penuh</div>
+                
+                <!-- Social Media Cards -->
+                <div class="footer-socials">
+                    <a href="#" id="footer-ig-link" class="social-card" target="_blank" style="display: none;">
+                        <div class="social-card-icon sc-ig"><i class="fa-brands fa-instagram"></i></div>
+                        <div class="social-card-text">
+                            <strong>Instagram</strong>
+                            <span id="footer-ig-handle">@vipercell</span>
+                        </div>
+                    </a>
+                    
+                    <a href="#" id="footer-tt-link" class="social-card" target="_blank" style="display: none;">
+                        <div class="social-card-icon sc-tt"><i class="fa-brands fa-tiktok"></i></div>
+                        <div class="social-card-text">
+                            <strong>TikTok</strong>
+                            <span id="footer-tt-handle">@vipercell</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="footer-right">
+                WhatsApp
+                <span id="footer-wa-display">+62 000-0000-0000</span>
             </div>
         </footer>
     </div>
@@ -475,7 +545,7 @@
         </div>
     </div>
 
-    <!-- Cek Pesanan Modal -->
+    <!-- Cek Pesanan Modal (Khusus Anonymous) -->
     <div class="modal-overlay" id="modal-cek-pesanan">
         <div class="modal-content">
             <div class="modal-header">
@@ -561,7 +631,8 @@
                     
                     <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
                         <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Tampilan & Info Web</h3>
-                        <div class="form-group"><label>Logo Teks</label><input type="text" id="set-logo-text" class="form-control"></div>
+                        <div class="form-group"><label>Logo Teks Dasar</label><input type="text" id="set-logo-text" class="form-control" placeholder="Contoh: VIPER"></div>
+                        <div class="form-group"><label>Logo Teks Aksen Biru</label><input type="text" id="set-logo-accent" class="form-control" placeholder="Contoh: CELL"></div>
                         <div class="form-group">
                             <label>Logo Gambar (Pilih File)</label>
                             <input type="file" id="logo-upload" accept="image/*" class="form-control" style="padding: 0.5rem; background: var(--bg);">
@@ -576,9 +647,9 @@
                         <div class="form-group">
                             <label>String QRIS Statis (Dasar)</label>
                             <textarea id="set-qris-string" class="form-control" rows="3" placeholder="000201010211..."></textarea>
-                            <small style="color: var(--text-muted)">Kode QRIS asli. Sistem otomatis menyisipkan nominal+kode unik.</small>
+                            <small style="color: var(--text-muted)">Algoritma QRIS sudah disempurnakan.</small>
                         </div>
-                        <div class="form-group"><label>Nomor WA Admin (Penerima Pesanan)</label><input type="number" id="set-wa" class="form-control"></div>
+                        <div class="form-group"><label>Nomor WA (Penerima & Tampil di Footer)</label><input type="number" id="set-wa" class="form-control" placeholder="Contoh: 085141748690"></div>
                         <div class="form-group"><label>Link Instagram</label><input type="text" id="set-ig" class="form-control"></div>
                         <div class="form-group"><label>Link TikTok</label><input type="text" id="set-tt" class="form-control"></div>
                     </div>
@@ -586,7 +657,7 @@
                     <!-- Banner Settings -->
                     <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); grid-column: 1 / -1;">
                         <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Banner Katalog (Maks 5)</h3>
-                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Sistem akan mengoptimalkan resolusi hingga 3240x1440 secara otomatis.</p>
+                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Sistem sudah mendungkung resolusi 3240x1440 secara maksimal.</p>
                         <div class="form-group">
                             <input type="file" id="banner-upload" accept="image/*" class="form-control" style="padding: 0.5rem; background: var(--bg);">
                         </div>
@@ -693,7 +764,7 @@
         let products = [];
         let orders = [];
         let siteSettings = { 
-            logoText: 'VIPERCELL', logoImgBase64: '', marquee: 'Selamat Datang di Vipercell', 
+            logoText: 'VIPER', logoAccent: 'CELL', logoImgBase64: '', marquee: 'Selamat Datang di Vipercell', 
             qrisString: '', adminWa: '085656321860', igLink: '', ttLink: '', 
             tutorialList: [], banners: []
         };
@@ -702,7 +773,7 @@
         let currentUser = null;
         let cart = JSON.parse(localStorage.getItem('vipercell_cart')) || [];
         
-        // Expose to window
+        // Expose to window agar bisa diklik dari HTML
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
         
@@ -740,14 +811,19 @@
                     if (user) {
                         // User exists (Anon, Member, or Admin)
                         if (user.isAnonymous) {
-                            // User is Anonymous
                             document.getElementById('btn-login-user').style.display = 'inline-flex';
                             document.getElementById('user-profile-menu').style.display = 'none';
+                            document.getElementById('nav-profil').style.display = 'none';
+                            document.getElementById('btn-cek-pesanan').style.display = 'inline-flex';
                         } else {
-                            // User is Logged In
                             document.getElementById('btn-login-user').style.display = 'none';
                             document.getElementById('user-profile-menu').style.display = 'flex';
                             document.getElementById('user-email-display').innerText = user.email || 'Member';
+                            document.getElementById('profil-email-display').innerText = user.email || '';
+                            
+                            // Tampilkan menu Profil & Riwayat Khusus Member/Admin
+                            document.getElementById('nav-profil').style.display = 'inline-block';
+                            document.getElementById('btn-cek-pesanan').style.display = 'none';
                         }
 
                         if (user.email === 'vipercell.id@gmail.com') {
@@ -756,7 +832,6 @@
                         } else {
                             isAdminLoggedIn = false;
                             document.getElementById('btn-admin-panel').style.display = 'none';
-                            // Jika ada yang tidak sengaja berada di admin dashboard tapi bukan admin, kembalikan ke toko
                             if (document.getElementById('admin-dashboard').style.display === 'block') {
                                 toggleAdminDashboard(false);
                             }
@@ -764,11 +839,13 @@
                         
                         listenData();
                     } else {
-                        // No user session at all, automatically login as Anonymous
+                        // Jika tidak ada user sama sekali, masukkan jadi Anonimus otomatis
                         isAdminLoggedIn = false;
                         document.getElementById('btn-admin-panel').style.display = 'none';
                         document.getElementById('btn-login-user').style.display = 'inline-flex';
                         document.getElementById('user-profile-menu').style.display = 'none';
+                        document.getElementById('nav-profil').style.display = 'none';
+                        document.getElementById('btn-cek-pesanan').style.display = 'inline-flex';
                         signInAnonymously(auth).catch((e) => console.log("Anon login failed: ", e));
                     }
                 });
@@ -791,7 +868,13 @@
             onSnapshot(collection(db, pathProducts), (snapshot) => {
                 products = [];
                 snapshot.forEach((doc) => { products.push({ dbId: doc.id, ...doc.data() }); });
-                window.renderProducts(document.querySelector('.tab-btn.active').innerText.includes('App') ? 'app' : document.querySelector('.tab-btn.active').innerText.includes('Game') ? 'game' : 'all');
+                let activeTabBtn = document.querySelector('.tab-btn.active');
+                let curFilter = 'all';
+                if(activeTabBtn) {
+                    if(activeTabBtn.innerText.includes('Aplikasi')) curFilter = 'app';
+                    if(activeTabBtn.innerText.includes('Game')) curFilter = 'game';
+                }
+                window.renderProducts(curFilter);
                 if(isAdminLoggedIn) window.renderAdminProducts();
             }, (e) => {});
 
@@ -799,7 +882,11 @@
                 orders = [];
                 snapshot.forEach((doc) => { orders.push({ dbId: doc.id, ...doc.data() }); });
                 orders.sort((a,b) => new Date(b.date) - new Date(a.date));
+                
                 if(isAdminLoggedIn) window.renderAdminOrders();
+                
+                // Segarkan juga riwayat member jika login
+                if(currentUser && !currentUser.isAnonymous) window.renderUserOrders();
             }, (e) => {});
         }
         
@@ -812,6 +899,7 @@
                     window.customAlert('Sukses', 'Selamat datang Admin Vipercell.', 'success');
                 } else {
                     window.customAlert('Sukses', 'Berhasil masuk sebagai Member.', 'success');
+                    switchMainTab('profil');
                 }
             } catch (error) { 
                 window.customAlert('Batal', 'Login digagalkan / ditutup.', 'error'); 
@@ -820,27 +908,53 @@
 
         window.logoutUser = async function() {
             await signOut(auth);
+            switchMainTab('katalog');
             window.customAlert('Logout', 'Anda telah keluar. Kembali sebagai pengguna Anonim.', 'info');
         };
 
         window.switchMainTab = function(tab) {
             document.getElementById('nav-katalog').classList.remove('active');
             document.getElementById('nav-tutorial').classList.remove('active');
+            document.getElementById('nav-profil').classList.remove('active');
+            
             document.getElementById('tab-katalog').classList.remove('active');
             document.getElementById('tab-tutorial').classList.remove('active');
+            document.getElementById('tab-profil').classList.remove('active');
             
             document.getElementById('nav-'+tab).classList.add('active');
             document.getElementById('tab-'+tab).classList.add('active');
             setTimeout(observeReveals, 100);
         };
 
+        // Fungsi bantu mengambil handle dari URL (contoh: instagram.com/vipercell -> @vipercell)
+        function getHandleFromUrl(url) {
+            if(!url) return "@vipercell";
+            try {
+                let parts = url.split('/').filter(p => p !== '');
+                let last = parts.pop();
+                if(last.includes('?')) last = last.split('?')[0];
+                return last.startsWith('@') ? last : '@' + last;
+            } catch(e) { return "@vipercell"; }
+        }
+
+        // Fungsi bantu pemformatan WA Header Footer
+        function formatWaNumber(waStr) {
+            if(!waStr) return "+62 000-0000-0000";
+            if(waStr.startsWith('0')) waStr = '+62 ' + waStr.substring(1);
+            else if(waStr.startsWith('62')) waStr = '+62 ' + waStr.substring(2);
+            // Format sederhana spasi tiap beberapa angka
+            return waStr.replace(/(\+\d{2})\s?(\d{3,4})(\d{4})(\d{0,4})/, '$1 $2-$3-$4');
+        }
+
         function applySettingsToUI() {
-            const logoTxt = siteSettings.logoText || 'VIPERCELL';
-            document.getElementById('site-logo-text').innerText = logoTxt;
-            document.getElementById('footer-logo-text').innerText = logoTxt;
+            const logoDasar = siteSettings.logoText || 'VIPER';
+            const logoAksen = siteSettings.logoAccent || 'CELL';
+            
+            document.getElementById('site-logo-text').innerHTML = `${logoDasar}<span>${logoAksen}</span>`;
+            document.getElementById('footer-logo-text-2').innerHTML = `${logoDasar}<span>${logoAksen}</span>`;
             
             const imgEl = document.getElementById('site-logo-img');
-            const fImgEl = document.getElementById('footer-logo-img');
+            const fImgEl = document.getElementById('footer-logo-img-2');
             if(siteSettings.logoImgBase64) {
                 imgEl.src = siteSettings.logoImgBase64; imgEl.style.display = 'block';
                 fImgEl.src = siteSettings.logoImgBase64; fImgEl.style.display = 'block';
@@ -852,13 +966,27 @@
             document.getElementById('marquee-text-1').innerText = mText;
             document.getElementById('marquee-text-2').innerText = mText;
 
-            const setupSocial = (id, link) => {
+            // Header Socials
+            const setupHeaderSocial = (id, link) => {
                 const el = document.getElementById(id);
                 if(link) { el.href = link; el.style.display = 'inline-block'; }
                 else { el.style.display = 'none'; }
             };
-            setupSocial('header-ig', siteSettings.igLink);
-            setupSocial('header-tt', siteSettings.ttLink);
+            setupHeaderSocial('header-ig', siteSettings.igLink);
+            setupHeaderSocial('header-tt', siteSettings.ttLink);
+
+            // Footer Socials
+            const setupFooterSocial = (id, handleId, link) => {
+                const el = document.getElementById(id);
+                if(link) { 
+                    el.href = link; el.style.display = 'flex'; 
+                    document.getElementById(handleId).innerText = getHandleFromUrl(link);
+                } else { el.style.display = 'none'; }
+            };
+            setupFooterSocial('footer-ig-link', 'footer-ig-handle', siteSettings.igLink);
+            setupFooterSocial('footer-tt-link', 'footer-tt-handle', siteSettings.ttLink);
+
+            document.getElementById('footer-wa-display').innerText = formatWaNumber(siteSettings.adminWa);
 
             renderBanners();
             renderTutorials();
@@ -1056,31 +1184,49 @@
             document.getElementById('cart-unique-info').innerText = 'Kode unik otomatis ditambahkan saat bayar';
         };
 
-        // QRIS Logic
+        // Algoritma QRIS yang DIperbaiki total
         function calculateCrc16(str) {
             let crc = 0xFFFF;
             for (let i = 0; i < str.length; i++) {
                 crc ^= (str.charCodeAt(i) << 8);
                 for (let j = 0; j < 8; j++) {
                     if ((crc & 0x8000) > 0) crc = (crc << 1) ^ 0x1021;
-                    else crc = crc << 1;
+                    else crc = (crc << 1) & 0xFFFF; 
                 }
             }
-            return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+            return crc.toString(16).toUpperCase().padStart(4, '0');
         }
 
         function generateDynamicQrisString(baseQris, amountNum) {
-            if(!baseQris || baseQris.length < 10) return "";
+            baseQris = baseQris.trim().replace(/\s+/g, ''); // Bersihkan spasi
+            if(!baseQris || baseQris.length < 20) return "";
+            
+            // 1. Buang CRC 6304 bawaan (jika ada) untuk menanam kode tag baru dengan aman
             let qrisBase = baseQris;
-            let crcIndex = qrisBase.lastIndexOf("6304");
-            if(crcIndex !== -1) qrisBase = qrisBase.substring(0, crcIndex);
-
+            let crcIdx = qrisBase.lastIndexOf("6304");
+            if (crcIdx !== -1) {
+                qrisBase = qrisBase.substring(0, crcIdx);
+            } else {
+                // Jika tidak ketemu '6304' di akhir yang valid
+                if (qrisBase.substring(qrisBase.length - 8, qrisBase.length - 4) === "6304") {
+                    qrisBase = qrisBase.substring(0, qrisBase.length - 4);
+                }
+            }
+            
             let amountStr = amountNum.toString();
             let tag54 = "54" + amountStr.length.toString().padStart(2, '0') + amountStr;
 
-            let targetIndex = qrisBase.indexOf("5802ID");
-            if(targetIndex === -1) targetIndex = qrisBase.length;
-            let newQris = qrisBase.slice(0, targetIndex) + tag54 + qrisBase.slice(targetIndex) + "6304";
+            // 2. Suntik Tag 54 tepat sebelum Tag 58 (Country Code, format standarnya "5802ID")
+            let newQris = "";
+            let idx58 = qrisBase.indexOf("5802ID");
+            
+            if (idx58 !== -1) {
+                newQris = qrisBase.substring(0, idx58) + tag54 + qrisBase.substring(idx58) + "6304";
+            } else {
+                // Alternatif aman taruh sebelum 6304
+                newQris = qrisBase + tag54 + "6304";
+            }
+            
             return newQris + calculateCrc16(newQris);
         }
 
@@ -1142,6 +1288,8 @@
             
             const newOrder = {
                 id: invId,
+                // SIMPAN EMAIL USER UNTUK RIWAYAT PROFIL JIKA BUKAN ANONIM
+                userEmail: currentUser.isAnonymous ? null : currentUser.email,
                 items: currentCheckoutSession.items,
                 customerWa: currentCheckoutSession.customerWa,
                 finalTotal: currentCheckoutSession.finalTotal,
@@ -1176,8 +1324,13 @@
                     let itemsText = currentCheckoutSession.items.map((i, idx) => `${idx+1}. ${i.name} (${i.playerInfo})`).join('\n');
                     const waText = `Halo Admin Vipercell, saya sudah transfer pesanan saya.\n\n*Invoice ID:* ${invId}\n*Total Bayar (Cek Mutasi):* Rp${currentCheckoutSession.finalTotal.toLocaleString('id-ID')}\n*Detail Pesanan:*\n${itemsText}\n\n*Nomor WA Saya:* ${currentCheckoutSession.customerWa}\n\nMohon pesanan segera diproses.`;
                     window.open(`https://wa.me/${adminWaNum}?text=${encodeURIComponent(waText)}`, '_blank');
+                    
                     currentCheckoutSession = null;
                     isProcessingPayment = false;
+                    
+                    // Switch ke Profil Otomatis setelah cekout jika login
+                    if(!currentUser.isAnonymous) switchMainTab('profil');
+
                 }, 2500);
             } catch (error) {
                 window.customAlert('Error', 'Gagal memproses pesanan.', 'error');
@@ -1212,6 +1365,53 @@
 
             resBox.style.display = 'block';
             resBox.innerHTML = `<div><h4 style="color:var(--primary-light);">Invoice: ${order.id}</h4><p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">Item:<br><ul style="list-style:none; padding-left:0; font-size:0.85rem;">${itemsHtml}</ul></p></div>${statusHtml}`;
+        };
+
+        // RENDER RIWAYAT PESANAN MEMBER
+        window.renderUserOrders = function() {
+            const grid = document.getElementById('user-order-grid');
+            grid.innerHTML = '';
+            
+            // Pengaman agar tidak render jika belum selesai dimuat atau bukan member
+            if(!currentUser || currentUser.isAnonymous) return;
+            
+            const userOrders = orders.filter(o => o.userEmail === currentUser.email);
+            
+            if(userOrders.length === 0) {
+                grid.innerHTML = '<div style="text-align:center; padding: 2rem; color:var(--text-muted);">Belum ada riwayat pesanan.</div>';
+                return;
+            }
+
+            userOrders.forEach(o => {
+                const isPending = o.status === 'PENDING';
+                let itemsHtml = o.items.map(i => `<li>- ${i.name} (${i.playerInfo})</li>`).join('');
+                
+                let replyHtml = (o.status === 'SUCCESS' && o.adminReply) ? `
+                    <div style="background: rgba(37,99,235,0.1); border: 1px dashed var(--primary); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <p style="margin-bottom:0.5rem; color:var(--primary-light); font-weight:bold;">Info Akun (Dari Admin):</p>
+                        <p style="font-family:monospace; color:var(--text); white-space:pre-wrap;">${o.adminReply}</p>
+                    </div>` : '';
+
+                grid.innerHTML += `
+                    <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; flex-wrap:wrap; gap:10px;">
+                            <div>
+                                <h4 style="color:var(--primary-light); font-size:1.1rem;">Invoice: ${o.id}</h4>
+                                <small style="color:var(--text-muted);">${new Date(o.date).toLocaleString('id-ID')}</small>
+                            </div>
+                            <span class="status-badge ${isPending?'status-pending':'status-success'}">${o.status}</span>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <p style="font-size:0.9rem; font-weight:bold; margin-bottom:5px;">Item Dipesan:</p>
+                            <ul style="list-style:none; padding-left:0; font-size:0.85rem; color:var(--text-muted);">
+                                ${itemsHtml}
+                            </ul>
+                        </div>
+                        <div style="font-weight: bold; font-size: 1.1rem;">Total: Rp${o.finalTotal.toLocaleString('id-ID')}</div>
+                        ${replyHtml}
+                    </div>
+                `;
+            });
         };
 
         let clickCount = 0; let clickTimer;
@@ -1432,7 +1632,8 @@
         };
 
         function populateAdminSettings() {
-            document.getElementById('set-logo-text').value = siteSettings.logoText || '';
+            document.getElementById('set-logo-text').value = siteSettings.logoText || 'VIPER';
+            document.getElementById('set-logo-accent').value = siteSettings.logoAccent || 'CELL';
             document.getElementById('set-marquee').value = siteSettings.marquee || '';
             document.getElementById('set-qris-string').value = siteSettings.qrisString || '';
             document.getElementById('set-wa').value = siteSettings.adminWa || '';
@@ -1447,7 +1648,6 @@
             renderAdminBannersList();
         }
 
-        // Image resizing helper (diupdate khusus bisa menangani resolusi tinggi untuk Banner)
         function resizeImageBase64(file, callback, maxWidth = 800, maxHeight = 800) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -1462,7 +1662,6 @@
                     canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    // Kompresi 0.85 untuk menjaga kualitas
                     callback(canvas.toDataURL('image/jpeg', 0.85));
                 };
                 img.src = e.target.result;
@@ -1478,7 +1677,6 @@
             });
         });
 
-        // Banner Upload System (Resolusi Maksimal 3240x1440)
         let tempBanners = [];
         function renderAdminBannersList() {
             tempBanners = siteSettings.banners ? [...siteSettings.banners] : [];
@@ -1499,7 +1697,6 @@
         document.getElementById('banner-upload').addEventListener('change', function(e) {
             if (e.target.files[0]) {
                 if(tempBanners.length >= 5) { window.customAlert('Penuh', 'Maksimal 5 Banner.', 'warning'); return; }
-                // Gunakan rasio resolusi tinggi untuk banner (Max 3240x1440)
                 resizeImageBase64(e.target.files[0], (b64) => { tempBanners.push(b64); drawTempBanners(); e.target.value = ''; }, 3240, 1440);
             }
         });
@@ -1508,6 +1705,7 @@
             if(!currentUser) return;
             const newSettings = {
                 logoText: document.getElementById('set-logo-text').value,
+                logoAccent: document.getElementById('set-logo-accent').value,
                 logoImgBase64: document.getElementById('set-logo-base64').value,
                 marquee: document.getElementById('set-marquee').value,
                 qrisString: document.getElementById('set-qris-string').value,
