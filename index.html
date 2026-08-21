@@ -12,16 +12,21 @@
     
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
+            /* Vipercell Blue Theme */
+            --primary: #007bff;
+            --primary-light: #3b82f6;
+            --primary-dark: #0056b3;
+            --primary-gradient: linear-gradient(135deg, #007bff, #00d2ff);
+            
             --secondary: #ec4899;
-            --bg: #09090b; 
-            --surface: #18181b; 
-            --surface-hover: #27272a;
-            --border: #3f3f46;
+            --bg: #020617; 
+            --surface: #0f172a; 
+            --surface-hover: #1e293b;
+            --border: #334155;
             --text: #f8fafc;
             --text-muted: #94a3b8;
             --success: #10b981;
+            --success-gradient: linear-gradient(135deg, #10b981, #34d399);
             --warning: #f59e0b;
             --danger: #ef4444;
             --game-accent: #14b8a6;
@@ -32,25 +37,39 @@
         body { background-color: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; scroll-behavior: smooth; }
         a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
-        button { cursor: pointer; border: none; font-family: inherit; }
+        button { cursor: pointer; border: none; font-family: inherit; outline: none; }
         
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
-        
+        .container { width: 100%; padding: 0 5%; max-width: 1400px; margin: 0 auto; }
+
         header { 
             position: sticky; top: 0; z-index: 100; 
-            background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(63, 63, 70, 0.5); transition: 0.3s;
+            background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5); transition: 0.3s;
         }
-        .nav-container { display: flex; justify-content: space-between; align-items: center; height: 70px; }
+        
+        .nav-container { 
+            display: flex; justify-content: space-between; align-items: center; 
+            height: 70px; 
+        }
+
         .logo-area { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
         .logo-img { max-height: 40px; border-radius: 8px; display: none; object-fit: contain; }
-        .logo-text { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; color: transparent; }
+        .logo-text { 
+            font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; 
+            color: var(--primary); /* Blue color requested */
+            text-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+        }
         
+        .nav-right { display: flex; gap: 2rem; align-items: center; }
+        .social-icons { display: flex; gap: 1rem; font-size: 1.25rem; align-items: center; }
+        .social-icons a { color: var(--text-muted); transition: 0.3s; display: none; }
+        .social-icons a:hover { color: var(--primary); transform: translateY(-3px); }
+
         nav { display: flex; gap: 2rem; align-items: center; }
         nav a { font-weight: 500; font-size: 0.95rem; color: var(--text-muted); transition: 0.3s; position: relative; }
         nav a:hover { color: var(--text); }
@@ -58,20 +77,40 @@
         nav a:hover::after { width: 100%; }
         
         .header-actions { display: flex; gap: 1rem; align-items: center; }
-        .btn { padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
-        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
-        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-        .btn-outline:hover { background: var(--surface); border-color: var(--text-muted); }
+        
+        .btn { 
+            padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            display: inline-flex; align-items: center; gap: 8px; justify-content: center; 
+            position: relative; overflow: hidden;
+        }
+        .btn-primary { 
+            background: var(--primary-gradient); color: white; 
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); 
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.5); 
+        }
+        .btn-success { 
+            background: var(--success-gradient); color: white; 
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); 
+        }
+        .btn-success:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); 
+        }
+        .btn-outline { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--surface-hover); border-color: var(--text-muted); }
         .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
         .btn-danger:hover { background: var(--danger); color: white; }
         
         #btn-admin-panel { display: none; }
 
-        .hero { padding: 6rem 0 4rem; text-align: center; position: relative; overflow: hidden; }
-        .hero::before { content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(79,70,229,0.15) 0%, rgba(0,0,0,0) 70%); z-index: -1; }
-        .hero h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -1px; animation: slideUp 0.5s ease 0.1s both; }
-        .hero h1 span { color: var(--primary); }
+        .hero { padding: 6rem 5% 4rem; text-align: center; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,123,255,0.15) 0%, rgba(0,0,0,0) 70%); z-index: -1; }
+        .hero h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -1px; animation: slideUp 0.5s ease 0.1s both; }
+        .hero h1 span { color: var(--primary); text-shadow: 0 0 20px rgba(0,123,255,0.4); }
         .hero p { color: var(--text-muted); max-width: 600px; margin: 0 auto 2rem; font-size: 1.1rem; animation: slideUp 0.5s ease 0.2s both; }
         .hero-btns { display: flex; justify-content: center; gap: 1rem; animation: slideUp 0.5s ease 0.3s both; }
         
@@ -84,10 +123,10 @@
         .section-header h2 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
         .section-header p { color: var(--text-muted); }
         
-        section { padding: 5rem 0; }
+        section { padding: 5rem 5%; }
         .tabs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
         .tab-btn { padding: 0.8rem 1.5rem; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); font-weight: 600; transition: 0.3s; }
-        .tab-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+        .tab-btn.active { background: var(--primary-gradient); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(0,123,255,0.3); }
         .tab-btn:hover:not(.active) { background: var(--surface-hover); color: var(--text); }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
@@ -96,10 +135,13 @@
             background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; 
             display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
         }
-        .product-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; }
-        .product-card.type-app::before { background: var(--app-accent); }
-        .product-card.type-game::before { background: var(--game-accent); }
-        .product-card:hover { transform: translateY(-5px); border-color: #52525b; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
+        .product-card::before { 
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; 
+            background: var(--primary-gradient);
+            transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; 
+        }
+        .product-card.type-game::before { background: var(--success-gradient); }
+        .product-card:hover { transform: translateY(-8px); border-color: #52525b; box-shadow: 0 15px 30px -10px rgba(0,123,255,0.2); }
         .product-card:hover::before { transform: scaleX(1); }
         
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
@@ -110,14 +152,22 @@
         .product-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
         .product-card p { color: var(--text-muted); font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem; }
         .price-box { margin-bottom: 1.5rem; }
-        .price-box .price { font-size: 1.5rem; font-weight: 800; color: var(--text); }
+        .price-box .price { font-size: 1.5rem; font-weight: 800; color: var(--primary-light); }
         
-        .buy-btn { width: 100%; padding: 0.8rem; border-radius: 10px; font-weight: 600; text-align: center; background: var(--text); color: var(--bg); transition: 0.3s; }
-        .buy-btn:hover { background: #d4d4d8; transform: scale(1.02); }
+        .buy-btn { width: 100%; padding: 0.8rem; border-radius: 10px; font-weight: 600; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); transition: 0.3s; }
+        .buy-btn:hover { background: var(--primary-gradient); border-color: transparent; transform: scale(1.02); box-shadow: 0 4px 15px rgba(0,123,255,0.3); }
+
+        .tutorial-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; max-width: 800px; margin: 0 auto; }
+        .tutorial-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; border-bottom: 1px solid var(--border); }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .tutorial-info { padding: 1.5rem; }
+        .tutorial-info h3 { font-size: 1.2rem; color: var(--primary-light); margin-bottom: 0.5rem; }
+        .tutorial-info p { color: var(--text-muted); font-size: 0.95rem; }
 
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 1000; 
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 2000; 
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: 0.3s ease;
         }
@@ -130,7 +180,6 @@
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
         }
         .modal-overlay.active .modal-content { transform: translateY(0) scale(1); }
-        .modal-content.large { max-width: 800px; }
         
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
         .modal-header h2 { font-size: 1.3rem; font-weight: 700; }
@@ -143,27 +192,14 @@
             width: 100%; padding: 0.8rem 1rem; border-radius: 10px; border: 1px solid var(--border); 
             background: var(--bg); color: var(--text); outline: none; transition: 0.3s; font-size: 0.95rem;
         }
-        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); }
         textarea.form-control { resize: vertical; min-height: 80px; }
         
         .qris-box { background: white; padding: 1.5rem; border-radius: 12px; text-align: center; margin: 1.5rem 0; display: none; }
         #qris-canvas-container { display: flex; justify-content: center; margin-bottom: 1rem; }
         .qris-box p { color: #000; font-weight: 700; margin-top: 0.5rem; font-size: 1.1rem; }
 
-        .admin-tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; overflow-x: auto;}
-        .admin-tab { padding: 0.5rem 1rem; border-radius: 8px; color: var(--text-muted); background: transparent; font-weight: 600; white-space: nowrap; transition: 0.3s; }
-        .admin-tab:hover { color: var(--text); }
-        .admin-tab.active { background: var(--primary); color: white; }
-        
-        .table-responsive { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; text-align: left; font-size: 0.9rem; }
-        th, td { padding: 1rem; border-bottom: 1px solid var(--border); }
-        th { color: var(--text-muted); font-weight: 600; background: var(--bg); }
-        .status-badge { padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
-        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-        .status-success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-        
-        /* Box Pesan Custom Alert */
+        /* Custom Alert */
         .msg-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.6); z-index: 9999; display: flex; justify-content: center; align-items: center;
@@ -182,99 +218,321 @@
         .msg-icon.info { color: var(--primary); }
         .msg-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
         .msg-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
-        
-        .result-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; display: none; }
-        .account-details { background: rgba(139, 92, 246, 0.1); border: 1px dashed var(--app-accent); padding: 1rem; border-radius: 8px; margin-top: 1rem; }
-        .account-details p { margin-bottom: 0.5rem; font-family: monospace; font-size: 1rem; color: var(--text); }
 
-        /* Video Container */
-        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; margin-top: 1rem; border: 1px solid var(--border); display: none; }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        @media (max-width: 768px) {
-            nav { display: none; }
-            .header-actions { margin-left: auto; }
-            .hero { padding: 4rem 0 3rem; }
-            .btn { padding: 0.6rem 1rem; font-size: 0.85rem; }
+        #admin-dashboard {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--bg); z-index: 9000; overflow-y: auto;
         }
+        .admin-header {
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 10;
+        }
+        .admin-nav {
+            display: flex; gap: 1rem; overflow-x: auto; padding: 1rem 5%; border-bottom: 1px solid var(--border);
+        }
+        .admin-tab { 
+            padding: 0.5rem 1rem; border-radius: 8px; color: var(--text-muted); 
+            background: transparent; font-weight: 600; white-space: nowrap; transition: 0.3s; 
+        }
+        .admin-tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+        .admin-tab.active { background: var(--primary-gradient); color: white; }
+        .admin-body { padding: 2rem 5%; max-width: 1200px; margin: 0 auto; }
+        
+        .table-responsive { overflow-x: auto; background: var(--surface); border-radius: 12px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        th, td { padding: 1rem; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); font-weight: 600; background: rgba(255,255,255,0.02); }
+        
+        .status-badge { padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2);}
+        .status-success { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2);}
+
+        footer { border-top: 1px solid var(--border); background: var(--surface); padding: 2rem 5%; margin-top: 4rem; }
+        .footer-content { display: flex; flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
+
+        @media (max-width: 768px) {
+            .nav-right nav { display: none; }
+            .hero { padding: 4rem 5% 3rem; }
+            .hero h1 { font-size: 2.2rem; }
+            .admin-nav { padding: 1rem; }
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="container nav-container">
-            <!-- Secret Trigger: Click logo area 7 times to login admin -->
-            <div class="logo-area" onclick="handleLogoClick()">
-                <img id="site-logo-img" src="" alt="Logo" class="logo-img">
-                <span id="site-logo-text" class="logo-text">VIPERCELL</span>
+    <!-- ==================== MAIN STORE VIEW ==================== -->
+    <div id="store-view">
+        <!-- Header -->
+        <header>
+            <div class="container nav-container">
+                <!-- Left: Logo -->
+                <div class="logo-area" onclick="handleLogoClick()">
+                    <img id="site-logo-img" src="" alt="Logo" class="logo-img">
+                    <span id="site-logo-text" class="logo-text">VIPERCELL</span>
+                </div>
+                
+                <!-- Right: Nav & Social Icons -->
+                <div class="nav-right">
+                    <div class="social-icons">
+                        <a href="#" id="header-ig" target="_blank" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" id="header-tt" target="_blank" title="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+                    </div>
+                    <nav>
+                        <a href="#katalog">Katalog</a>
+                        <a href="#fitur">Keunggulan</a>
+                        <a href="#" onclick="openTabTutorial()">Cara Klaim</a>
+                    </nav>
+                    <div class="header-actions">
+                        <button class="btn btn-outline" onclick="openModal('modal-cek-pesanan')">
+                            <i class="fa-solid fa-magnifying-glass"></i> <span style="display:none; @media(min-width:480px){display:inline;}">Lacak Pesanan</span>
+                        </button>
+                        <button id="btn-admin-panel" class="btn btn-danger" onclick="toggleAdminDashboard(true)">
+                            <i class="fa-solid fa-shield-halved"></i> Admin
+                        </button>
+                    </div>
+                </div>
             </div>
-            
-            <nav>
-                <a href="#katalog">Katalog Produk</a>
-                <a href="#fitur">Keunggulan</a>
-                <a href="#" onclick="openTabTutorial()">Cara Klaim/Login</a>
-                <a href="#" onclick="openModal('modal-cek-pesanan')">Cek Pesanan</a>
-            </nav>
-            
-            <div class="header-actions">
-                <button class="btn btn-outline" onclick="openModal('modal-cek-pesanan')">
-                    <i class="fa-solid fa-magnifying-glass"></i> <span style="display:none; @media(min-width:480px){display:inline;}">Lacak</span>
-                </button>
-                <button id="btn-admin-panel" class="btn btn-primary" onclick="openAdminPanel()">
-                    <i class="fa-solid fa-shield-halved"></i> Panel Admin
-                </button>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero container">
+            <h1>Upgrade Harimu Dengan <br><span>Layanan Premium</span></h1>
+            <p>Platform top-up game dan penyedia akun premium otomatis. Checkout mudah via QRIS dinamis, cek pesanan secara realtime tanpa ribet.</p>
+            <div class="hero-btns">
+                <a href="#katalog" class="btn btn-primary"><i class="fa-solid fa-store"></i> Lihat Katalog</a>
+                <a href="#" onclick="openTabTutorial()" class="btn btn-outline"><i class="fa-solid fa-circle-play"></i> Cara Klaim Akun</a>
+            </div>
+        </section>
+
+        <!-- Marquee -->
+        <div class="marquee-container">
+            <div class="marquee-content" id="marquee-wrapper">
+                <span class="marquee-text" id="marquee-text-1">Memuat promo terbaru...</span>
+                <span class="marquee-text" id="marquee-text-2">Memuat promo terbaru...</span>
             </div>
         </div>
-    </header>
 
-    <section class="hero container">
-        <h1>Upgrade Harimu Dengan <br><span>Layanan Premium</span></h1>
-        <p>Platform top-up game dan penyedia akun premium otomatis. Checkout mudah via QRIS dinamis, cek pesanan secara realtime tanpa ribet.</p>
-        <div class="hero-btns">
-            <a href="#katalog" class="btn btn-primary"><i class="fa-solid fa-store"></i> Lihat Katalog</a>
-            <a href="#" onclick="openTabTutorial()" class="btn btn-outline"><i class="fa-solid fa-circle-play"></i> Cara Klaim Akun</a>
+        <!-- Tutorial Section (Hidden by default) -->
+        <section id="tutorial-section" class="container" style="display: none; padding-top: 2rem;">
+            <div class="section-header">
+                <h2>Panduan & Cara Klaim</h2>
+                <p>Ikuti langkah-langkah pada video di bawah ini untuk klaim pesananmu.</p>
+            </div>
+            
+            <div class="tutorial-grid" id="public-tutorial-list">
+                <!-- Rendered dynamically -->
+                <div style="text-align:center; color:var(--text-muted)">Memuat tutorial...</div>
+            </div>
+        </section>
+
+        <!-- Catalog Section -->
+        <section id="katalog" class="container">
+            <div class="section-header">
+                <h2>Katalog Produk</h2>
+                <p>Pilih produk, bayar pakai QRIS otomatis, dan dapatkan pesananmu seketika.</p>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="filterProducts('all', this)">Semua</button>
+                <button class="tab-btn" onclick="filterProducts('app', this)"><i class="fa-solid fa-mobile-screen"></i> Aplikasi Premium</button>
+                <button class="tab-btn" onclick="filterProducts('game', this)"><i class="fa-solid fa-gamepad"></i> Top Up Game</button>
+            </div>
+
+            <div class="grid" id="product-grid">
+                <div style="text-align:center; grid-column: 1/-1; padding: 2rem; color:var(--text-muted);">Memuat produk dari database...</div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="fitur" class="container" style="background: var(--surface); border-top: 1px solid var(--border); border-radius: 20px; margin-bottom: 4rem;">
+            <div class="section-header">
+                <h2>Keunggulan Kami</h2>
+                <p>Mengapa memilih layanan di Vipercell?</p>
+            </div>
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                <div style="background: var(--bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
+                    <i class="fa-solid fa-bolt" style="font-size: 2.5rem; color: var(--warning); margin-bottom: 1rem;"></i>
+                    <h3>Proses Cepat</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Otomatisasi sistem pembayaran membuat pesanan langsung diproses tanpa lama menunggu.</p>
+                </div>
+                <div style="background: var(--bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
+                    <i class="fa-solid fa-shield-check" style="font-size: 2.5rem; color: var(--success); margin-bottom: 1rem;"></i>
+                    <h3>Aman & Bergaransi</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Garansi penuh sesuai syarat dan ketentuan setiap produk untuk kenyamanan kamu.</p>
+                </div>
+                <div style="background: var(--bg); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
+                    <i class="fa-brands fa-whatsapp" style="font-size: 2.5rem; color: #25D366; margin-bottom: 1rem;"></i>
+                    <h3>Support 24/7</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Admin responsif siap membantu jika terjadi kendala pesanan melalui WhatsApp.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container footer-content">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <img id="footer-logo-img" src="" style="height:30px; border-radius:4px; display:none;">
+                    <h3 id="footer-logo-text" style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">VIPERCELL</h3>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Platform top-up game & aplikasi premium otomatis dan terpercaya.</p>
+                <div class="social-icons" style="display: flex; gap: 1rem; margin-top: 0.5rem; justify-content: center;">
+                    <a href="#" id="footer-ig" target="_blank" style="display:none;"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" id="footer-tt" target="_blank" style="display:none;"><i class="fa-brands fa-tiktok"></i></a>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--border); margin-top: 1rem;">&copy; 2026 Vipercell. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+    <!-- ==================== END MAIN STORE VIEW ==================== -->
+
+    <!-- ==================== FULL SCREEN ADMIN DASHBOARD ==================== -->
+    <div id="admin-dashboard">
+        <div class="admin-header">
+            <h2><i class="fa-solid fa-shield-halved" style="color: var(--primary)"></i> Admin Dashboard</h2>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-outline" onclick="toggleAdminDashboard(false)">Kembali ke Toko</button>
+                <button class="btn btn-danger" onclick="logoutAdmin()">Logout</button>
+            </div>
         </div>
-    </section>
+        <div class="admin-nav">
+            <button class="admin-tab active" onclick="switchAdminTab('tab-orders', this)">Pesanan</button>
+            <button class="admin-tab" onclick="switchAdminTab('tab-products', this)">Produk</button>
+            <button class="admin-tab" onclick="switchAdminTab('tab-tutorials', this)">Tutorial</button>
+            <button class="admin-tab" onclick="switchAdminTab('tab-settings', this)">Pengaturan</button>
+        </div>
 
-    <div class="marquee-container">
-        <div class="marquee-content" id="marquee-wrapper">
-            <!-- Teks berjalan diisi oleh JS -->
-            <span class="marquee-text" id="marquee-text-1">Memuat promo terbaru...</span>
-            <span class="marquee-text" id="marquee-text-2">Memuat promo terbaru...</span>
+        <div class="admin-body">
+            <!-- Tab: Orders -->
+            <div id="tab-orders" class="admin-tab-content">
+                <h3 style="margin-bottom:1rem">Daftar Pesanan Masuk</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Invoice</th><th>Produk</th><th>Detail Pelanggan</th><th>Status</th><th>Aksi</th></tr></thead>
+                        <tbody id="admin-order-list"><tr><td colspan="5" style="text-align:center">Memuat...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Products -->
+            <div id="tab-products" class="admin-tab-content" style="display: none;">
+                <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Tambah Produk Baru</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div class="form-group">
+                            <label>Kategori</label>
+                            <select id="add-prod-type" class="form-control"><option value="app">Aplikasi Premium</option><option value="game">Top Up Game</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Label Badge (cth: Netflix / MLBB)</label>
+                            <input type="text" id="add-prod-badge" class="form-control">
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Nama Produk</label>
+                            <input type="text" id="add-prod-name" class="form-control" placeholder="cth: Netflix 1 Bulan 4K">
+                        </div>
+                        <div class="form-group">
+                            <label>Harga Tampil (cth: Rp45.000)</label>
+                            <input type="text" id="add-prod-price" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Harga Angka Asli (Untuk QRIS, cth: 45000)</label>
+                            <input type="number" id="add-prod-price-num" class="form-control">
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Deskripsi</label>
+                            <textarea id="add-prod-desc" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="adminAddProduct()">Simpan Produk ke Database</button>
+                </div>
+                
+                <h3 style="margin-bottom:1rem">Daftar Produk Aktif</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Nama</th><th>Tipe</th><th>Harga</th><th>Aksi</th></tr></thead>
+                        <tbody id="admin-prod-list"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Tutorials -->
+            <div id="tab-tutorials" class="admin-tab-content" style="display: none;">
+                <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Tambah Video Tutorial (Google Drive)</h3>
+                    <div class="form-group">
+                        <label>Judul Tutorial</label>
+                        <input type="text" id="add-tut-title" class="form-control" placeholder="Contoh: Cara Klaim Akun Netflix">
+                    </div>
+                    <div class="form-group">
+                        <label>Penjelasan Lengkap (Deskripsi di bawah video)</label>
+                        <textarea id="add-tut-desc" class="form-control" rows="3" placeholder="Jelaskan langkah-langkahnya di sini..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Link / ID Google Drive</label>
+                        <input type="text" id="add-tut-link" class="form-control" placeholder="Paste link video google drive disini...">
+                        <small style="color:var(--warning)">Pastikan akses video G-Drive di set ke "Anyone with the link can view".</small>
+                    </div>
+                    <button class="btn btn-primary" onclick="adminAddTutorial()">Tambah Tutorial</button>
+                </div>
+
+                <h3 style="margin-bottom:1rem">Daftar Tutorial Aktif</h3>
+                <div id="admin-tut-list" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+            </div>
+
+            <!-- Tab: Settings -->
+            <div id="tab-settings" class="admin-tab-content" style="display: none;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    
+                    <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
+                        <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Tampilan & Informasi Web</h3>
+                        <div class="form-group">
+                            <label>Teks Berjalan (Marquee)</label>
+                            <textarea id="set-marquee" class="form-control" rows="3" placeholder="Promo Spesial..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Nomor WA Admin (Penerima Pesanan)</label>
+                            <input type="number" id="set-wa" class="form-control" placeholder="Contoh: 085656321860">
+                        </div>
+                        <div class="form-group">
+                            <label>Link Instagram</label>
+                            <input type="text" id="set-ig" class="form-control" placeholder="https://instagram.com/...">
+                        </div>
+                        <div class="form-group">
+                            <label>Link TikTok</label>
+                            <input type="text" id="set-tt" class="form-control" placeholder="https://tiktok.com/@...">
+                        </div>
+                    </div>
+
+                    <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
+                        <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Logo & Sistem Pembayaran</h3>
+                        <div class="form-group">
+                            <label>Logo Web (Teks)</label>
+                            <input type="text" id="set-logo-text" class="form-control" placeholder="VIPERCELL">
+                        </div>
+                        <div class="form-group">
+                            <label>Logo Web (Gambar)</label>
+                            <input type="file" id="logo-upload" accept="image/*" class="form-control" style="padding: 0.5rem; background: var(--bg);">
+                            <input type="hidden" id="set-logo-base64">
+                            <div style="margin-top: 10px;">
+                                <img id="set-logo-preview" src="" style="max-height: 50px; border-radius: 4px; display: none;">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                            <label>String QRIS Statis (Asli)</label>
+                            <textarea id="set-qris-string" class="form-control" rows="5" placeholder="000201010211..."></textarea>
+                            <small style="color: var(--text-muted)">Sistem akan menyisipkan nominal secara otomatis ke string ini.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%; margin-top: 2rem; padding: 1rem; font-size: 1.1rem;">Simpan Semua Pengaturan</button>
+            </div>
         </div>
     </div>
-
-    <section id="tutorial-section" class="container" style="display: none; padding-top: 2rem;">
-        <div class="section-header">
-            <h2>Panduan & Tutorial</h2>
-            <p>Tonton video di bawah ini untuk mengetahui cara login/klaim akun premium kamu.</p>
-        </div>
-        <div class="video-container" id="video-wrapper">
-            <iframe id="tutorial-iframe" src="" allow="autoplay"></iframe>
-        </div>
-        <div style="text-align:center; margin-top: 1rem;" id="no-video-msg">
-            <p style="color:var(--text-muted)">Video panduan belum ditambahkan oleh admin.</p>
-        </div>
-    </section>
-
-    <section id="katalog" class="container">
-        <div class="section-header">
-            <h2>Katalog Produk</h2>
-            <p>Pilih produk, bayar pakai QRIS otomatis, dan dapatkan pesananmu seketika.</p>
-        </div>
-        
-        <div class="tabs">
-            <button class="tab-btn active" onclick="filterProducts('all', this)">Semua</button>
-            <button class="tab-btn" onclick="filterProducts('app', this)"><i class="fa-solid fa-mobile-screen"></i> Aplikasi Premium</button>
-            <button class="tab-btn" onclick="filterProducts('game', this)"><i class="fa-solid fa-gamepad"></i> Top Up Game</button>
-        </div>
-
-        <div class="grid" id="product-grid">
-            <div style="text-align:center; grid-column: 1/-1; padding: 2rem; color:var(--text-muted);">Memuat produk dari database...</div>
-        </div>
-    </section>
+    <!-- ==================== END FULL SCREEN ADMIN ==================== -->
 
     <!-- Checkout Modal -->
     <div class="modal-overlay" id="modal-checkout">
@@ -287,13 +545,11 @@
             <div id="checkout-step-1">
                 <div style="background: var(--bg); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
                     <h3 id="co-prod-name" style="font-size: 1.1rem; margin-bottom: 0.3rem;">-</h3>
-                    <p id="co-prod-price" style="font-weight: 700; color: var(--primary); font-size: 1.2rem;">-</p>
+                    <p id="co-prod-price" style="font-weight: 700; color: var(--primary-light); font-size: 1.2rem;">-</p>
                 </div>
 
                 <form id="form-checkout">
                     <input type="hidden" id="co-prod-id">
-                    <input type="hidden" id="co-prod-type">
-                    
                     <div class="form-group">
                         <label>Nomor WhatsApp Aktif</label>
                         <input type="number" id="co-wa" class="form-control" placeholder="0812..." required>
@@ -304,29 +560,29 @@
                     
                     <div class="form-group" style="margin-top: 1.5rem;">
                         <label>Metode Pembayaran</label>
-                        <div style="padding: 1rem; background: rgba(99, 102, 241, 0.1); border: 1px solid var(--primary); border-radius: 10px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-qrcode"></i> QRIS Otomatis (Scan untuk bayar)
+                        <div style="padding: 1rem; background: rgba(0, 123, 255, 0.1); border: 1px solid var(--primary); border-radius: 10px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-qrcode" style="color:var(--primary-light)"></i> QRIS Otomatis (Scan untuk bayar)
                         </div>
                     </div>
 
-                    <button type="button" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 1rem;" onclick="processCheckoutStep1()">Buat Pesanan & Bayar</button>
+                    <button type="button" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 1rem;" onclick="processCheckoutStep1()">Buat Pesanan & Lanjut Bayar</button>
                 </form>
             </div>
 
             <div id="checkout-step-2" style="display: none; text-align: center;">
-                <h3 style="margin-bottom: 0.5rem;">Scan QRIS di bawah ini</h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Buka aplikasi e-Wallet atau M-Banking, lalu scan kode ini.</p>
+                <h3 style="margin-bottom: 0.5rem;">Selesaikan Pembayaran</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Scan atau Download QRIS di bawah ini melalui aplikasi e-Wallet / M-Banking Anda.</p>
                 
-                <div class="qris-box" style="display: block;">
-                    <div id="qris-canvas-container">
-                        <!-- QR Code akan di generate disini -->
-                    </div>
+                <div class="qris-box" id="qris-wrapper" style="display: block;">
+                    <div id="qris-canvas-container"></div>
                     <p id="co-total-pay">Total: Rp0</p>
-                    <p style="font-size: 0.8rem; font-weight: normal; margin-top: 5px;">Nominal sudah otomatis sesuai harga produk.</p>
+                    <button class="btn btn-success" style="margin-top: 1rem; padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="downloadQRIS()">
+                        <i class="fa-solid fa-download"></i> Download QRIS
+                    </button>
                 </div>
                 
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-outline" style="flex: 1;" onclick="backToStep1()">Batal</button>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-outline" style="flex: 1;" onclick="backToStep1()">Kembali</button>
                     <button class="btn btn-primary" style="flex: 2;" onclick="finalizeOrder()">Saya Sudah Bayar</button>
                 </div>
             </div>
@@ -348,163 +604,56 @@
                     <button class="btn btn-primary" onclick="trackOrder()">Cari</button>
                 </div>
             </div>
-            <div id="track-result" class="result-box"></div>
+            <div id="track-result" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; display: none;"></div>
         </div>
     </div>
 
-    <!-- Secret Login Modal (Google Auth) -->
+    <!-- Admin Login Modal -->
     <div class="modal-overlay" id="modal-login">
         <div class="modal-content" style="max-width: 350px; text-align: center;">
-            <div class="modal-header">
-                <h2>Otorisasi Admin</h2>
-                <button class="close-btn" onclick="closeModal('modal-login')"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header" style="justify-content: center; border: none; margin-bottom: 0;">
+                <h2><i class="fa-solid fa-lock"></i> Otorisasi Admin</h2>
             </div>
-            <p style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Silakan login menggunakan akun Google khusus admin Vipercell.</p>
-            <button class="btn btn-outline" style="width: 100%; border-color: #ea4335; color: #ea4335;" onclick="adminGoogleLogin()">
+            <p style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Login khusus email Admin Vipercell.</p>
+            <button class="btn btn-outline" style="width: 100%; border-color: #ea4335; color: #ea4335; margin-bottom: 1rem;" onclick="adminGoogleLogin()">
                 <i class="fa-brands fa-google"></i> Login with Google
             </button>
+            <button class="btn" style="background:transparent; color:var(--text-muted)" onclick="closeModal('modal-login')">Batal</button>
         </div>
     </div>
 
-    <!-- Admin Panel Modal -->
-    <div class="modal-overlay" id="modal-admin">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h2><i class="fa-solid fa-shield-halved" style="color: var(--primary)"></i> Vipercell Dashboard</h2>
-                <div>
-                    <button class="btn btn-danger" onclick="logoutAdmin()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Logout</button>
-                    <button class="close-btn" onclick="closeModal('modal-admin')" style="margin-left: 10px;"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-            </div>
-
-            <div class="admin-tabs">
-                <button class="admin-tab active" onclick="switchAdminTab('tab-orders', this)">Pesanan Masuk</button>
-                <button class="admin-tab" onclick="switchAdminTab('tab-products', this)">Kelola Produk</button>
-                <button class="admin-tab" onclick="switchAdminTab('tab-settings', this)">Pengaturan Web</button>
-            </div>
-
-            <!-- Tab: Orders -->
-            <div id="tab-orders" class="admin-tab-content">
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>Invoice</th><th>Produk</th><th>Detail Pelanggan</th><th>Status</th><th>Aksi</th></tr></thead>
-                        <tbody id="admin-order-list"><tr><td colspan="5" style="text-align:center">Memuat...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab: Products -->
-            <div id="tab-products" class="admin-tab-content" style="display: none;">
-                <div style="background: var(--bg); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
-                    <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Tambah Produk Baru</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div class="form-group">
-                            <label>Kategori</label>
-                            <select id="add-prod-type" class="form-control"><option value="app">Aplikasi Premium</option><option value="game">Top Up Game</option></select>
-                        </div>
-                        <div class="form-group">
-                            <label>Label Badge (cth: Netflix / MLBB)</label>
-                            <input type="text" id="add-prod-badge" class="form-control">
-                        </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Nama Produk</label>
-                            <input type="text" id="add-prod-name" class="form-control" placeholder="cth: Netflix 1 Bulan 4K">
-                        </div>
-                        <div class="form-group">
-                            <label>Harga Tampil (cth: Rp45.000)</label>
-                            <input type="text" id="add-prod-price" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Harga Angka (Untuk QRIS, cth: 45000)</label>
-                            <input type="number" id="add-prod-price-num" class="form-control">
-                        </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Deskripsi</label>
-                            <textarea id="add-prod-desc" class="form-control" rows="2"></textarea>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="adminAddProduct()">Simpan Produk Database</button>
-                </div>
-                
-                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Daftar Produk Aktif</h3>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>Nama</th><th>Tipe</th><th>Harga</th><th>Aksi</th></tr></thead>
-                        <tbody id="admin-prod-list"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab: Settings -->
-            <div id="tab-settings" class="admin-tab-content" style="display: none;">
-                <div class="form-group">
-                    <label>Logo Website (Pilih Gambar dari HP/Laptop)</label>
-                    <input type="file" id="logo-upload" accept="image/*" class="form-control" style="padding: 0.5rem; background: var(--surface);">
-                    <input type="hidden" id="set-logo-base64">
-                    <div style="margin-top: 10px;">
-                        <img id="set-logo-preview" src="" style="max-height: 50px; border-radius: 4px; display: none;">
-                    </div>
-                    <small style="color: var(--text-muted)">Atau gunakan teks jika gambar tidak dipilih:</small>
-                    <input type="text" id="set-logo-text" class="form-control" placeholder="VIPERCELL" style="margin-top: 5px;">
-                </div>
-                
-                <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-                    <label>Teks Berjalan (Marquee Promo)</label>
-                    <textarea id="set-marquee" class="form-control" rows="2" placeholder="Promo Spesial! ChatGPT 1 Bulan hanya 35k..."></textarea>
-                </div>
-
-                <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-                    <label>Link Video Tutorial Google Drive</label>
-                    <input type="text" id="set-tutorial" class="form-control" placeholder="https://drive.google.com/file/d/.../view">
-                    <small style="color: var(--warning)">Pastikan akses link Google Drive diatur ke "Siapa saja yang memiliki link" (Public).</small>
-                </div>
-
-                <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-                    <label>String QRIS Statis (Untuk QRIS Dinamis Otomatis)</label>
-                    <textarea id="set-qris-string" class="form-control" rows="3" placeholder="00020101021126670016ID.CO.SHOPEE..."></textarea>
-                    <small style="color: var(--text-muted)">Paste string QRIS aslimu di sini. Sistem akan otomatis memasukkan tag nominal harga dan menghitung ulang CRC saat pembeli checkout.</small>
-                </div>
-
-                <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%; margin-top: 1rem;">Simpan Semua Pengaturan</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for Account Input (Admin only) -->
+    <!-- Process App Order Modal (Admin) -->
     <div class="modal-overlay" id="modal-process-app">
-        <div class="modal-content" style="max-width: 400px; z-index: 1001;">
+        <div class="modal-content" style="z-index: 99999;">
             <div class="modal-header">
-                <h2>Kirim Akun Premium</h2>
+                <h2>Kirim Akun ke <span id="process-inv" style="color:var(--primary)"></span></h2>
                 <button class="close-btn" onclick="closeModal('modal-process-app')"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Pesanan <strong id="process-inv"></strong>.</p>
             <input type="hidden" id="process-order-id">
             <div class="form-group">
-                <label>Detail Akun (Email & Password / Link Invite)</label>
-                <textarea id="process-account-info" class="form-control" rows="4"></textarea>
+                <label>Masukkan Detail Akun (Email/Password/Link)</label>
+                <textarea id="process-account-info" class="form-control" rows="4" placeholder="Email: ...&#10;Pass: ..."></textarea>
             </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="submitAppOrder()">Selesaikan Pesanan</button>
+            <button class="btn btn-success" style="width:100%" onclick="submitAppOrder()">Kirim & Selesaikan Pesanan</button>
         </div>
     </div>
 
+    <!-- Custom Alert UI -->
     <div class="msg-overlay" id="custom-alert">
         <div class="msg-box">
             <div id="ca-icon" class="msg-icon info"><i class="fa-solid fa-circle-info"></i></div>
             <h3 id="ca-title" class="msg-title">Info</h3>
-            <p id="ca-desc" class="msg-desc">Message</p>
-            <div class="msg-actions">
-                <button class="btn btn-primary" onclick="closeAlert()">Tutup</button>
-            </div>
+            <p id="ca-desc" class="msg-desc">Message goes here.</p>
+            <button class="btn btn-outline" style="width: 100%;" onclick="closeAlert()">Tutup</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, query, addDoc, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase dari User + Fallback Workspace
-        const userFirebaseConfig = {
+        const firebaseConfig = {
             apiKey: "AIzaSyBQGZjl7uj5CRiLWCvPQKjiK4HvIYnXSJg",
             authDomain: "vipercell-fc50e.firebaseapp.com",
             projectId: "vipercell-fc50e",
@@ -513,32 +662,32 @@
             appId: "1:710483059781:web:b4c27b14ab34c45c892f2c"
         };
         
-        // Memprioritaskan config workspace jika ada agar tidak error di preview, jika tidak gunakan milik user
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        // Konfigurasi Path Database
-        // Menggunakan path workspace wajib jika di environment sandbox, atau root collections jika di environment user
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'vipercell';
+        // Paths rule: Since this is outside standard artifact structure in the prompt instruction, 
+        // using base paths but adapting if workspace exists to follow strict rules.
+        const workspaceId = typeof __app_id !== 'undefined' ? __app_id : 'vipercell-prod';
         const isWorkspace = typeof __app_id !== 'undefined';
         
-        const pathProducts = isWorkspace ? `artifacts/${appId}/public/data/products` : 'products';
-        const pathOrders = isWorkspace ? `artifacts/${appId}/public/data/orders` : 'orders';
-        const pathSettings = isWorkspace ? `artifacts/${appId}/public/data/settings` : 'settings';
+        const pathProducts = isWorkspace ? `artifacts/${workspaceId}/public/data/products` : 'products';
+        const pathOrders = isWorkspace ? `artifacts/${workspaceId}/public/data/orders` : 'orders';
+        const pathSettings = isWorkspace ? `artifacts/${workspaceId}/public/data/settings` : 'settings';
 
-        // State Global
         let products = [];
         let orders = [];
-        let siteSettings = { logoText: 'VIPERCELL', logoImgBase64: '', marquee: 'Selamat Datang di Vipercell', qrisString: '', tutorialLink: '' };
+        let siteSettings = { 
+            logoText: 'VIPERCELL', logoImgBase64: '', marquee: 'Selamat Datang di Vipercell', 
+            qrisString: '', adminWa: '085656321860', igLink: '', ttLink: '', tutorialList: [] 
+        };
         let isAdminLoggedIn = false;
         let currentUser = null;
 
-        // Expose functions to global window object for HTML inline handlers
-        window.openModal = function(id) { document.getElementById(id).classList.add('active'); };
-        window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); };
-        window.customAlert = function(title, message, type = 'info') {
+        // Custom UI Functions
+        window.openModal = (id) => document.getElementById(id).classList.add('active');
+        window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+        window.customAlert = (title, message, type = 'info') => {
             document.getElementById('ca-title').innerText = title;
             document.getElementById('ca-desc').innerHTML = message;
             const iconEl = document.getElementById('ca-icon');
@@ -548,132 +697,114 @@
             else iconEl.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
             document.getElementById('custom-alert').classList.add('active');
         };
-        window.closeAlert = function() { document.getElementById('custom-alert').classList.remove('active'); };
+        window.closeAlert = () => document.getElementById('custom-alert').classList.remove('active');
 
-        async function initAuthAndDB() {
+        // Toggle Full Screen Admin Dashboard
+        window.toggleAdminDashboard = (show) => {
+            if(show && !isAdminLoggedIn) {
+                window.customAlert("Akses Ditolak", "Anda belum login sebagai Admin.", "error");
+                return;
+            }
+            document.getElementById('store-view').style.display = show ? 'none' : 'block';
+            document.getElementById('admin-dashboard').style.display = show ? 'block' : 'none';
+            if(show) populateAdminSettings();
+        };
+
+        // Initialize App
+        async function initApp() {
             try {
-                // Anonymous sign in untuk pengunjung biasa agar bisa baca DB
-                const userCredential = await signInAnonymously(auth);
-                currentUser = userCredential.user;
-                
-                // Cek status sesi admin lokal
-                if(sessionStorage.getItem('viper_admin') === 'true') {
-                    isAdminLoggedIn = true;
-                    document.getElementById('btn-admin-panel').style.display = 'inline-flex';
-                }
+                await setPersistence(auth, browserLocalPersistence);
 
-                listenToSettings();
-                listenToProducts();
-                listenToOrders();
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if(user && user.email === 'vipercell.id@gmail.com') {
+                        isAdminLoggedIn = true;
+                        document.getElementById('btn-admin-panel').style.display = 'inline-flex';
+                    } else if (user) {
+                        isAdminLoggedIn = false;
+                        document.getElementById('btn-admin-panel').style.display = 'none';
+                    } else {
+                        isAdminLoggedIn = false;
+                        document.getElementById('btn-admin-panel').style.display = 'none';
+                        signInAnonymously(auth).catch(e => console.log("Anon auth failed", e));
+                    }
+                    
+                    if(currentUser) {
+                        listenData();
+                    }
+                });
+
+                if(!auth.currentUser) {
+                    if (typeof __initial_auth_token !== 'undefined') {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                }
             } catch (error) {
-                console.error("Auth error:", error);
-                window.customAlert("Database Error", "Gagal terhubung ke server data.", "error");
+                console.log("Init Error: ", error);
             }
         }
 
-        // Listener Real-time Firestore
-        function listenToSettings() {
-            if(!currentUser) return;
-            const docRef = doc(db, pathSettings, 'mainConfig');
-            onSnapshot(docRef, (docSnap) => {
+        function listenData() {
+            onSnapshot(doc(db, pathSettings, 'mainConfig'), (docSnap) => {
                 if (docSnap.exists()) {
-                    siteSettings = docSnap.data();
+                    siteSettings = { ...siteSettings, ...docSnap.data() };
                     applySettingsToUI();
                 } else {
-                    // Buat default config jika belum ada
-                    setDoc(docRef, siteSettings);
+                    setDoc(doc(db, pathSettings, 'mainConfig'), siteSettings).catch(e=>{});
                 }
-            }, (error) => console.log("Settings listener error", error));
-        }
+            }, (e) => {});
 
-        function listenToProducts() {
-            if(!currentUser) return;
-            const colRef = collection(db, pathProducts);
-            onSnapshot(colRef, (snapshot) => {
+            onSnapshot(collection(db, pathProducts), (snapshot) => {
                 products = [];
                 snapshot.forEach((doc) => { products.push({ dbId: doc.id, ...doc.data() }); });
                 window.renderProducts('all');
                 if(isAdminLoggedIn) window.renderAdminProducts();
-            }, (error) => console.log("Products listener error", error));
-        }
+            }, (e) => {});
 
-        function listenToOrders() {
-            if(!currentUser) return;
-            const colRef = collection(db, pathOrders);
-            onSnapshot(colRef, (snapshot) => {
+            onSnapshot(collection(db, pathOrders), (snapshot) => {
                 orders = [];
                 snapshot.forEach((doc) => { orders.push({ dbId: doc.id, ...doc.data() }); });
-                // Sort manual di memory (Menghindari masalah index Firestore)
                 orders.sort((a,b) => new Date(b.date) - new Date(a.date));
                 if(isAdminLoggedIn) window.renderAdminOrders();
-            }, (error) => console.log("Orders listener error", error));
+            }, (e) => {});
         }
 
+        // Apply visual settings globally
         function applySettingsToUI() {
-            // Terapkan Logo
-            document.getElementById('site-logo-text').innerText = siteSettings.logoText || 'VIPERCELL';
+            const logoTxt = siteSettings.logoText || 'VIPERCELL';
+            document.getElementById('site-logo-text').innerText = logoTxt;
+            document.getElementById('footer-logo-text').innerText = logoTxt;
+            
             const imgEl = document.getElementById('site-logo-img');
+            const fImgEl = document.getElementById('footer-logo-img');
             if(siteSettings.logoImgBase64) {
-                imgEl.src = siteSettings.logoImgBase64;
-                imgEl.style.display = 'block';
-                document.getElementById('site-logo-text').style.display = 'none';
+                imgEl.src = siteSettings.logoImgBase64; imgEl.style.display = 'block';
+                fImgEl.src = siteSettings.logoImgBase64; fImgEl.style.display = 'block';
             } else {
-                imgEl.style.display = 'none';
-                document.getElementById('site-logo-text').style.display = 'block';
+                imgEl.style.display = 'none'; fImgEl.style.display = 'none';
             }
             
-            // Terapkan Marquee
-            const marqueeText = siteSettings.marquee || 'Aplikasi Premium & Top Up Game Terbaik';
-            document.getElementById('marquee-text-1').innerText = marqueeText;
-            document.getElementById('marquee-text-2').innerText = marqueeText;
+            const mText = siteSettings.marquee || 'Selamat Datang di Vipercell';
+            document.getElementById('marquee-text-1').innerText = mText;
+            document.getElementById('marquee-text-2').innerText = mText;
+
+            const setupSocial = (ids, link) => {
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(link) { el.href = link; el.style.display = 'inline-block'; }
+                    else { el.style.display = 'none'; }
+                });
+            };
+            setupSocial(['header-ig', 'footer-ig'], siteSettings.igLink);
+            setupSocial(['header-tt', 'footer-tt'], siteSettings.ttLink);
+
+            renderTutorials();
+            if(isAdminLoggedIn) renderAdminTutorials();
         }
 
-        window.adminGoogleLogin = async function() {
-            const provider = new GoogleAuthProvider();
-            try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                
-                // Verifikasi Email Khusus Admin
-                if(user.email === 'vipercell.id@gmail.com' || user.email.includes('vipercell')) {
-                    sessionStorage.setItem('viper_admin', 'true');
-                    isAdminLoggedIn = true;
-                    currentUser = user; // Update current user
-                    
-                    window.closeModal('modal-login');
-                    document.getElementById('btn-admin-panel').style.display = 'inline-flex';
-                    window.customAlert('Akses Diberikan', `Selamat datang Admin ${user.displayName}.`, 'success');
-                    window.openAdminPanel();
-                } else {
-                    // Sign out jika email bukan admin
-                    await signOut(auth);
-                    window.customAlert('Akses Ditolak', 'Akun Google ini tidak memiliki izin akses ke Panel Admin.', 'error');
-                }
-            } catch (error) {
-                console.error("Google Auth Error:", error);
-                // Fallback sederhana jika popup diblokir oleh iframe/sandbox browser
-                window.customAlert('Login Gagal', 'Jika popup terblokir, pastikan mengizinkan popup untuk situs ini.', 'error');
-            }
-        };
-
-        document.getElementById('logo-upload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                if (file.size > 200 * 1024) { // Max 200KB
-                    window.customAlert('Peringatan', 'Ukuran gambar terlalu besar. Maksimal 200KB.', 'warning');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const base64String = event.target.result;
-                    document.getElementById('set-logo-preview').src = base64String;
-                    document.getElementById('set-logo-preview').style.display = 'block';
-                    document.getElementById('set-logo-base64').value = base64String;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
+        // Admin Secret Login Logic (7 clicks on logo)
         let clickCount = 0;
         let clickTimer;
         window.handleLogoClick = function() {
@@ -682,31 +813,75 @@
             if(clickCount === 7) {
                 clickCount = 0;
                 if(!isAdminLoggedIn) window.openModal('modal-login');
+                else window.toggleAdminDashboard(true);
             }
             clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
         };
+
+        window.adminGoogleLogin = async function() {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                if(result.user.email === 'vipercell.id@gmail.com') {
+                    window.closeModal('modal-login');
+                    window.customAlert('Berhasil Login', `Selamat datang Admin.`, 'success');
+                    window.toggleAdminDashboard(true);
+                } else {
+                    await signOut(auth);
+                    window.customAlert('Akses Ditolak', 'Bukan email admin.', 'error');
+                }
+            } catch (error) {
+                window.customAlert('Error', 'Gagal login Google.', 'error');
+            }
+        };
+
+        window.logoutAdmin = async function() {
+            await signOut(auth);
+            window.toggleAdminDashboard(false);
+            window.customAlert('Logout', 'Keluar dari mode admin.', 'info');
+        };
+
+        // Tutorials rendering
+        function extractDriveId(link) {
+            const match = link.match(/(?:id=|d\/)([a-zA-Z0-9_-]+)/i);
+            return match ? match[1] : link; // returns extracted ID or assumes it's already an ID
+        }
+
+        function renderTutorials() {
+            const grid = document.getElementById('public-tutorial-list');
+            grid.innerHTML = '';
+            const list = siteSettings.tutorialList || [];
+            
+            if(list.length === 0) {
+                grid.innerHTML = '<div style="text-align:center; color:var(--text-muted)">Belum ada tutorial.</div>';
+                return;
+            }
+
+            list.forEach(tut => {
+                const driveId = extractDriveId(tut.url);
+                const iframeSrc = `https://drive.google.com/file/d/${driveId}/preview`;
+                
+                grid.innerHTML += `
+                    <div class="tutorial-card">
+                        <div class="video-container">
+                            <iframe src="${iframeSrc}" allow="autoplay" allowfullscreen></iframe>
+                        </div>
+                        <div class="tutorial-info">
+                            <h3>${tut.title}</h3>
+                            <p>${tut.desc.replace(/\n/g, '<br>')}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
 
         window.openTabTutorial = function() {
             const tutSec = document.getElementById('tutorial-section');
             tutSec.style.display = 'block';
             tutSec.scrollIntoView({behavior: "smooth"});
-            
-            const iframe = document.getElementById('tutorial-iframe');
-            const msg = document.getElementById('no-video-msg');
-            const wrapper = document.getElementById('video-wrapper');
-            
-            if(siteSettings.tutorialLink) {
-                // Ubah link view menjadi preview agar bisa di embed
-                let embedLink = siteSettings.tutorialLink.replace('/view', '/preview');
-                iframe.src = embedLink;
-                wrapper.style.display = 'block';
-                msg.style.display = 'none';
-            } else {
-                wrapper.style.display = 'none';
-                msg.style.display = 'block';
-            }
         };
 
+        // Products
         window.filterProducts = function(type, btnEl) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btnEl.classList.add('active');
@@ -726,20 +901,20 @@
             
             filtered.forEach(p => {
                 const badgeClass = p.type === 'app' ? 'badge-app' : 'badge-game';
-                const card = document.createElement('div');
-                card.className = `product-card type-${p.type}`;
-                card.innerHTML = `
-                    <div class="card-header"><span class="card-badge ${badgeClass}">${p.badge}</span></div>
-                    <h3>${p.name}</h3>
-                    <p>${p.desc}</p>
-                    <div class="price-box"><div class="price">${p.priceStr}</div></div>
-                    <button class="buy-btn" onclick="startCheckout('${p.dbId}')">Beli Sekarang</button>
+                grid.innerHTML += `
+                    <div class="product-card type-${p.type}">
+                        <div class="card-header"><span class="card-badge ${badgeClass}">${p.badge}</span></div>
+                        <h3>${p.name}</h3>
+                        <p>${p.desc}</p>
+                        <div class="price-box"><div class="price">${p.priceStr}</div></div>
+                        <button class="buy-btn" onclick="startCheckout('${p.dbId}')">Beli Sekarang</button>
+                    </div>
                 `;
-                grid.appendChild(card);
             });
         };
 
-        // Menghitung CRC16-CCITT (Polynomial 0x1021) untuk string QRIS
+        // Checkout & Dynamic QRIS
+        let currentCheckoutProduct = null;
         function calculateCrc16(str) {
             let crc = 0xFFFF;
             for (let i = 0; i < str.length; i++) {
@@ -754,35 +929,20 @@
 
         function generateDynamicQrisString(baseQris, amountNum) {
             if(!baseQris || baseQris.length < 10) return "";
-            
-            // Hapus tag 63 (CRC) yang lama beserta nilainya (8 karakter terakhir)
             let qrisBase = baseQris;
             let crcIndex = qrisBase.lastIndexOf("6304");
-            if(crcIndex !== -1) {
-                qrisBase = qrisBase.substring(0, crcIndex);
-            }
+            if(crcIndex !== -1) qrisBase = qrisBase.substring(0, crcIndex);
 
-            // Membangun Tag 54 untuk nominal
             let amountStr = amountNum.toString();
             let amountLenStr = amountStr.length.toString().padStart(2, '0');
             let tag54 = "54" + amountLenStr + amountStr;
 
-            // Sisipkan Tag 54 (Nominal) sebelum Country Code "5802ID"
             let targetIndex = qrisBase.indexOf("5802ID");
             if(targetIndex === -1) targetIndex = qrisBase.length;
             
-            let newQris = qrisBase.slice(0, targetIndex) + tag54 + qrisBase.slice(targetIndex);
-            
-            // Tambahkan kembali Tag 6304
-            newQris += "6304";
-            
-            // Hitung CRC baru
-            let crcHex = calculateCrc16(newQris);
-            return newQris + crcHex;
+            let newQris = qrisBase.slice(0, targetIndex) + tag54 + qrisBase.slice(targetIndex) + "6304";
+            return newQris + calculateCrc16(newQris);
         }
-
-        let currentCheckoutProduct = null;
-        let qrCodeInstance = null;
 
         window.startCheckout = function(productDbId) {
             currentCheckoutProduct = products.find(p => p.dbId === productDbId);
@@ -790,7 +950,7 @@
 
             document.getElementById('co-prod-name').innerText = currentCheckoutProduct.name;
             document.getElementById('co-prod-price').innerText = currentCheckoutProduct.priceStr;
-            document.getElementById('co-total-pay').innerText = `Total Bayar: ${currentCheckoutProduct.priceStr}`;
+            document.getElementById('co-total-pay').innerText = `Total: ${currentCheckoutProduct.priceStr}`;
             
             const dynamicFields = document.getElementById('co-dynamic-fields');
             if(currentCheckoutProduct.type === 'game') {
@@ -800,7 +960,7 @@
                 `;
             } else {
                 dynamicFields.innerHTML = `
-                    <div class="form-group"><label>Email Pemesan (Untuk menerima akun)</label><input type="email" id="co-email" class="form-control" required></div>
+                    <div class="form-group"><label>Email Akun</label><input type="email" id="co-email" class="form-control" required></div>
                 `;
             }
 
@@ -811,41 +971,55 @@
 
         window.processCheckoutStep1 = function() {
             const wa = document.getElementById('co-wa').value;
-            if(!wa) { window.customAlert('Peringatan', 'Nomor WA wajib diisi.', 'error'); return; }
+            if(!wa) { window.customAlert('Peringatan', 'Nomor WA wajib diisi!', 'error'); return; }
             
+            // Validate specific fields based on type
             if(currentCheckoutProduct.type === 'game' && !document.getElementById('co-player-id').value) {
-                window.customAlert('Peringatan', 'ID Player wajib diisi.', 'error'); return;
-            } else if(currentCheckoutProduct.type === 'app' && !document.getElementById('co-email').value) {
-                window.customAlert('Peringatan', 'Email wajib diisi.', 'error'); return;
+                window.customAlert('Peringatan', 'ID Player wajib diisi!', 'error'); return;
+            } else if (currentCheckoutProduct.type === 'app' && !document.getElementById('co-email').value) {
+                window.customAlert('Peringatan', 'Email wajib diisi!', 'error'); return;
             }
 
-            // Generate QR Code Dinamis
             const qrContainer = document.getElementById('qris-canvas-container');
-            qrContainer.innerHTML = ''; // bersihkan QR lama
+            qrContainer.innerHTML = ''; 
             
-            if(siteSettings.qrisString) {
+            if(siteSettings.qrisString && siteSettings.qrisString.length > 20) {
                 const finalQrisString = generateDynamicQrisString(siteSettings.qrisString, currentCheckoutProduct.priceNum);
-                qrCodeInstance = new QRCode(qrContainer, {
-                    text: finalQrisString,
-                    width: 250, height: 250,
-                    colorDark : "#000000", colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.M
-                });
+                new QRCode(qrContainer, { text: finalQrisString, width: 220, height: 220, colorDark : "#000", colorLight : "#fff" });
             } else {
-                qrContainer.innerHTML = `<p style="color:var(--danger)">QRIS Belum diatur oleh Admin.</p>`;
+                qrContainer.innerHTML = `<div style="padding:2rem; background:#fee2e2; border-radius:10px; color:#ef4444; border:1px solid #ef4444;">Admin belum mengatur QRIS.</div>`;
             }
 
             document.getElementById('checkout-step-1').style.display = 'none';
             document.getElementById('checkout-step-2').style.display = 'block';
         };
 
-        window.backToStep1 = function() {
+        window.downloadQRIS = function() {
+            const canvas = document.querySelector('#qris-canvas-container canvas');
+            const img = document.querySelector('#qris-canvas-container img');
+            
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = `QRIS-Vipercell-${currentCheckoutProduct.priceNum}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } else if (img && img.src) {
+                const link = document.createElement('a');
+                link.download = `QRIS-Vipercell-${currentCheckoutProduct.priceNum}.png`;
+                link.href = img.src;
+                link.click();
+            } else {
+                window.customAlert('Gagal', 'Barcode QRIS tidak ditemukan.', 'error');
+            }
+        };
+
+        window.backToStep1 = () => {
             document.getElementById('checkout-step-1').style.display = 'block';
             document.getElementById('checkout-step-2').style.display = 'none';
         };
 
         window.finalizeOrder = async function() {
-            if(!currentUser) { window.customAlert('Error', 'Sistem gagal verifikasi sesi.', 'error'); return; }
+            if(!currentUser) return;
             
             const invId = 'VP-' + Math.floor(100000 + Math.random() * 900000);
             const wa = document.getElementById('co-wa').value;
@@ -854,28 +1028,24 @@
                 : `Email: ${document.getElementById('co-email').value}`;
 
             const newOrder = {
-                id: invId,
-                productId: currentCheckoutProduct.dbId,
-                productName: currentCheckoutProduct.name,
-                type: currentCheckoutProduct.type,
-                price: currentCheckoutProduct.priceStr,
-                customerWa: wa,
-                playerInfo: playerInfo,
-                status: 'PENDING',
-                accountInfo: '',
-                date: new Date().toISOString()
+                id: invId, productId: currentCheckoutProduct.dbId, productName: currentCheckoutProduct.name,
+                type: currentCheckoutProduct.type, price: currentCheckoutProduct.priceStr,
+                customerWa: wa, playerInfo: playerInfo, status: 'PENDING', accountInfo: '', date: new Date().toISOString()
             };
 
             try {
-                // Simpan ke Firestore
-                const colRef = collection(db, pathOrders);
-                await addDoc(colRef, newOrder);
-                
+                await addDoc(collection(db, pathOrders), newOrder);
                 window.closeModal('modal-checkout');
-                window.customAlert('Pesanan Berhasil Dibuat!', `ID Pesanan Anda: <strong>${invId}</strong><br><br>Mohon simpan ID tersebut untuk melacak pesanan Anda di menu "Cek Pesanan". Admin sedang memverifikasi pembayaran Anda.`, 'success');
+                window.customAlert('Pesanan Dibuat', `Invoice: <strong>${invId}</strong><br>Mengarahkan ke WhatsApp...`, 'success');
+
+                setTimeout(() => {
+                    let adminWaNum = siteSettings.adminWa || '085656321860';
+                    if (adminWaNum.startsWith('0')) adminWaNum = '62' + adminWaNum.substring(1);
+                    const waText = `Halo Admin Vipercell, saya sudah transfer via QRIS.\n\n*Invoice ID:* ${invId}\n*Produk:* ${currentCheckoutProduct.name}\n*Total Bayar:* ${currentCheckoutProduct.priceStr}\n*Nomor WA Saya:* ${wa}\n*Detail:* ${playerInfo}\n\nMohon pesanan segera diproses.`;
+                    window.open(`https://wa.me/${adminWaNum}?text=${encodeURIComponent(waText)}`, '_blank');
+                }, 2000);
             } catch (error) {
-                console.error("Gagal buat pesanan:", error);
-                window.customAlert('Error', 'Gagal membuat pesanan. Coba lagi.', 'error');
+                window.customAlert('Error', 'Gagal membuat pesanan.', 'error');
             }
         };
 
@@ -888,51 +1058,27 @@
             
             if(!order) {
                 resBox.style.display = 'block';
-                resBox.innerHTML = `<p style="color:var(--danger)"><i class="fa-solid fa-circle-xmark"></i> Pesanan tidak ditemukan. Periksa kembali ID Anda.</p>`;
+                resBox.innerHTML = `<p style="color:var(--danger)">Pesanan tidak ditemukan. Cek kembali Invoice ID.</p>`;
                 return;
             }
 
-            let statusHtml = '';
-            if(order.status === 'PENDING') {
-                statusHtml = `<span class="status-badge status-pending">Menunggu Proses Admin</span>
-                              <p style="margin-top: 10px; font-size:0.9rem; color:var(--text-muted);">Pembayaran sedang diverifikasi. Harap tunggu.</p>`;
-            } else {
-                statusHtml = `<span class="status-badge status-success">Pesanan Selesai</span>`;
-                if(order.type === 'app' && order.accountInfo) {
-                    const accInfoHtml = order.accountInfo.replace(/\n/g, '<br>');
-                    statusHtml += `<div class="account-details"><p><strong>Informasi Akun Anda:</strong></p><p>${accInfoHtml}</p></div>`;
-                } else if (order.type === 'game') {
-                    statusHtml += `<p style="margin-top: 10px; font-size:0.9rem; color:var(--text-muted);">Diamond / Item telah dikirim ke ID Player Anda.</p>`;
-                }
+            let statusHtml = order.status === 'PENDING' 
+                ? `<span class="status-badge status-pending" style="display:inline-block; margin-top:10px;">Menunggu Proses Admin</span>`
+                : `<span class="status-badge status-success" style="display:inline-block; margin-top:10px;">Pesanan Selesai</span>`;
+
+            if(order.status === 'SUCCESS' && order.type === 'app' && order.accountInfo) {
+                statusHtml += `
+                <div style="background: rgba(0,123,255,0.1); border: 1px dashed var(--primary); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                    <p style="margin-bottom:0.5rem; color:var(--primary-light); font-weight:bold;">Informasi Akun Anda:</p>
+                    <p style="font-family:monospace; color:var(--text); white-space:pre-wrap;">${order.accountInfo}</p>
+                </div>`;
             }
 
             resBox.style.display = 'block';
-            resBox.innerHTML = `<div style="border-bottom: 1px solid var(--border); margin-bottom: 1rem; padding-bottom: 1rem;">
-                    <h4 style="color:var(--primary); margin-bottom:0.3rem;">${order.productName}</h4>
-                    <p style="font-size:0.85rem; color:var(--text-muted);">Invoice: ${order.id} | Info: ${order.playerInfo}</p>
-                </div>${statusHtml}`;
+            resBox.innerHTML = `<div><h4 style="color:var(--primary-light); font-size:1.2rem;">${order.productName}</h4><p style="font-size:0.85rem; color:var(--text-muted);">Invoice: ${order.id}</p></div>${statusHtml}`;
         };
 
-        window.openAdminPanel = function() {
-            if(!isAdminLoggedIn) return;
-            window.renderAdminOrders();
-            window.renderAdminProducts();
-            
-            // Isi form pengaturan
-            document.getElementById('set-logo-text').value = siteSettings.logoText || '';
-            document.getElementById('set-logo-base64').value = siteSettings.logoImgBase64 || '';
-            document.getElementById('set-marquee').value = siteSettings.marquee || '';
-            document.getElementById('set-qris-string').value = siteSettings.qrisString || '';
-            document.getElementById('set-tutorial').value = siteSettings.tutorialLink || '';
-            
-            if(siteSettings.logoImgBase64) {
-                document.getElementById('set-logo-preview').src = siteSettings.logoImgBase64;
-                document.getElementById('set-logo-preview').style.display = 'block';
-            }
-            
-            window.openModal('modal-admin');
-        };
-
+        // ADMIN FUNCTIONS
         window.switchAdminTab = function(tabId, btnEl) {
             document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
@@ -940,48 +1086,62 @@
             document.getElementById(tabId).style.display = 'block';
         };
 
-        window.logoutAdmin = async function() {
-            sessionStorage.removeItem('viper_admin');
-            isAdminLoggedIn = false;
-            document.getElementById('btn-admin-panel').style.display = 'none';
-            window.closeModal('modal-admin');
-            await signOut(auth); // Sign out google
+        function populateAdminSettings() {
+            document.getElementById('set-logo-text').value = siteSettings.logoText || '';
+            document.getElementById('set-marquee').value = siteSettings.marquee || '';
+            document.getElementById('set-qris-string').value = siteSettings.qrisString || '';
+            document.getElementById('set-wa').value = siteSettings.adminWa || '';
+            document.getElementById('set-ig').value = siteSettings.igLink || '';
+            document.getElementById('set-tt').value = siteSettings.ttLink || '';
             
-            // Re-login anonymous to maintain read access for public store
-            await signInAnonymously(auth);
-            
-            window.customAlert('Logout', 'Berhasil keluar dari mode admin.', 'info');
-        };
+            if(siteSettings.logoImgBase64) {
+                document.getElementById('set-logo-preview').src = siteSettings.logoImgBase64;
+                document.getElementById('set-logo-preview').style.display = 'block';
+            }
+        }
+
+        document.getElementById('logo-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const base64String = event.target.result;
+                    document.getElementById('set-logo-preview').src = base64String;
+                    document.getElementById('set-logo-preview').style.display = 'block';
+                    document.getElementById('set-logo-base64').value = base64String;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
         window.renderAdminOrders = function() {
             const tbody = document.getElementById('admin-order-list');
             tbody.innerHTML = '';
-            
             if(orders.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada pesanan</td></tr>`; return; }
 
             orders.forEach(o => {
                 const isPending = o.status === 'PENDING';
-                const statusBadge = isPending ? `<span class="status-badge status-pending">Pending</span>` : `<span class="status-badge status-success">Success</span>`;
-                
                 let actionBtn = '-';
                 if(isPending) {
-                    if(o.type === 'game') actionBtn = `<button class="btn btn-primary" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="processGameOrder('${o.dbId}')">Selesai</button>`;
-                    else actionBtn = `<button class="btn btn-primary" style="padding:0.3rem 0.6rem; font-size:0.8rem; background:var(--app-accent);" onclick="promptAppOrder('${o.dbId}', '${o.id}')">Kirim Akun</button>`;
+                    if(o.type === 'game') actionBtn = `<button class="btn btn-success" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="processGameOrder('${o.dbId}')">Tandai Selesai</button>`;
+                    else actionBtn = `<button class="btn btn-primary" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="promptAppOrder('${o.dbId}', '${o.id}')">Kirim Akun</button>`;
+                } else {
+                    actionBtn = `<span style="color:var(--text-muted); font-size:0.8rem;">Selesai</span>`;
                 }
-
                 tbody.innerHTML += `<tr>
-                    <td style="font-family:monospace; font-weight:bold;">${o.id}</td>
+                    <td><strong>${o.id}</strong></td>
                     <td>${o.productName}</td>
                     <td>WA: ${o.customerWa}<br><small style="color:var(--text-muted)">${o.playerInfo}</small></td>
-                    <td>${statusBadge}</td><td>${actionBtn}</td>
+                    <td><span class="status-badge ${isPending ? 'status-pending' : 'status-success'}">${o.status}</span></td>
+                    <td>${actionBtn}</td>
                 </tr>`;
             });
         };
 
         window.processGameOrder = async function(dbId) {
             if(!currentUser) return;
-            const docRef = doc(db, pathOrders, dbId);
-            await updateDoc(docRef, { status: 'SUCCESS' });
+            await updateDoc(doc(db, pathOrders, dbId), { status: 'SUCCESS' });
+            window.customAlert('Sukses', 'Pesanan Game ditandai selesai.', 'success');
         };
 
         window.promptAppOrder = function(dbId, invId) {
@@ -995,13 +1155,11 @@
             if(!currentUser) return;
             const dbId = document.getElementById('process-order-id').value;
             const accInfo = document.getElementById('process-account-info').value;
+            if(!accInfo) { window.customAlert('Peringatan', 'Isi detail akun terlebih dahulu!', 'error'); return; }
             
-            if(!accInfo.trim()) { window.customAlert('Error', 'Detail akun tidak boleh kosong!', 'error'); return; }
-
-            const docRef = doc(db, pathOrders, dbId);
-            await updateDoc(docRef, { status: 'SUCCESS', accountInfo: accInfo });
+            await updateDoc(doc(db, pathOrders, dbId), { status: 'SUCCESS', accountInfo: accInfo });
             window.closeModal('modal-process-app');
-            window.customAlert('Berhasil', 'Pesanan diselesaikan dan akun terkirim.', 'success');
+            window.customAlert('Berhasil', 'Akun terkirim ke pelanggan.', 'success');
         };
 
         window.renderAdminProducts = function() {
@@ -1009,63 +1167,107 @@
             tbody.innerHTML = '';
             products.forEach(p => {
                 tbody.innerHTML += `<tr>
-                    <td><strong>${p.name}</strong><br><small style="color:var(--text-muted)">${p.badge}</small></td>
-                    <td>${p.type === 'app' ? 'Premium App' : 'Top Up Game'}</td>
+                    <td><strong>${p.name}</strong><br><small style="color:var(--text-muted)">Badge: ${p.badge}</small></td>
+                    <td>${p.type === 'app' ? 'Aplikasi' : 'Game'}</td>
                     <td>${p.priceStr}</td>
-                    <td><button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="deleteProduct('${p.dbId}')">Hapus</button></td>
+                    <td><button class="btn btn-danger" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="deleteProduct('${p.dbId}')">Hapus</button></td>
                 </tr>`;
             });
         };
 
         window.adminAddProduct = async function() {
             if(!currentUser) return;
-            const type = document.getElementById('add-prod-type').value;
-            const badge = document.getElementById('add-prod-badge').value || (type === 'app' ? 'Premium' : 'Game');
-            const name = document.getElementById('add-prod-name').value;
-            const priceStr = document.getElementById('add-prod-price').value;
-            const priceNum = document.getElementById('add-prod-price-num').value;
-            const desc = document.getElementById('add-prod-desc').value;
-
-            if(!name || !priceStr || !priceNum) { window.customAlert('Error', 'Nama, Harga Tampil, dan Harga Angka wajib diisi.', 'error'); return; }
-
-            const newProd = { type, badge, name, priceStr, priceNum: parseInt(priceNum), desc };
+            const newProd = { 
+                type: document.getElementById('add-prod-type').value, 
+                badge: document.getElementById('add-prod-badge').value || 'New', 
+                name: document.getElementById('add-prod-name').value, 
+                priceStr: document.getElementById('add-prod-price').value, 
+                priceNum: parseInt(document.getElementById('add-prod-price-num').value) || 0, 
+                desc: document.getElementById('add-prod-desc').value 
+            };
+            if(!newProd.name || !newProd.priceStr) { window.customAlert('Error', 'Nama dan Harga wajib diisi', 'error'); return; }
             
-            const colRef = collection(db, pathProducts);
-            await addDoc(colRef, newProd);
+            await addDoc(collection(db, pathProducts), newProd);
             
-            document.getElementById('add-prod-name').value = '';
-            document.getElementById('add-prod-price').value = '';
-            document.getElementById('add-prod-price-num').value = '';
-            document.getElementById('add-prod-desc').value = '';
-            window.customAlert('Berhasil', 'Produk ditambahkan ke database.', 'success');
+            ['add-prod-name', 'add-prod-price', 'add-prod-price-num', 'add-prod-desc', 'add-prod-badge'].forEach(id => document.getElementById(id).value = '');
+            window.customAlert('Berhasil', 'Produk ditambahkan.', 'success');
         };
 
         window.deleteProduct = async function(dbId) {
             if(!currentUser) return;
-            if(confirm("Yakin ingin menghapus produk ini?")) {
-                const docRef = doc(db, pathProducts, dbId);
-                await deleteDoc(docRef);
+            await deleteDoc(doc(db, pathProducts, dbId));
+            window.customAlert('Terhapus', 'Produk berhasil dihapus.', 'info');
+        };
+
+        // Admin Tutorial Controls
+        window.renderAdminTutorials = function() {
+            const listContainer = document.getElementById('admin-tut-list');
+            listContainer.innerHTML = '';
+            const list = siteSettings.tutorialList || [];
+            
+            if(list.length === 0) {
+                listContainer.innerHTML = '<p style="color:var(--text-muted)">Belum ada tutorial yang ditambahkan.</p>';
             }
+
+            list.forEach((tut, index) => {
+                listContainer.innerHTML += `
+                    <div style="background: rgba(255,255,255,0.02); padding: 1rem; border: 1px solid var(--border); border-radius: 8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h4 style="color:var(--primary-light); margin-bottom:5px;">${tut.title}</h4>
+                            <p style="font-size:0.85rem; color:var(--text-muted); max-width: 400px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${tut.desc}</p>
+                        </div>
+                        <button class="btn btn-danger" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="adminDeleteTutorial(${index})">Hapus</button>
+                    </div>
+                `;
+            });
+        }
+
+        window.adminAddTutorial = async function() {
+            if(!currentUser) return;
+            const title = document.getElementById('add-tut-title').value;
+            const desc = document.getElementById('add-tut-desc').value;
+            const url = document.getElementById('add-tut-link').value;
+
+            if(!title || !url) { window.customAlert('Error', 'Judul dan link wajib diisi.', 'error'); return; }
+
+            const newList = siteSettings.tutorialList || [];
+            newList.push({ id: Date.now(), title, desc, url });
+            
+            await updateDoc(doc(db, pathSettings, 'mainConfig'), { tutorialList: newList });
+            
+            document.getElementById('add-tut-title').value = '';
+            document.getElementById('add-tut-desc').value = '';
+            document.getElementById('add-tut-link').value = '';
+            window.customAlert('Berhasil', 'Tutorial ditambahkan.', 'success');
+        };
+
+        window.adminDeleteTutorial = async function(index) {
+            if(!currentUser) return;
+            const newList = [...siteSettings.tutorialList];
+            newList.splice(index, 1);
+            await updateDoc(doc(db, pathSettings, 'mainConfig'), { tutorialList: newList });
+            window.customAlert('Terhapus', 'Tutorial dihapus.', 'info');
         };
 
         window.saveSettings = async function() {
             if(!currentUser) return;
+            let currentBase64 = document.getElementById('set-logo-base64').value;
             
             const newSettings = {
                 logoText: document.getElementById('set-logo-text').value,
-                logoImgBase64: document.getElementById('set-logo-base64').value,
+                logoImgBase64: currentBase64,
                 marquee: document.getElementById('set-marquee').value,
                 qrisString: document.getElementById('set-qris-string').value,
-                tutorialLink: document.getElementById('set-tutorial').value
+                adminWa: document.getElementById('set-wa').value,
+                igLink: document.getElementById('set-ig').value,
+                ttLink: document.getElementById('set-tt').value
             };
             
-            const docRef = doc(db, pathSettings, 'mainConfig');
-            await setDoc(docRef, newSettings);
-            window.customAlert('Berhasil', 'Pengaturan website berhasil disimpan ke database.', 'success');
+            await updateDoc(doc(db, pathSettings, 'mainConfig'), newSettings);
+            window.customAlert('Berhasil', 'Pengaturan Web Disimpan.', 'success');
         };
 
-        // Mulai aplikasi
-        window.onload = initAuthAndDB;
+        window.onload = initApp;
 
     </script>
 </body>
