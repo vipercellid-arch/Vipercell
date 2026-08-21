@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vipercell - Premium App & Game Top Up</title>
+    <!-- FontAwesome & Google Fonts -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- QR Code Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #ec4899;
+            --bg: #09090b; 
+            --surface: #18181b; 
+            --surface-hover: #27272a;
+            --border: #3f3f46;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --game-accent: #14b8a6;
+            --app-accent: #8b5cf6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; scroll-behavior: smooth; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        button { cursor: pointer; border: none; font-family: inherit; }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 5%; }
+        
+        header { 
+            position: sticky; top: 0; z-index: 100; 
+            background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(63, 63, 70, 0.5); transition: 0.3s;
+        }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; height: 70px; }
+        .logo-area { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+        .logo-img { max-height: 40px; border-radius: 8px; display: none; object-fit: contain; }
+        .logo-text { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; color: transparent; }
+        
+        nav { display: flex; gap: 2rem; align-items: center; }
+        nav a { font-weight: 500; font-size: 0.95rem; color: var(--text-muted); transition: 0.3s; position: relative; }
+        nav a:hover { color: var(--text); }
+        nav a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: var(--primary); transition: 0.3s; }
+        nav a:hover::after { width: 100%; }
+        
+        .header-actions { display: flex; gap: 1rem; align-items: center; }
+        .btn { padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--surface); border-color: var(--text-muted); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+        
+        #btn-admin-panel { display: none; }
+
+        .hero { padding: 6rem 0 4rem; text-align: center; position: relative; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: -20%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(79,70,229,0.15) 0%, rgba(0,0,0,0) 70%); z-index: -1; }
+        .hero h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -1px; animation: slideUp 0.5s ease 0.1s both; }
+        .hero h1 span { color: var(--primary); }
+        .hero p { color: var(--text-muted); max-width: 600px; margin: 0 auto 2rem; font-size: 1.1rem; animation: slideUp 0.5s ease 0.2s both; }
+        .hero-btns { display: flex; justify-content: center; gap: 1rem; animation: slideUp 0.5s ease 0.3s both; }
+        
+        .marquee-container { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1rem 0; overflow: hidden; display: flex; position: relative; }
+        .marquee-content { display: flex; gap: 3rem; white-space: nowrap; animation: marquee 25s linear infinite; }
+        .marquee-text { font-weight: 600; color: var(--text-muted); font-size: 0.95rem; letter-spacing: 1px;}
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        
+        .section-header { text-align: center; margin-bottom: 3rem; }
+        .section-header h2 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .section-header p { color: var(--text-muted); }
+        
+        section { padding: 5rem 0; }
+        .tabs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
+        .tab-btn { padding: 0.8rem 1.5rem; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); font-weight: 600; transition: 0.3s; }
+        .tab-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+        .tab-btn:hover:not(.active) { background: var(--surface-hover); color: var(--text); }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        
+        .product-card { 
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; 
+            display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
+        }
+        .product-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; }
+        .product-card.type-app::before { background: var(--app-accent); }
+        .product-card.type-game::before { background: var(--game-accent); }
+        .product-card:hover { transform: translateY(-5px); border-color: #52525b; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
+        .product-card:hover::before { transform: scaleX(1); }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+        .card-badge { padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-app { background: rgba(139, 92, 246, 0.1); color: var(--app-accent); border: 1px solid rgba(139, 92, 246, 0.2); }
+        .badge-game { background: rgba(20, 184, 166, 0.1); color: var(--game-accent); border: 1px solid rgba(20, 184, 166, 0.2); }
+        
+        .product-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .product-card p { color: var(--text-muted); font-size: 0.9rem; flex-grow: 1; margin-bottom: 1.5rem; }
+        .price-box { margin-bottom: 1.5rem; }
+        .price-box .price { font-size: 1.5rem; font-weight: 800; color: var(--text); }
+        
+        .buy-btn { width: 100%; padding: 0.8rem; border-radius: 10px; font-weight: 600; text-align: center; background: var(--text); color: var(--bg); transition: 0.3s; }
+        .buy-btn:hover { background: #d4d4d8; transform: scale(1.02); }
+
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 1000; 
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .modal-content { 
+            background: var(--surface); border: 1px solid var(--border); border-radius: 20px; 
+            width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 2rem;
+            transform: translateY(20px) scale(0.95); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0) scale(1); }
+        .modal-content.large { max-width: 800px; }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+        .modal-header h2 { font-size: 1.3rem; font-weight: 700; }
+        .close-btn { background: transparent; color: var(--text-muted); font-size: 1.2rem; transition: 0.2s; }
+        .close-btn:hover { color: var(--danger); transform: rotate(90deg); }
+
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 500; }
+        .form-control { 
+            width: 100%; padding: 0.8rem 1rem; border-radius: 10px; border: 1px solid var(--border); 
+            background: var(--bg); color: var(--text); outline: none; transition: 0.3s; font-size: 0.95rem;
+        }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
+        textarea.form-control { resize: vertical; min-height: 80px; }
+        
+        .qris-box { background: white; padding: 1.5rem; border-radius: 12px; text-align: center; margin: 1.5rem 0; display: none; }
+        #qris-canvas-container { display: flex; justify-content: center; margin-bottom: 1rem; }
+        .qris-box p { color: #000; font-weight: 700; margin-top: 0.5rem; font-size: 1.1rem; }
+
+        .admin-tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; overflow-x: auto;}
+        .admin-tab { padding: 0.5rem 1rem; border-radius: 8px; color: var(--text-muted); background: transparent; font-weight: 600; white-space: nowrap; transition: 0.3s; }
+        .admin-tab:hover { color: var(--text); }
+        .admin-tab.active { background: var(--primary); color: white; }
+        
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; text-align: left; font-size: 0.9rem; }
+        th, td { padding: 1rem; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); font-weight: 600; background: var(--bg); }
+        .status-badge { padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .status-success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        
+        /* Box Pesan Custom Alert */
+        .msg-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); z-index: 9999; display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(3px);
+        }
+        .msg-overlay.active { opacity: 1; pointer-events: all; }
+        .msg-box {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem;
+            width: 90%; max-width: 400px; text-align: center; transform: scale(0.9); transition: 0.3s;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .msg-overlay.active .msg-box { transform: scale(1); }
+        .msg-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .msg-icon.success { color: var(--success); }
+        .msg-icon.error { color: var(--danger); }
+        .msg-icon.info { color: var(--primary); }
+        .msg-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .msg-desc { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+        
+        .result-box { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; display: none; }
+        .account-details { background: rgba(139, 92, 246, 0.1); border: 1px dashed var(--app-accent); padding: 1rem; border-radius: 8px; margin-top: 1rem; }
+        .account-details p { margin-bottom: 0.5rem; font-family: monospace; font-size: 1rem; color: var(--text); }
+
+        /* Video Container */
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; margin-top: 1rem; border: 1px solid var(--border); display: none; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @media (max-width: 768px) {
+            nav { display: none; }
+            .header-actions { margin-left: auto; }
+            .hero { padding: 4rem 0 3rem; }
+            .btn { padding: 0.6rem 1rem; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container nav-container">
+            <!-- Secret Trigger: Click logo area 7 times to login admin -->
+            <div class="logo-area" onclick="handleLogoClick()">
+                <img id="site-logo-img" src="" alt="Logo" class="logo-img">
+                <span id="site-logo-text" class="logo-text">VIPERCELL</span>
+            </div>
+            
+            <nav>
+                <a href="#katalog">Katalog Produk</a>
+                <a href="#fitur">Keunggulan</a>
+                <a href="#" onclick="openTabTutorial()">Cara Klaim/Login</a>
+                <a href="#" onclick="openModal('modal-cek-pesanan')">Cek Pesanan</a>
+            </nav>
+            
+            <div class="header-actions">
+                <button class="btn btn-outline" onclick="openModal('modal-cek-pesanan')">
+                    <i class="fa-solid fa-magnifying-glass"></i> <span style="display:none; @media(min-width:480px){display:inline;}">Lacak</span>
+                </button>
+                <button id="btn-admin-panel" class="btn btn-primary" onclick="openAdminPanel()">
+                    <i class="fa-solid fa-shield-halved"></i> Panel Admin
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero container">
+        <h1>Upgrade Harimu Dengan <br><span>Layanan Premium</span></h1>
+        <p>Platform top-up game dan penyedia akun premium otomatis. Checkout mudah via QRIS dinamis, cek pesanan secara realtime tanpa ribet.</p>
+        <div class="hero-btns">
+            <a href="#katalog" class="btn btn-primary"><i class="fa-solid fa-store"></i> Lihat Katalog</a>
+            <a href="#" onclick="openTabTutorial()" class="btn btn-outline"><i class="fa-solid fa-circle-play"></i> Cara Klaim Akun</a>
+        </div>
+    </section>
+
+    <div class="marquee-container">
+        <div class="marquee-content" id="marquee-wrapper">
+            <!-- Teks berjalan diisi oleh JS -->
+            <span class="marquee-text" id="marquee-text-1">Memuat promo terbaru...</span>
+            <span class="marquee-text" id="marquee-text-2">Memuat promo terbaru...</span>
+        </div>
+    </div>
+
+    <section id="tutorial-section" class="container" style="display: none; padding-top: 2rem;">
+        <div class="section-header">
+            <h2>Panduan & Tutorial</h2>
+            <p>Tonton video di bawah ini untuk mengetahui cara login/klaim akun premium kamu.</p>
+        </div>
+        <div class="video-container" id="video-wrapper">
+            <iframe id="tutorial-iframe" src="" allow="autoplay"></iframe>
+        </div>
+        <div style="text-align:center; margin-top: 1rem;" id="no-video-msg">
+            <p style="color:var(--text-muted)">Video panduan belum ditambahkan oleh admin.</p>
+        </div>
+    </section>
+
+    <section id="katalog" class="container">
+        <div class="section-header">
+            <h2>Katalog Produk</h2>
+            <p>Pilih produk, bayar pakai QRIS otomatis, dan dapatkan pesananmu seketika.</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="filterProducts('all', this)">Semua</button>
+            <button class="tab-btn" onclick="filterProducts('app', this)"><i class="fa-solid fa-mobile-screen"></i> Aplikasi Premium</button>
+            <button class="tab-btn" onclick="filterProducts('game', this)"><i class="fa-solid fa-gamepad"></i> Top Up Game</button>
+        </div>
+
+        <div class="grid" id="product-grid">
+            <div style="text-align:center; grid-column: 1/-1; padding: 2rem; color:var(--text-muted);">Memuat produk dari database...</div>
+        </div>
+    </section>
+
+    <!-- Checkout Modal -->
+    <div class="modal-overlay" id="modal-checkout">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Checkout Pesanan</h2>
+                <button class="close-btn" onclick="closeModal('modal-checkout')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="checkout-step-1">
+                <div style="background: var(--bg); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
+                    <h3 id="co-prod-name" style="font-size: 1.1rem; margin-bottom: 0.3rem;">-</h3>
+                    <p id="co-prod-price" style="font-weight: 700; color: var(--primary); font-size: 1.2rem;">-</p>
+                </div>
+
+                <form id="form-checkout">
+                    <input type="hidden" id="co-prod-id">
+                    <input type="hidden" id="co-prod-type">
+                    
+                    <div class="form-group">
+                        <label>Nomor WhatsApp Aktif</label>
+                        <input type="number" id="co-wa" class="form-control" placeholder="0812..." required>
+                    </div>
+
+                    <!-- Dynamic Fields -->
+                    <div id="co-dynamic-fields"></div>
+                    
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <label>Metode Pembayaran</label>
+                        <div style="padding: 1rem; background: rgba(99, 102, 241, 0.1); border: 1px solid var(--primary); border-radius: 10px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-qrcode"></i> QRIS Otomatis (Scan untuk bayar)
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 1rem;" onclick="processCheckoutStep1()">Buat Pesanan & Bayar</button>
+                </form>
+            </div>
+
+            <div id="checkout-step-2" style="display: none; text-align: center;">
+                <h3 style="margin-bottom: 0.5rem;">Scan QRIS di bawah ini</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Buka aplikasi e-Wallet atau M-Banking, lalu scan kode ini.</p>
+                
+                <div class="qris-box" style="display: block;">
+                    <div id="qris-canvas-container">
+                        <!-- QR Code akan di generate disini -->
+                    </div>
+                    <p id="co-total-pay">Total: Rp0</p>
+                    <p style="font-size: 0.8rem; font-weight: normal; margin-top: 5px;">Nominal sudah otomatis sesuai harga produk.</p>
+                </div>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-outline" style="flex: 1;" onclick="backToStep1()">Batal</button>
+                    <button class="btn btn-primary" style="flex: 2;" onclick="finalizeOrder()">Saya Sudah Bayar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cek Pesanan Modal -->
+    <div class="modal-overlay" id="modal-cek-pesanan">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Lacak Pesanan</h2>
+                <button class="close-btn" onclick="closeModal('modal-cek-pesanan')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="form-group">
+                <label>Masukkan Invoice ID</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="track-id" class="form-control" placeholder="Contoh: VP-123456" style="text-transform: uppercase;">
+                    <button class="btn btn-primary" onclick="trackOrder()">Cari</button>
+                </div>
+            </div>
+            <div id="track-result" class="result-box"></div>
+        </div>
+    </div>
+
+    <!-- Secret Login Modal (Google Auth) -->
+    <div class="modal-overlay" id="modal-login">
+        <div class="modal-content" style="max-width: 350px; text-align: center;">
+            <div class="modal-header">
+                <h2>Otorisasi Admin</h2>
+                <button class="close-btn" onclick="closeModal('modal-login')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Silakan login menggunakan akun Google khusus admin Vipercell.</p>
+            <button class="btn btn-outline" style="width: 100%; border-color: #ea4335; color: #ea4335;" onclick="adminGoogleLogin()">
+                <i class="fa-brands fa-google"></i> Login with Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div class="modal-overlay" id="modal-admin">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-shield-halved" style="color: var(--primary)"></i> Vipercell Dashboard</h2>
+                <div>
+                    <button class="btn btn-danger" onclick="logoutAdmin()" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Logout</button>
+                    <button class="close-btn" onclick="closeModal('modal-admin')" style="margin-left: 10px;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="switchAdminTab('tab-orders', this)">Pesanan Masuk</button>
+                <button class="admin-tab" onclick="switchAdminTab('tab-products', this)">Kelola Produk</button>
+                <button class="admin-tab" onclick="switchAdminTab('tab-settings', this)">Pengaturan Web</button>
+            </div>
+
+            <!-- Tab: Orders -->
+            <div id="tab-orders" class="admin-tab-content">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Invoice</th><th>Produk</th><th>Detail Pelanggan</th><th>Status</th><th>Aksi</th></tr></thead>
+                        <tbody id="admin-order-list"><tr><td colspan="5" style="text-align:center">Memuat...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Products -->
+            <div id="tab-products" class="admin-tab-content" style="display: none;">
+                <div style="background: var(--bg); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Tambah Produk Baru</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Kategori</label>
+                            <select id="add-prod-type" class="form-control"><option value="app">Aplikasi Premium</option><option value="game">Top Up Game</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Label Badge (cth: Netflix / MLBB)</label>
+                            <input type="text" id="add-prod-badge" class="form-control">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Nama Produk</label>
+                            <input type="text" id="add-prod-name" class="form-control" placeholder="cth: Netflix 1 Bulan 4K">
+                        </div>
+                        <div class="form-group">
+                            <label>Harga Tampil (cth: Rp45.000)</label>
+                            <input type="text" id="add-prod-price" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Harga Angka (Untuk QRIS, cth: 45000)</label>
+                            <input type="number" id="add-prod-price-num" class="form-control">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Deskripsi</label>
+                            <textarea id="add-prod-desc" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="adminAddProduct()">Simpan Produk Database</button>
+                </div>
+                
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Daftar Produk Aktif</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Nama</th><th>Tipe</th><th>Harga</th><th>Aksi</th></tr></thead>
+                        <tbody id="admin-prod-list"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Settings -->
+            <div id="tab-settings" class="admin-tab-content" style="display: none;">
+                <div class="form-group">
+                    <label>Logo Website (Pilih Gambar dari HP/Laptop)</label>
+                    <input type="file" id="logo-upload" accept="image/*" class="form-control" style="padding: 0.5rem; background: var(--surface);">
+                    <input type="hidden" id="set-logo-base64">
+                    <div style="margin-top: 10px;">
+                        <img id="set-logo-preview" src="" style="max-height: 50px; border-radius: 4px; display: none;">
+                    </div>
+                    <small style="color: var(--text-muted)">Atau gunakan teks jika gambar tidak dipilih:</small>
+                    <input type="text" id="set-logo-text" class="form-control" placeholder="VIPERCELL" style="margin-top: 5px;">
+                </div>
+                
+                <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                    <label>Teks Berjalan (Marquee Promo)</label>
+                    <textarea id="set-marquee" class="form-control" rows="2" placeholder="Promo Spesial! ChatGPT 1 Bulan hanya 35k..."></textarea>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                    <label>Link Video Tutorial Google Drive</label>
+                    <input type="text" id="set-tutorial" class="form-control" placeholder="https://drive.google.com/file/d/.../view">
+                    <small style="color: var(--warning)">Pastikan akses link Google Drive diatur ke "Siapa saja yang memiliki link" (Public).</small>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                    <label>String QRIS Statis (Untuk QRIS Dinamis Otomatis)</label>
+                    <textarea id="set-qris-string" class="form-control" rows="3" placeholder="00020101021126670016ID.CO.SHOPEE..."></textarea>
+                    <small style="color: var(--text-muted)">Paste string QRIS aslimu di sini. Sistem akan otomatis memasukkan tag nominal harga dan menghitung ulang CRC saat pembeli checkout.</small>
+                </div>
+
+                <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%; margin-top: 1rem;">Simpan Semua Pengaturan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Account Input (Admin only) -->
+    <div class="modal-overlay" id="modal-process-app">
+        <div class="modal-content" style="max-width: 400px; z-index: 1001;">
+            <div class="modal-header">
+                <h2>Kirim Akun Premium</h2>
+                <button class="close-btn" onclick="closeModal('modal-process-app')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">Pesanan <strong id="process-inv"></strong>.</p>
+            <input type="hidden" id="process-order-id">
+            <div class="form-group">
+                <label>Detail Akun (Email & Password / Link Invite)</label>
+                <textarea id="process-account-info" class="form-control" rows="4"></textarea>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="submitAppOrder()">Selesaikan Pesanan</button>
+        </div>
+    </div>
+
+    <div class="msg-overlay" id="custom-alert">
+        <div class="msg-box">
+            <div id="ca-icon" class="msg-icon info"><i class="fa-solid fa-circle-info"></i></div>
+            <h3 id="ca-title" class="msg-title">Info</h3>
+            <p id="ca-desc" class="msg-desc">Message</p>
+            <div class="msg-actions">
+                <button class="btn btn-primary" onclick="closeAlert()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, query, addDoc, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Konfigurasi Firebase dari User + Fallback Workspace
+        const userFirebaseConfig = {
+            apiKey: "AIzaSyBQGZjl7uj5CRiLWCvPQKjiK4HvIYnXSJg",
+            authDomain: "vipercell-fc50e.firebaseapp.com",
+            projectId: "vipercell-fc50e",
+            storageBucket: "vipercell-fc50e.firebasestorage.app",
+            messagingSenderId: "710483059781",
+            appId: "1:710483059781:web:b4c27b14ab34c45c892f2c"
+        };
+        
+        // Memprioritaskan config workspace jika ada agar tidak error di preview, jika tidak gunakan milik user
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // Konfigurasi Path Database
+        // Menggunakan path workspace wajib jika di environment sandbox, atau root collections jika di environment user
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'vipercell';
+        const isWorkspace = typeof __app_id !== 'undefined';
+        
+        const pathProducts = isWorkspace ? `artifacts/${appId}/public/data/products` : 'products';
+        const pathOrders = isWorkspace ? `artifacts/${appId}/public/data/orders` : 'orders';
+        const pathSettings = isWorkspace ? `artifacts/${appId}/public/data/settings` : 'settings';
+
+        // State Global
+        let products = [];
+        let orders = [];
+        let siteSettings = { logoText: 'VIPERCELL', logoImgBase64: '', marquee: 'Selamat Datang di Vipercell', qrisString: '', tutorialLink: '' };
+        let isAdminLoggedIn = false;
+        let currentUser = null;
+
+        // Expose functions to global window object for HTML inline handlers
+        window.openModal = function(id) { document.getElementById(id).classList.add('active'); };
+        window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); };
+        window.customAlert = function(title, message, type = 'info') {
+            document.getElementById('ca-title').innerText = title;
+            document.getElementById('ca-desc').innerHTML = message;
+            const iconEl = document.getElementById('ca-icon');
+            iconEl.className = `msg-icon ${type}`;
+            if(type === 'success') iconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+            else if(type === 'error') iconEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+            else iconEl.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+            document.getElementById('custom-alert').classList.add('active');
+        };
+        window.closeAlert = function() { document.getElementById('custom-alert').classList.remove('active'); };
+
+        async function initAuthAndDB() {
+            try {
+                // Anonymous sign in untuk pengunjung biasa agar bisa baca DB
+                const userCredential = await signInAnonymously(auth);
+                currentUser = userCredential.user;
+                
+                // Cek status sesi admin lokal
+                if(sessionStorage.getItem('viper_admin') === 'true') {
+                    isAdminLoggedIn = true;
+                    document.getElementById('btn-admin-panel').style.display = 'inline-flex';
+                }
+
+                listenToSettings();
+                listenToProducts();
+                listenToOrders();
+            } catch (error) {
+                console.error("Auth error:", error);
+                window.customAlert("Database Error", "Gagal terhubung ke server data.", "error");
+            }
+        }
+
+        // Listener Real-time Firestore
+        function listenToSettings() {
+            if(!currentUser) return;
+            const docRef = doc(db, pathSettings, 'mainConfig');
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    siteSettings = docSnap.data();
+                    applySettingsToUI();
+                } else {
+                    // Buat default config jika belum ada
+                    setDoc(docRef, siteSettings);
+                }
+            }, (error) => console.log("Settings listener error", error));
+        }
+
+        function listenToProducts() {
+            if(!currentUser) return;
+            const colRef = collection(db, pathProducts);
+            onSnapshot(colRef, (snapshot) => {
+                products = [];
+                snapshot.forEach((doc) => { products.push({ dbId: doc.id, ...doc.data() }); });
+                window.renderProducts('all');
+                if(isAdminLoggedIn) window.renderAdminProducts();
+            }, (error) => console.log("Products listener error", error));
+        }
+
+        function listenToOrders() {
+            if(!currentUser) return;
+            const colRef = collection(db, pathOrders);
+            onSnapshot(colRef, (snapshot) => {
+                orders = [];
+                snapshot.forEach((doc) => { orders.push({ dbId: doc.id, ...doc.data() }); });
+                // Sort manual di memory (Menghindari masalah index Firestore)
+                orders.sort((a,b) => new Date(b.date) - new Date(a.date));
+                if(isAdminLoggedIn) window.renderAdminOrders();
+            }, (error) => console.log("Orders listener error", error));
+        }
+
+        function applySettingsToUI() {
+            // Terapkan Logo
+            document.getElementById('site-logo-text').innerText = siteSettings.logoText || 'VIPERCELL';
+            const imgEl = document.getElementById('site-logo-img');
+            if(siteSettings.logoImgBase64) {
+                imgEl.src = siteSettings.logoImgBase64;
+                imgEl.style.display = 'block';
+                document.getElementById('site-logo-text').style.display = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                document.getElementById('site-logo-text').style.display = 'block';
+            }
+            
+            // Terapkan Marquee
+            const marqueeText = siteSettings.marquee || 'Aplikasi Premium & Top Up Game Terbaik';
+            document.getElementById('marquee-text-1').innerText = marqueeText;
+            document.getElementById('marquee-text-2').innerText = marqueeText;
+        }
+
+        window.adminGoogleLogin = async function() {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                // Verifikasi Email Khusus Admin
+                if(user.email === 'vipercell.id@gmail.com' || user.email.includes('vipercell')) {
+                    sessionStorage.setItem('viper_admin', 'true');
+                    isAdminLoggedIn = true;
+                    currentUser = user; // Update current user
+                    
+                    window.closeModal('modal-login');
+                    document.getElementById('btn-admin-panel').style.display = 'inline-flex';
+                    window.customAlert('Akses Diberikan', `Selamat datang Admin ${user.displayName}.`, 'success');
+                    window.openAdminPanel();
+                } else {
+                    // Sign out jika email bukan admin
+                    await signOut(auth);
+                    window.customAlert('Akses Ditolak', 'Akun Google ini tidak memiliki izin akses ke Panel Admin.', 'error');
+                }
+            } catch (error) {
+                console.error("Google Auth Error:", error);
+                // Fallback sederhana jika popup diblokir oleh iframe/sandbox browser
+                window.customAlert('Login Gagal', 'Jika popup terblokir, pastikan mengizinkan popup untuk situs ini.', 'error');
+            }
+        };
+
+        document.getElementById('logo-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 200 * 1024) { // Max 200KB
+                    window.customAlert('Peringatan', 'Ukuran gambar terlalu besar. Maksimal 200KB.', 'warning');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const base64String = event.target.result;
+                    document.getElementById('set-logo-preview').src = base64String;
+                    document.getElementById('set-logo-preview').style.display = 'block';
+                    document.getElementById('set-logo-base64').value = base64String;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        let clickCount = 0;
+        let clickTimer;
+        window.handleLogoClick = function() {
+            clickCount++;
+            clearTimeout(clickTimer);
+            if(clickCount === 7) {
+                clickCount = 0;
+                if(!isAdminLoggedIn) window.openModal('modal-login');
+            }
+            clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
+        };
+
+        window.openTabTutorial = function() {
+            const tutSec = document.getElementById('tutorial-section');
+            tutSec.style.display = 'block';
+            tutSec.scrollIntoView({behavior: "smooth"});
+            
+            const iframe = document.getElementById('tutorial-iframe');
+            const msg = document.getElementById('no-video-msg');
+            const wrapper = document.getElementById('video-wrapper');
+            
+            if(siteSettings.tutorialLink) {
+                // Ubah link view menjadi preview agar bisa di embed
+                let embedLink = siteSettings.tutorialLink.replace('/view', '/preview');
+                iframe.src = embedLink;
+                wrapper.style.display = 'block';
+                msg.style.display = 'none';
+            } else {
+                wrapper.style.display = 'none';
+                msg.style.display = 'block';
+            }
+        };
+
+        window.filterProducts = function(type, btnEl) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+            window.renderProducts(type);
+        };
+
+        window.renderProducts = function(filter) {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+            
+            if(products.length === 0) {
+                grid.innerHTML = `<div style="text-align:center; grid-column: 1/-1; color:var(--text-muted);">Belum ada produk.</div>`;
+                return;
+            }
+
+            const filtered = filter === 'all' ? products : products.filter(p => p.type === filter);
+            
+            filtered.forEach(p => {
+                const badgeClass = p.type === 'app' ? 'badge-app' : 'badge-game';
+                const card = document.createElement('div');
+                card.className = `product-card type-${p.type}`;
+                card.innerHTML = `
+                    <div class="card-header"><span class="card-badge ${badgeClass}">${p.badge}</span></div>
+                    <h3>${p.name}</h3>
+                    <p>${p.desc}</p>
+                    <div class="price-box"><div class="price">${p.priceStr}</div></div>
+                    <button class="buy-btn" onclick="startCheckout('${p.dbId}')">Beli Sekarang</button>
+                `;
+                grid.appendChild(card);
+            });
+        };
+
+        // Menghitung CRC16-CCITT (Polynomial 0x1021) untuk string QRIS
+        function calculateCrc16(str) {
+            let crc = 0xFFFF;
+            for (let i = 0; i < str.length; i++) {
+                crc ^= (str.charCodeAt(i) << 8);
+                for (let j = 0; j < 8; j++) {
+                    if ((crc & 0x8000) > 0) crc = (crc << 1) ^ 0x1021;
+                    else crc = crc << 1;
+                }
+            }
+            return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+        }
+
+        function generateDynamicQrisString(baseQris, amountNum) {
+            if(!baseQris || baseQris.length < 10) return "";
+            
+            // Hapus tag 63 (CRC) yang lama beserta nilainya (8 karakter terakhir)
+            let qrisBase = baseQris;
+            let crcIndex = qrisBase.lastIndexOf("6304");
+            if(crcIndex !== -1) {
+                qrisBase = qrisBase.substring(0, crcIndex);
+            }
+
+            // Membangun Tag 54 untuk nominal
+            let amountStr = amountNum.toString();
+            let amountLenStr = amountStr.length.toString().padStart(2, '0');
+            let tag54 = "54" + amountLenStr + amountStr;
+
+            // Sisipkan Tag 54 (Nominal) sebelum Country Code "5802ID"
+            let targetIndex = qrisBase.indexOf("5802ID");
+            if(targetIndex === -1) targetIndex = qrisBase.length;
+            
+            let newQris = qrisBase.slice(0, targetIndex) + tag54 + qrisBase.slice(targetIndex);
+            
+            // Tambahkan kembali Tag 6304
+            newQris += "6304";
+            
+            // Hitung CRC baru
+            let crcHex = calculateCrc16(newQris);
+            return newQris + crcHex;
+        }
+
+        let currentCheckoutProduct = null;
+        let qrCodeInstance = null;
+
+        window.startCheckout = function(productDbId) {
+            currentCheckoutProduct = products.find(p => p.dbId === productDbId);
+            if(!currentCheckoutProduct) return;
+
+            document.getElementById('co-prod-name').innerText = currentCheckoutProduct.name;
+            document.getElementById('co-prod-price').innerText = currentCheckoutProduct.priceStr;
+            document.getElementById('co-total-pay').innerText = `Total Bayar: ${currentCheckoutProduct.priceStr}`;
+            
+            const dynamicFields = document.getElementById('co-dynamic-fields');
+            if(currentCheckoutProduct.type === 'game') {
+                dynamicFields.innerHTML = `
+                    <div class="form-group"><label>ID Player</label><input type="text" id="co-player-id" class="form-control" required></div>
+                    <div class="form-group"><label>Zone ID / Server</label><input type="text" id="co-zone-id" class="form-control"></div>
+                `;
+            } else {
+                dynamicFields.innerHTML = `
+                    <div class="form-group"><label>Email Pemesan (Untuk menerima akun)</label><input type="email" id="co-email" class="form-control" required></div>
+                `;
+            }
+
+            document.getElementById('checkout-step-1').style.display = 'block';
+            document.getElementById('checkout-step-2').style.display = 'none';
+            window.openModal('modal-checkout');
+        };
+
+        window.processCheckoutStep1 = function() {
+            const wa = document.getElementById('co-wa').value;
+            if(!wa) { window.customAlert('Peringatan', 'Nomor WA wajib diisi.', 'error'); return; }
+            
+            if(currentCheckoutProduct.type === 'game' && !document.getElementById('co-player-id').value) {
+                window.customAlert('Peringatan', 'ID Player wajib diisi.', 'error'); return;
+            } else if(currentCheckoutProduct.type === 'app' && !document.getElementById('co-email').value) {
+                window.customAlert('Peringatan', 'Email wajib diisi.', 'error'); return;
+            }
+
+            // Generate QR Code Dinamis
+            const qrContainer = document.getElementById('qris-canvas-container');
+            qrContainer.innerHTML = ''; // bersihkan QR lama
+            
+            if(siteSettings.qrisString) {
+                const finalQrisString = generateDynamicQrisString(siteSettings.qrisString, currentCheckoutProduct.priceNum);
+                qrCodeInstance = new QRCode(qrContainer, {
+                    text: finalQrisString,
+                    width: 250, height: 250,
+                    colorDark : "#000000", colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.M
+                });
+            } else {
+                qrContainer.innerHTML = `<p style="color:var(--danger)">QRIS Belum diatur oleh Admin.</p>`;
+            }
+
+            document.getElementById('checkout-step-1').style.display = 'none';
+            document.getElementById('checkout-step-2').style.display = 'block';
+        };
+
+        window.backToStep1 = function() {
+            document.getElementById('checkout-step-1').style.display = 'block';
+            document.getElementById('checkout-step-2').style.display = 'none';
+        };
+
+        window.finalizeOrder = async function() {
+            if(!currentUser) { window.customAlert('Error', 'Sistem gagal verifikasi sesi.', 'error'); return; }
+            
+            const invId = 'VP-' + Math.floor(100000 + Math.random() * 900000);
+            const wa = document.getElementById('co-wa').value;
+            let playerInfo = currentCheckoutProduct.type === 'game' 
+                ? `ID: ${document.getElementById('co-player-id').value} | Zone: ${document.getElementById('co-zone-id').value || '-'}`
+                : `Email: ${document.getElementById('co-email').value}`;
+
+            const newOrder = {
+                id: invId,
+                productId: currentCheckoutProduct.dbId,
+                productName: currentCheckoutProduct.name,
+                type: currentCheckoutProduct.type,
+                price: currentCheckoutProduct.priceStr,
+                customerWa: wa,
+                playerInfo: playerInfo,
+                status: 'PENDING',
+                accountInfo: '',
+                date: new Date().toISOString()
+            };
+
+            try {
+                // Simpan ke Firestore
+                const colRef = collection(db, pathOrders);
+                await addDoc(colRef, newOrder);
+                
+                window.closeModal('modal-checkout');
+                window.customAlert('Pesanan Berhasil Dibuat!', `ID Pesanan Anda: <strong>${invId}</strong><br><br>Mohon simpan ID tersebut untuk melacak pesanan Anda di menu "Cek Pesanan". Admin sedang memverifikasi pembayaran Anda.`, 'success');
+            } catch (error) {
+                console.error("Gagal buat pesanan:", error);
+                window.customAlert('Error', 'Gagal membuat pesanan. Coba lagi.', 'error');
+            }
+        };
+
+        window.trackOrder = function() {
+            const invId = document.getElementById('track-id').value.trim().toUpperCase();
+            if(!invId) return;
+
+            const order = orders.find(o => o.id === invId);
+            const resBox = document.getElementById('track-result');
+            
+            if(!order) {
+                resBox.style.display = 'block';
+                resBox.innerHTML = `<p style="color:var(--danger)"><i class="fa-solid fa-circle-xmark"></i> Pesanan tidak ditemukan. Periksa kembali ID Anda.</p>`;
+                return;
+            }
+
+            let statusHtml = '';
+            if(order.status === 'PENDING') {
+                statusHtml = `<span class="status-badge status-pending">Menunggu Proses Admin</span>
+                              <p style="margin-top: 10px; font-size:0.9rem; color:var(--text-muted);">Pembayaran sedang diverifikasi. Harap tunggu.</p>`;
+            } else {
+                statusHtml = `<span class="status-badge status-success">Pesanan Selesai</span>`;
+                if(order.type === 'app' && order.accountInfo) {
+                    const accInfoHtml = order.accountInfo.replace(/\n/g, '<br>');
+                    statusHtml += `<div class="account-details"><p><strong>Informasi Akun Anda:</strong></p><p>${accInfoHtml}</p></div>`;
+                } else if (order.type === 'game') {
+                    statusHtml += `<p style="margin-top: 10px; font-size:0.9rem; color:var(--text-muted);">Diamond / Item telah dikirim ke ID Player Anda.</p>`;
+                }
+            }
+
+            resBox.style.display = 'block';
+            resBox.innerHTML = `<div style="border-bottom: 1px solid var(--border); margin-bottom: 1rem; padding-bottom: 1rem;">
+                    <h4 style="color:var(--primary); margin-bottom:0.3rem;">${order.productName}</h4>
+                    <p style="font-size:0.85rem; color:var(--text-muted);">Invoice: ${order.id} | Info: ${order.playerInfo}</p>
+                </div>${statusHtml}`;
+        };
+
+        window.openAdminPanel = function() {
+            if(!isAdminLoggedIn) return;
+            window.renderAdminOrders();
+            window.renderAdminProducts();
+            
+            // Isi form pengaturan
+            document.getElementById('set-logo-text').value = siteSettings.logoText || '';
+            document.getElementById('set-logo-base64').value = siteSettings.logoImgBase64 || '';
+            document.getElementById('set-marquee').value = siteSettings.marquee || '';
+            document.getElementById('set-qris-string').value = siteSettings.qrisString || '';
+            document.getElementById('set-tutorial').value = siteSettings.tutorialLink || '';
+            
+            if(siteSettings.logoImgBase64) {
+                document.getElementById('set-logo-preview').src = siteSettings.logoImgBase64;
+                document.getElementById('set-logo-preview').style.display = 'block';
+            }
+            
+            window.openModal('modal-admin');
+        };
+
+        window.switchAdminTab = function(tabId, btnEl) {
+            document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
+            btnEl.classList.add('active');
+            document.getElementById(tabId).style.display = 'block';
+        };
+
+        window.logoutAdmin = async function() {
+            sessionStorage.removeItem('viper_admin');
+            isAdminLoggedIn = false;
+            document.getElementById('btn-admin-panel').style.display = 'none';
+            window.closeModal('modal-admin');
+            await signOut(auth); // Sign out google
+            
+            // Re-login anonymous to maintain read access for public store
+            await signInAnonymously(auth);
+            
+            window.customAlert('Logout', 'Berhasil keluar dari mode admin.', 'info');
+        };
+
+        window.renderAdminOrders = function() {
+            const tbody = document.getElementById('admin-order-list');
+            tbody.innerHTML = '';
+            
+            if(orders.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada pesanan</td></tr>`; return; }
+
+            orders.forEach(o => {
+                const isPending = o.status === 'PENDING';
+                const statusBadge = isPending ? `<span class="status-badge status-pending">Pending</span>` : `<span class="status-badge status-success">Success</span>`;
+                
+                let actionBtn = '-';
+                if(isPending) {
+                    if(o.type === 'game') actionBtn = `<button class="btn btn-primary" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="processGameOrder('${o.dbId}')">Selesai</button>`;
+                    else actionBtn = `<button class="btn btn-primary" style="padding:0.3rem 0.6rem; font-size:0.8rem; background:var(--app-accent);" onclick="promptAppOrder('${o.dbId}', '${o.id}')">Kirim Akun</button>`;
+                }
+
+                tbody.innerHTML += `<tr>
+                    <td style="font-family:monospace; font-weight:bold;">${o.id}</td>
+                    <td>${o.productName}</td>
+                    <td>WA: ${o.customerWa}<br><small style="color:var(--text-muted)">${o.playerInfo}</small></td>
+                    <td>${statusBadge}</td><td>${actionBtn}</td>
+                </tr>`;
+            });
+        };
+
+        window.processGameOrder = async function(dbId) {
+            if(!currentUser) return;
+            const docRef = doc(db, pathOrders, dbId);
+            await updateDoc(docRef, { status: 'SUCCESS' });
+        };
+
+        window.promptAppOrder = function(dbId, invId) {
+            document.getElementById('process-inv').innerText = invId;
+            document.getElementById('process-order-id').value = dbId;
+            document.getElementById('process-account-info').value = '';
+            window.openModal('modal-process-app');
+        };
+
+        window.submitAppOrder = async function() {
+            if(!currentUser) return;
+            const dbId = document.getElementById('process-order-id').value;
+            const accInfo = document.getElementById('process-account-info').value;
+            
+            if(!accInfo.trim()) { window.customAlert('Error', 'Detail akun tidak boleh kosong!', 'error'); return; }
+
+            const docRef = doc(db, pathOrders, dbId);
+            await updateDoc(docRef, { status: 'SUCCESS', accountInfo: accInfo });
+            window.closeModal('modal-process-app');
+            window.customAlert('Berhasil', 'Pesanan diselesaikan dan akun terkirim.', 'success');
+        };
+
+        window.renderAdminProducts = function() {
+            const tbody = document.getElementById('admin-prod-list');
+            tbody.innerHTML = '';
+            products.forEach(p => {
+                tbody.innerHTML += `<tr>
+                    <td><strong>${p.name}</strong><br><small style="color:var(--text-muted)">${p.badge}</small></td>
+                    <td>${p.type === 'app' ? 'Premium App' : 'Top Up Game'}</td>
+                    <td>${p.priceStr}</td>
+                    <td><button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="deleteProduct('${p.dbId}')">Hapus</button></td>
+                </tr>`;
+            });
+        };
+
+        window.adminAddProduct = async function() {
+            if(!currentUser) return;
+            const type = document.getElementById('add-prod-type').value;
+            const badge = document.getElementById('add-prod-badge').value || (type === 'app' ? 'Premium' : 'Game');
+            const name = document.getElementById('add-prod-name').value;
+            const priceStr = document.getElementById('add-prod-price').value;
+            const priceNum = document.getElementById('add-prod-price-num').value;
+            const desc = document.getElementById('add-prod-desc').value;
+
+            if(!name || !priceStr || !priceNum) { window.customAlert('Error', 'Nama, Harga Tampil, dan Harga Angka wajib diisi.', 'error'); return; }
+
+            const newProd = { type, badge, name, priceStr, priceNum: parseInt(priceNum), desc };
+            
+            const colRef = collection(db, pathProducts);
+            await addDoc(colRef, newProd);
+            
+            document.getElementById('add-prod-name').value = '';
+            document.getElementById('add-prod-price').value = '';
+            document.getElementById('add-prod-price-num').value = '';
+            document.getElementById('add-prod-desc').value = '';
+            window.customAlert('Berhasil', 'Produk ditambahkan ke database.', 'success');
+        };
+
+        window.deleteProduct = async function(dbId) {
+            if(!currentUser) return;
+            if(confirm("Yakin ingin menghapus produk ini?")) {
+                const docRef = doc(db, pathProducts, dbId);
+                await deleteDoc(docRef);
+            }
+        };
+
+        window.saveSettings = async function() {
+            if(!currentUser) return;
+            
+            const newSettings = {
+                logoText: document.getElementById('set-logo-text').value,
+                logoImgBase64: document.getElementById('set-logo-base64').value,
+                marquee: document.getElementById('set-marquee').value,
+                qrisString: document.getElementById('set-qris-string').value,
+                tutorialLink: document.getElementById('set-tutorial').value
+            };
+            
+            const docRef = doc(db, pathSettings, 'mainConfig');
+            await setDoc(docRef, newSettings);
+            window.customAlert('Berhasil', 'Pengaturan website berhasil disimpan ke database.', 'success');
+        };
+
+        // Mulai aplikasi
+        window.onload = initAuthAndDB;
+
+    </script>
+</body>
+</html>
