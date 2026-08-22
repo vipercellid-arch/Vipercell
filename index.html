@@ -46,7 +46,6 @@
         /* =======================================================
            CSS MEDIA QUERIES UNTUK ANIMASI HP (Ringan) vs PC (Berat)
            ======================================================= */
-        /* DEFAULT (MOBILE): Animasi Ringan & Cepat */
         .reveal { opacity: 0; transform: translateY(10px); transition: all 0.3s ease-out; }
         .reveal-visible { opacity: 1; transform: translateY(0); }
         
@@ -57,10 +56,8 @@
             to { opacity: 1; transform: translateY(0); } 
         }
 
-        /* DESKTOP/TABLET: Animasi Berat & Elegan */
         @media (min-width: 768px) {
             .reveal { transform: translateY(30px); transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
-            
             .main-tab-content { animation: tabFadeInHeavy 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
             @keyframes tabFadeInHeavy { 
                 from { opacity: 0; transform: translateY(20px); } 
@@ -551,7 +548,7 @@
             </div>
         </div>
 
-        <!-- TAB: CARA KLAIM (TUTORIALS) BUG FIXED -->
+        <!-- TAB: CARA KLAIM (TUTORIALS) -->
         <div id="tab-tutorial" class="main-tab-content container">
             <div class="section-header">
                 <h2>Panduan & Cara Klaim</h2>
@@ -629,7 +626,6 @@
                 </div>
                 <div class="footer-tagline">Akun premium &bull; Harga pelajar &bull; Garansi penuh</div>
                 
-                <!-- IG & TIKTOK LINKS PINDAH KE BAWAH -->
                 <div class="footer-social-links">
                     <a href="#" id="footer-ig-btn" class="soc-btn soc-ig" target="_blank" style="display:none;">
                         <i class="fa-brands fa-instagram"></i> IG
@@ -642,7 +638,6 @@
             
             <div class="footer-right">
                 Bantuan & Laporan? Hubungi Kami
-                <!-- Tombol Chat Langsung "Halo Min" -->
                 <a href="#" id="footer-wa-link" target="_blank" class="wa-contact-btn">
                     <i class="fa-brands fa-whatsapp"></i> <span id="footer-wa-display">WhatsApp Admin</span>
                 </a>
@@ -862,7 +857,6 @@
     <!-- ==================== FULL SCREEN ADMIN DASHBOARD ==================== -->
     <div id="admin-dashboard">
         <div class="admin-header">
-            <!-- Ikon Web Tampil di Samping Teks Dashboard -->
             <h2 style="display: flex; align-items: center;">
                 <img id="admin-header-logo-img" src="" style="height: 28px; width: 28px; object-fit: contain; border-radius: 4px; display: none; margin-right: 10px;">
                 <i id="admin-header-default-icon" class="fa-solid fa-shield-halved" style="color: var(--primary-light); margin-right: 10px;"></i> 
@@ -874,6 +868,7 @@
             <button class="admin-tab active" onclick="window.switchAdminTab('tab-orders', this)">
                 Pesanan <span id="admin-tab-order-badge" class="notif-dot" style="position:static; display:inline-block; margin-left:4px; vertical-align:middle; width:8px; height:8px;"></span>
             </button>
+            <button class="admin-tab" onclick="window.switchAdminTab('tab-stocks', this)">Stok Akun</button>
             <button class="admin-tab" onclick="window.switchAdminTab('tab-products', this)">Produk Item</button>
             <button class="admin-tab" onclick="window.switchAdminTab('tab-promos', this)">Promo</button>
             <button class="admin-tab" onclick="window.switchAdminTab('tab-tutorials', this)">Tutorial</button>
@@ -901,6 +896,39 @@
                         <thead><tr><th>Invoice</th><th>Waktu & Item</th><th>Kontak WA</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead>
                         <tbody id="admin-order-list"><tr><td colspan="6" style="text-align:center">Memuat...</td></tr></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Tab: Stok Akun Premium -->
+            <div id="tab-stocks" class="admin-tab-content" style="display: none;">
+                <div class="settings-grid">
+                    <div style="background: #0f172a; padding: 1.5rem; border-radius: 12px; border: 1px solid #1e293b;">
+                        <h3 style="margin-bottom: 1.5rem; color:var(--primary-light); font-size: 1.2rem;"><i class="fa-solid fa-chart-line" style="margin-right:8px;"></i> Kelola Stok Akun Premium</h3>
+                        
+                        <div class="form-group">
+                            <label>Pilih Produk Aplikasi:</label>
+                            <select id="stock-brand-select" class="form-control" style="background: var(--bg); border-color: var(--border);">
+                                <option value="">-- Pilih Produk/Aplikasi --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Bulk Input / Tambah Massal</label>
+                            <textarea id="stock-bulk-input" class="form-control" rows="5" placeholder="Email/NoHP|Password|Durasi&#10;Contoh:&#10;info@viper.com|pass123|30 Hari&#10;62812345678|rahasia|90 Hari" style="background: transparent; font-family: monospace;"></textarea>
+                        </div>
+                        
+                        <button class="btn btn-primary" style="width:100%;" onclick="window.addStockMassal()">[+] Tambah Data ke Stok</button>
+                    </div>
+
+                    <div style="background: #0f172a; padding: 1.5rem; border-radius: 12px; border: 1px solid #1e293b; grid-column: span 2;">
+                        <h3 style="margin-bottom: 1.5rem; color:var(--text); font-size: 1.1rem;">Daftar Stok Akun Available</h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>No.</th><th>Email/NoHP</th><th>Password</th><th>Durasi</th><th>Status</th><th>Aksi</th></tr></thead>
+                                <tbody id="admin-stock-list"><tr><td colspan="6" style="text-align:center;">Memuat...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -957,7 +985,7 @@
                 </div>
             </div>
 
-            <!-- Tab: Settings (TOMBOL SIMPAN DIPINDAH KE DALAM KOTAK PERTAMA) -->
+            <!-- Tab: Settings -->
             <div id="tab-settings" class="admin-tab-content" style="display: none;">
                 <div class="settings-grid">
                     <!-- Column 1 -->
@@ -979,7 +1007,6 @@
 
                         <div class="form-group" style="flex-grow: 1;"><label>Teks Promo Berjalan</label><textarea id="set-marquee" class="form-control" rows="4" style="background: transparent;"></textarea></div>
                         
-                        <!-- TOMBOL SIMPAN PINDAH KE SINI -->
                         <button class="btn btn-primary" onclick="window.saveSettings()" style="width: 100%; margin-top: 1rem; padding: 0.8rem; font-size: 1rem; background: #2f3e58; color: white; border: 1px solid #475569; font-weight: bold; border-radius: 8px; box-shadow: none;">Simpan</button>
                     </div>
 
@@ -1006,6 +1033,7 @@
                         <h3 style="margin-bottom: 1.5rem; color:var(--primary-light); font-size: 1.1rem;">Banner</h3>
                         <div id="admin-banner-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
                         <input type="file" id="banner-upload" accept="image/*" style="display: none;">
+                        <button class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="document.getElementById('banner-upload').click()">+ Tambah Banner</button>
                     </div>
                 </div>
             </div>
@@ -1028,6 +1056,86 @@
             <button class="btn btn-success" style="width: 100%; margin-top: 15px;" onclick="window.resolveChat()">
                 <i class="fa-solid fa-check-double"></i> Tandai Selesai & Hapus Chat
             </button>
+        </div>
+    </div>
+
+    <!-- Modal: Process Order with Stock UI -->
+    <div class="modal-overlay" id="modal-process-order">
+        <div class="modal-content wide">
+            <div class="modal-header">
+                <h2>Proses Pesanan: <span id="proc-inv"></span></h2>
+                <button class="close-btn" onclick="window.closeModal('modal-process-order')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <input type="hidden" id="proc-order-id">
+            <div id="proc-items-list" style="margin-bottom:15px; padding:10px; background:rgba(255,255,255,0.05); border-radius:8px;"></div>
+
+            <!-- STOCK SELECTOR -->
+            <div id="proc-stock-section" style="display:none; margin-bottom:15px; padding:15px; background:rgba(6, 182, 212, 0.1); border:1px solid var(--primary-light); border-radius:8px;">
+                <label style="color:var(--primary-light); font-weight:bold; margin-bottom:8px; display:block;">Pilih Akun dari Stok Ready:</label>
+                <select id="proc-stock-select" class="form-control" style="background:var(--bg); border-color:var(--primary);"></select>
+                <small style="color:var(--text-muted); display:block; margin-top:5px;">Sistem akan otomatis mengubah status stok menjadi Terjual dan mengirim data ke pembeli.</small>
+            </div>
+
+            <div class="form-group">
+                <label>Keterangan / Balasan ke User (Manual / Auto)</label>
+                <textarea id="proc-reply" class="form-control" rows="4" placeholder="Pesanan selesai / Detail Akun..."></textarea>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-danger" style="flex:1;" onclick="window.markOrderComplete('FAILED')">Gagalkan</button>
+                <button class="btn btn-success" style="flex:1;" onclick="window.markOrderComplete('SUCCESS')"><i class="fa-solid fa-paper-plane"></i> Kirim & Selesaikan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Manage Tutorial -->
+    <div class="modal-overlay" id="modal-manage-tutorial">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-tut-title">Tambah Video Panduan</h2>
+                <button class="close-btn" onclick="window.closeModal('modal-manage-tutorial')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <input type="hidden" id="manage-tut-index">
+            <div class="form-group">
+                <label>Judul Video</label>
+                <input type="text" id="manage-tut-title" class="form-control" placeholder="Contoh: Cara Klaim Akun Spotify">
+            </div>
+            <div class="form-group">
+                <label>Link Google Drive (Share Public)</label>
+                <input type="text" id="manage-tut-url" class="form-control" placeholder="https://drive.google.com/file/d/...">
+            </div>
+            <div class="form-group">
+                <label>Deskripsi Singkat</label>
+                <textarea id="manage-tut-desc" class="form-control" rows="3" placeholder="Penjelasan singkat..."></textarea>
+            </div>
+            <button class="btn btn-primary" style="width:100%;" onclick="window.saveTutorial()">Simpan Tutorial</button>
+        </div>
+    </div>
+
+    <!-- Modal: Manage Promo -->
+    <div class="modal-overlay" id="modal-manage-promo">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-promo-title">Buat Promo Baru</h2>
+                <button class="close-btn" onclick="window.closeModal('modal-manage-promo')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <input type="hidden" id="manage-promo-id">
+            <div class="form-group">
+                <label>Kode Promo</label>
+                <input type="text" id="manage-promo-code" class="form-control" placeholder="Contoh: DISKON10" style="text-transform: uppercase;">
+            </div>
+            <div class="form-group">
+                <label>Potongan Harga (Rp)</label>
+                <input type="number" id="manage-promo-amount" class="form-control" placeholder="Contoh: 10000">
+            </div>
+            <div class="form-group">
+                <label>Batas Maksimal Penggunaan</label>
+                <input type="number" id="manage-promo-max" class="form-control" placeholder="Contoh: 50">
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="manage-promo-active" style="width:18px; height:18px;" checked>
+                <label style="margin:0;">Promo Aktif</label>
+            </div>
+            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="window.savePromo()">Simpan Promo</button>
         </div>
     </div>
 
@@ -1126,7 +1234,7 @@
         import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc, query, where, getDocs, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Web Audio API Synthesizer (Notifikasi BEEP Tanpa File MP3 Eksternal)
+        // Web Audio API Synthesizer - Suara Notifikasi Handphone
         window.resumeAudioContext = function() {
             if (window.audioCtx && window.audioCtx.state === 'suspended') {
                 window.audioCtx.resume();
@@ -1138,19 +1246,43 @@
                 if (!window.audioCtx) window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (window.audioCtx.state === 'suspended') window.audioCtx.resume();
                 
-                const osc = window.audioCtx.createOscillator();
-                const gain = window.audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(window.audioCtx.destination);
+                const playTone = (freq, type, time, duration, vol) => {
+                    const osc = window.audioCtx.createOscillator();
+                    const gain = window.audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(window.audioCtx.destination);
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, time);
+                    gain.gain.setValueAtTime(vol, time);
+                    osc.start(time);
+                    gain.gain.exponentialRampToValueAtTime(0.00001, time + duration);
+                    osc.stop(time + duration);
+                };
                 
-                osc.type = 'sine'; // Suara jernih
-                osc.frequency.setValueAtTime(800, window.audioCtx.currentTime); // Tinggi nada beep
-                gain.gain.setValueAtTime(0.2, window.audioCtx.currentTime); // Volume
-                
-                osc.start();
-                gain.gain.exponentialRampToValueAtTime(0.00001, window.audioCtx.currentTime + 0.3);
-                osc.stop(window.audioCtx.currentTime + 0.3);
+                const now = window.audioCtx.currentTime;
+                // Phone-like notification double chime
+                playTone(850, 'sine', now, 0.15, 0.3);
+                playTone(1050, 'sine', now + 0.15, 0.3, 0.3);
             } catch(e) { console.log('Audio error:', e); }
+        };
+
+        window.resizeImageBase64 = function(file, callback, maxWidth, maxHeight) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    let w = img.width, h = img.height;
+                    if(w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+                    if(h > maxHeight) { w = Math.round(w * maxHeight / h); h = maxHeight; }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL(file.type, 0.8));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         };
 
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -1178,11 +1310,13 @@
         const pathUsers = isWorkspace ? `artifacts/${appId}/public/data/users` : 'users';
         const pathPromos = isWorkspace ? `artifacts/${appId}/public/data/promos` : 'promos';
         const pathChats = isWorkspace ? `artifacts/${appId}/public/data/chats` : 'chats';
+        const pathStocks = isWorkspace ? `artifacts/${appId}/public/data/stocks` : 'stocks';
 
         let products = [];
         let groupedBrands = []; 
         let orders = [];
         let promos = [];
+        let stocks = [];
         let siteSettings = { 
             logoText: 'VIPER', logoAccent: 'CELL', logoImgBase64: '', marquee: 'Selamat Datang di Vipercell', 
             qrisImageBase64: '', adminWa: '085656321860', igLink: '', ttLink: '', 
@@ -1330,7 +1464,6 @@
                             isAdminLoggedIn = false;
                             document.getElementById('nav-admin').style.display = 'none';
                             if (document.getElementById('admin-dashboard').style.display === 'block') window.toggleAdminDashboard(false);
-                            // Tampilkan Chat User
                             document.getElementById('user-chat-fab').style.display = 'flex';
                             listenUserChat();
                         }
@@ -1387,7 +1520,10 @@
                 let activeTabBtn = document.querySelector('.tab-btn.active');
                 let curFilter = activeTabBtn ? (activeTabBtn.innerText.includes('Aplikasi') ? 'app' : activeTabBtn.innerText.includes('Game') ? 'game' : 'all') : 'all';
                 window.renderBrands(curFilter);
-                if(isAdminLoggedIn) window.renderAdminProducts();
+                if(isAdminLoggedIn) {
+                    window.renderAdminProducts();
+                    window.renderAdminStocks();
+                }
             });
 
             onSnapshot(collection(db, pathPromos), (snapshot) => {
@@ -1395,6 +1531,12 @@
                 snapshot.forEach((doc) => { promos.push({ dbId: doc.id, ...doc.data() }); });
                 if(isAdminLoggedIn) window.renderAdminPromos();
                 if(selectedProductForBuy) window.calculateDirectBuyTotal();
+            });
+            
+            onSnapshot(collection(db, pathStocks), (snapshot) => {
+                stocks = [];
+                snapshot.forEach((doc) => { stocks.push({ dbId: doc.id, ...doc.data() }); });
+                if(isAdminLoggedIn) window.renderAdminStocks();
             });
 
             onSnapshot(collection(db, pathOrders), (snapshot) => {
@@ -1410,7 +1552,6 @@
                     updateProfileStats();
                 }
 
-                // Notifikasi Bunyi Order Baru untuk Admin
                 if(isAdminLoggedIn) {
                     snapshot.docChanges().forEach((change) => {
                         if(change.type === 'added' && !initialOrderLoad) window.playBeep();
@@ -1459,7 +1600,6 @@
                     
                     window.renderUserChatMessages();
                     
-                    // Notif jika ada balasan baru dari admin
                     if(userChatMessages.length > oldLen && oldLen > 0) {
                         const lastMsg = userChatMessages[userChatMessages.length - 1];
                         if(lastMsg.sender === 'admin') {
@@ -1560,10 +1700,9 @@
                 });
                 initialChatLoad = false;
                 
-                // If admin is currently viewing a chat, refresh it
                 const activeId = document.getElementById('admin-active-chat-id').value;
                 if(activeId && document.getElementById('modal-admin-chat').classList.contains('active')) {
-                    window.openAdminChatDetail(activeId); // re-render detail
+                    window.openAdminChatDetail(activeId); 
                 }
             });
         }
@@ -1635,11 +1774,13 @@
         window.resolveChat = async function() {
             const chatId = document.getElementById('admin-active-chat-id').value;
             if(!chatId) return;
-            window.openCustomPrompt('Selesai', 'Hapus permanen chat ini dari database?', async (val) => {
-                if(val.toLowerCase() === 'yakin' || val.toLowerCase() === 'ya' || val) {
+            window.openCustomPrompt('Selesai', 'Ketik <b>SELESAI</b> untuk menutup permanen chat ini.', async (val) => {
+                if(val === 'SELESAI') {
                     await deleteDoc(doc(db, pathChats, chatId));
                     window.closeModal('modal-admin-chat');
                     window.customAlert('Dihapus', 'Sesi Live Chat dihapus.', 'info');
+                } else {
+                    window.customAlert('Gagal', 'Kata konfirmasi salah. Penghapusan dibatalkan.', 'error');
                 }
             });
         }
@@ -1811,10 +1952,7 @@
             setTimeout(observeReveals, 50);
         };
 
-        function getHandleFromUrl(url) {
-            if(!url) return "@vipercell";
-            try { let parts = url.split('/').filter(p => p !== ''); let last = parts.pop(); if(last.includes('?')) last = last.split('?')[0]; return last.startsWith('@') ? last : '@' + last; } catch(e) { return "@vipercell"; }
-        }
+        function extractDriveId(link) { const match = link.match(/(?:id=|d\/)([a-zA-Z0-9_-]+)/i); return match ? match[1] : link; }
 
         window.applySettingsToUI = function() {
             const logoDasar = siteSettings.logoText || 'VIPER';
@@ -1864,6 +2002,116 @@
             }
         }
 
+        // ====================== ADMIN SETTINGS AND TUTORIALS LOGIC ======================
+        window.populateAdminSettings = function() {
+            document.getElementById('set-logo-text').value = siteSettings.logoText || '';
+            document.getElementById('set-logo-accent').value = siteSettings.logoAccent || '';
+            document.getElementById('set-logo-img-base64').value = siteSettings.logoImgBase64 || '';
+            document.getElementById('set-marquee').value = siteSettings.marquee || '';
+            document.getElementById('set-wa').value = siteSettings.adminWa || '';
+            document.getElementById('set-ig').value = siteSettings.igLink || '';
+            document.getElementById('set-tt').value = siteSettings.ttLink || '';
+            document.getElementById('set-qris-base64').value = siteSettings.qrisImageBase64 || '';
+
+            if(siteSettings.logoImgBase64) {
+                const p = document.getElementById('set-logo-preview');
+                p.src = siteSettings.logoImgBase64; p.style.display = 'block';
+                document.getElementById('set-logo-file-name').innerText = "Gambar Dimuat";
+            }
+            if(siteSettings.qrisImageBase64) {
+                const p = document.getElementById('set-qris-preview');
+                p.src = siteSettings.qrisImageBase64; p.style.display = 'block';
+                document.getElementById('set-qris-file-name').innerText = "QRIS Dimuat";
+            }
+        };
+
+        window.saveSettings = async function() {
+            const newSettings = {
+                logoText: document.getElementById('set-logo-text').value.trim(),
+                logoAccent: document.getElementById('set-logo-accent').value.trim(),
+                logoImgBase64: document.getElementById('set-logo-img-base64').value,
+                marquee: document.getElementById('set-marquee').value.trim(),
+                adminWa: document.getElementById('set-wa').value.trim(),
+                igLink: document.getElementById('set-ig').value.trim(),
+                ttLink: document.getElementById('set-tt').value.trim(),
+                qrisImageBase64: document.getElementById('set-qris-base64').value
+            };
+            await updateDoc(doc(db, pathSettings, 'mainConfig'), newSettings);
+            window.customAlert('Sukses', 'Pengaturan berhasil disimpan!', 'success');
+        };
+
+        document.getElementById('set-qris-upload').addEventListener('change', function(e) {
+            if (e.target.files[0]) {
+                document.getElementById('set-qris-file-name').innerText = e.target.files[0].name;
+                window.resizeImageBase64(e.target.files[0], (b64) => {
+                    document.getElementById('set-qris-base64').value = b64;
+                    const p = document.getElementById('set-qris-preview');
+                    p.src = b64; p.style.display = 'block';
+                }, 800, 800);
+            }
+        });
+
+        document.getElementById('logo-upload').addEventListener('change', function(e) {
+            if (e.target.files[0]) {
+                document.getElementById('set-logo-file-name').innerText = e.target.files[0].name;
+                window.resizeImageBase64(e.target.files[0], (b64) => {
+                    document.getElementById('set-logo-base64').value = b64;
+                    const p = document.getElementById('set-logo-preview');
+                    p.src = b64; p.style.display = 'block';
+                }, 800, 800);
+            }
+        });
+        
+        window.renderAdminTutorials = function() {
+            const list = document.getElementById('admin-tut-list');
+            if(!list) return;
+            list.innerHTML = '';
+            const tuts = siteSettings.tutorialList || [];
+            if(tuts.length === 0) { list.innerHTML = '<p style="color:var(--text-muted)">Belum ada video panduan.</p>'; return; }
+            tuts.forEach((t, i) => {
+                list.innerHTML += `<div style="background:var(--surface); border:1px solid var(--border); padding:1rem; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <div><strong>${t.title}</strong><br><small style="color:var(--text-muted)">${t.url}</small></div>
+                    <div>
+                        <button class="btn btn-danger" onclick="window.deleteTutorial(${i})"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`;
+            });
+        };
+
+        window.openTutorialModal = function(index = -1) {
+            document.getElementById('manage-tut-index').value = index;
+            document.getElementById('manage-tut-title').value = '';
+            document.getElementById('manage-tut-url').value = '';
+            document.getElementById('manage-tut-desc').value = '';
+            window.openModal('modal-manage-tutorial');
+        };
+
+        window.saveTutorial = async function() {
+            const title = document.getElementById('manage-tut-title').value.trim();
+            const url = document.getElementById('manage-tut-url').value.trim();
+            const desc = document.getElementById('manage-tut-desc').value.trim();
+            if(!title || !url) { window.customAlert('Error', 'Judul dan URL wajib diisi.', 'error'); return; }
+
+            const tuts = siteSettings.tutorialList ? [...siteSettings.tutorialList] : [];
+            tuts.push({ title, url, desc, isHidden: false });
+            
+            await updateDoc(doc(db, pathSettings, 'mainConfig'), { tutorialList: tuts });
+            window.closeModal('modal-manage-tutorial');
+            window.customAlert('Sukses', 'Tutorial berhasil ditambahkan.', 'success');
+        };
+
+        window.deleteTutorial = async function(index) {
+            window.openCustomPrompt('Hapus Tutorial', 'Ketik <b>YAKIN</b> untuk menghapus video ini.', async (val) => {
+                if(val === 'YAKIN') {
+                    const tuts = [...siteSettings.tutorialList];
+                    tuts.splice(index, 1);
+                    await updateDoc(doc(db, pathSettings, 'mainConfig'), { tutorialList: tuts });
+                    window.customAlert('Dihapus', 'Tutorial berhasil dihapus.', 'info');
+                }
+            });
+        };
+        // =================================================================================
+
         window.renderBanners = function() {
             const container = document.getElementById('banner-container');
             const track = document.getElementById('banner-track');
@@ -1905,8 +2153,6 @@
             }, 5000);
         }
 
-        function extractDriveId(link) { const match = link.match(/(?:id=|d\/)([a-zA-Z0-9_-]+)/i); return match ? match[1] : link; }
-
         window.renderTutorials = function() {
             const grid = document.getElementById('public-tutorial-list');
             if(!grid) return;
@@ -1922,7 +2168,6 @@
             visibleList.forEach(tut => {
                 const driveId = extractDriveId(tut.url);
                 const iframeSrc = `https://drive.google.com/file/d/${driveId}/preview`;
-                // REMOVED .reveal class here to prevent IntersectionObserver bugs on hidden tab
                 grid.innerHTML += `
                     <div class="tutorial-card">
                         <div class="video-container"><iframe src="${iframeSrc}" allow="autoplay" allowfullscreen></iframe></div>
@@ -2126,7 +2371,8 @@
             let baseTotal = rawTotal - discountApplied;
             if(baseTotal < 0) baseTotal = 0;
 
-            let uniqueCode = Math.floor(Math.random() * 900) + 100;
+            // KODE UNIK DIBATASI MAKSIMAL RP 300
+            let uniqueCode = Math.floor(Math.random() * 299) + 1;
             let finalTotal = baseTotal + uniqueCode;
             const invId = 'VP-' + Math.floor(100000 + Math.random() * 900000);
 
@@ -2365,6 +2611,7 @@
                 window.renderAdminTutorials(); 
                 window.renderAdminPromos(); 
                 window.renderAdminChatList();
+                window.renderAdminStocks();
             }
             if(!show) { observeReveals(); window.scrollTo({ top: 0, behavior: 'instant' }); } 
         };
@@ -2374,6 +2621,81 @@
             document.querySelectorAll('.admin-tab-content').forEach(c => c.style.display = 'none');
             btnEl.classList.add('active'); document.getElementById(tabId).style.display = 'block';
         };
+
+        // ====================== KELOLA STOK AKUN PREMIUM ====================== //
+        window.renderAdminStocks = function() {
+            const sel = document.getElementById('stock-brand-select');
+            const tb = document.getElementById('admin-stock-list');
+            if(!sel || !tb) return;
+
+            const appBrands = groupedBrands.filter(b => b.type === 'app');
+            const curVal = sel.value;
+            sel.innerHTML = '<option value="">-- Pilih Produk/Aplikasi --</option>';
+            appBrands.forEach(b => {
+                sel.innerHTML += `<option value="${b.brandName}">${b.brandName}</option>`;
+            });
+            sel.value = curVal; 
+
+            tb.innerHTML = '';
+            if(stocks.length === 0) {
+                tb.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Stok kosong</td></tr>';
+                return;
+            }
+
+            let sortedStocks = [...stocks].sort((a,b) => b.createdAt - a.createdAt);
+            sortedStocks.forEach((s, i) => {
+                const parts = s.data.split('|');
+                const em = parts[0] || '-';
+                const pw = parts[1] ? 'P****' : '-'; 
+                const dur = parts[2] || '-';
+                const badge = s.status === 'Ready' ? '<span class="status-badge status-success">Ready</span>' : '<span class="status-badge status-failed">Terjual</span>';
+                
+                tb.innerHTML += `<tr>
+                    <td>${i+1}</td>
+                    <td><strong>${s.brand}</strong><br><small style="color:var(--text-muted)">${em}</small></td>
+                    <td>${pw}</td>
+                    <td>${dur}</td>
+                    <td>${badge}</td>
+                    <td><button class="btn btn-outline" style="color:var(--danger); padding:4px;" onclick="window.deleteStock('${s.dbId}')"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            });
+        }
+
+        window.addStockMassal = async function() {
+            const brand = document.getElementById('stock-brand-select').value;
+            const rawData = document.getElementById('stock-bulk-input').value.trim();
+            if(!brand || !rawData) {
+                window.customAlert('Error', 'Pilih produk dan masukkan data.', 'error');
+                return;
+            }
+            const lines = rawData.split('\n').filter(l => l.trim() !== '');
+            let count = 0;
+            for(const line of lines) {
+                const parts = line.split('|');
+                if(parts.length >= 2) {
+                    await addDoc(collection(db, pathStocks), {
+                        brand: brand,
+                        data: line.trim(),
+                        status: 'Ready',
+                        createdAt: Date.now()
+                    });
+                    count++;
+                }
+            }
+            document.getElementById('stock-bulk-input').value = '';
+            window.customAlert('Sukses', `${count} Akun berhasil ditambahkan ke stok.`, 'success');
+        }
+
+        window.deleteStock = async function(dbId) {
+            window.openCustomPrompt('Hapus Stok', 'Ketik <b>YAKIN</b> untuk menghapus stok akun ini.', async (val) => {
+                if(val === 'YAKIN') {
+                    await deleteDoc(doc(db, pathStocks, dbId));
+                    window.customAlert('Dihapus', 'Stok akun dihapus.', 'info');
+                }
+            });
+        }
+
+        // ====================================================================== //
 
         window.renderAdminOrders = function() {
             const tbody = document.getElementById('admin-order-list');
@@ -2390,14 +2712,14 @@
             }
 
             if(filteredOrders.length === 0) { 
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">${queryText ? 'Tidak ada invoice yang cocok' : 'Kosong'}</td></tr>`; 
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">${queryText ? 'Tidak ada invoice yang cocok' : 'Kosong'}</td></tr>`; 
                 return; 
             }
 
             filteredOrders.forEach(o => {
                 const sBadge = o.status === 'UNPAID' ? `<span class="status-badge status-unpaid">UNPAID</span>` : o.status === 'PENDING' ? `<span class="status-badge status-pending">PENDING</span>` : o.status === 'FAILED' ? `<span class="status-badge status-failed">FAILED</span>` : `<span class="status-badge status-success">SUCCESS</span>`;
 
-                let itemsDesc = o.items.map(i => `${i.name} <span style="color:var(--text-muted);font-size:0.75rem">(${i.playerInfo})</span>`).join('<br>');
+                let itemsDesc = o.items.map(i => `${i.name} <br><span style="color:var(--text-muted);font-size:0.75rem">${i.playerInfo}</span>`).join('<br>');
                 let promoDesc = o.promoCode ? `<br><small style="color:var(--success);">Promo: ${o.promoCode} (-Rp${o.promoDiscount})</small>` : '';
                 
                 let actionBtn = (o.status === 'PENDING')
@@ -2425,7 +2747,41 @@
             document.getElementById('proc-reply').value = '';
             
             const list = document.getElementById('proc-items-list');
-            list.innerHTML = '<strong>Item dipesan:</strong><ul style="margin-left:20px; font-size:0.85rem;">' + order.items.map(i => `<li>${i.name} - ${i.playerInfo}</li>`).join('') + '</ul>';
+            list.innerHTML = '<strong>Detail Item:</strong><ul style="margin-left:20px; font-size:0.85rem; color:var(--text);">' + order.items.map(i => `<li>${i.name} <br><small style="color:var(--text-muted);">${i.playerInfo}</small></li>`).join('') + '</ul>';
+            
+            const hasApp = order.items.some(i => i.type === 'app');
+            const stockSec = document.getElementById('proc-stock-section');
+            const stockSel = document.getElementById('proc-stock-select');
+
+            if(hasApp) {
+                stockSec.style.display = 'block';
+                stockSel.innerHTML = '<option value="">-- Pilih Stok dari Database --</option>';
+                const appItem = order.items.find(i => i.type === 'app');
+                const cleanBrandName = appItem.name.split(' - ')[0]; // E.g., "Viu Premium - 30 Hari" -> "Viu Premium"
+                
+                const readyStocks = stocks.filter(s => s.brand === cleanBrandName && s.status === 'Ready');
+                if(readyStocks.length === 0) {
+                    stockSel.innerHTML += '<option value="" disabled>Stok Habis / Kosong!</option>';
+                } else {
+                    readyStocks.forEach(s => {
+                        const em = s.data.split('|')[0];
+                        stockSel.innerHTML += `<option value="${s.dbId}">${em} | [Ready]</option>`;
+                    });
+                }
+                
+                stockSel.onchange = function() {
+                    const sId = this.value;
+                    if(!sId) return;
+                    const sData = stocks.find(x => x.dbId === sId);
+                    if(sData) {
+                        const parts = sData.data.split('|');
+                        document.getElementById('proc-reply').value = `Detail Akun Premium Anda:\nEmail/NoHP: ${parts[0] || '-'}\nPassword: ${parts[1] || '-'}\nDurasi/Ket: ${parts[2] || '-'}`;
+                    }
+                };
+            } else {
+                stockSec.style.display = 'none';
+            }
+
             window.openModal('modal-process-order');
         };
 
@@ -2433,7 +2789,15 @@
             if(!currentUser) return;
             const dbId = document.getElementById('proc-order-id').value;
             const reply = document.getElementById('proc-reply').value;
+            const order = orders.find(o => o.dbId === dbId);
             
+            if(statusType === 'SUCCESS' && order.items.some(i => i.type === 'app')) {
+                const stockSel = document.getElementById('proc-stock-select');
+                if(stockSel && stockSel.value) {
+                    await updateDoc(doc(db, pathStocks, stockSel.value), { status: 'Used', usedAt: Date.now(), orderId: order.id });
+                }
+            }
+
             await updateDoc(doc(db, pathOrders, dbId), { status: statusType, adminReply: reply });
             window.closeModal('modal-process-order');
             if(statusType === 'SUCCESS') window.customAlert('Sukses', 'Pesanan selesai disetujui.', 'success');
@@ -2620,7 +2984,7 @@
         document.getElementById('manage-prod-img-file').addEventListener('change', function(e) {
             if (e.target.files[0]) {
                 document.getElementById('manage-prod-file-name').innerText = e.target.files[0].name;
-                resizeImageBase64(e.target.files[0], (b64) => {
+                window.resizeImageBase64(e.target.files[0], (b64) => {
                     document.getElementById('manage-prod-img-base64').value = b64;
                     window.renderTempNominals(); 
                 }, 800, 800);
