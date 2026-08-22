@@ -7,8 +7,6 @@
     <!-- FontAwesome & Google Fonts -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- QR Code Generator Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
         :root {
@@ -38,9 +36,9 @@
         button { cursor: pointer; border: none; font-family: inherit; outline: none; background: transparent; }
         
         /* Transparan Scrollbar (Halus) */
-        ::-webkit-scrollbar { width: 4px; height: 4px; background: transparent; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; background: transparent; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 6px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.5); }
 
         .container { width: 100%; padding: 0 5%; max-width: 1400px; margin: 0 auto; }
@@ -91,12 +89,18 @@
         .btn-danger:hover { background: var(--danger); color: white; }
         .btn-disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; opacity: 0.7; }
         
-        /* Cart Badge */
+        /* Notification Dot */
+        .notif-dot {
+            position: absolute; top: -3px; right: -3px;
+            width: 10px; height: 10px; background-color: var(--danger);
+            border-radius: 50%; display: none; box-shadow: 0 0 5px rgba(239, 68, 68, 0.8);
+        }
+
         .cart-btn { position: relative; }
         .cart-badge { 
             position: absolute; top: -6px; right: -6px; background: var(--danger); color: white; 
             font-size: 0.65rem; font-weight: 800; height: 16px; min-width: 16px; 
-            border-radius: 20px; display: none; align-items: center; justify-content: center; padding: 0 4px; /* Hidden by default */
+            border-radius: 20px; display: none; align-items: center; justify-content: center; padding: 0 4px; 
         }
 
         .hero { padding: 3rem 5% 2rem; text-align: center; position: relative; overflow: hidden; }
@@ -110,7 +114,6 @@
         .marquee-text { font-weight: 600; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1px;}
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         
-        /* Banner Slider (3240x1440 ratio approx 9:4) */
         .banner-slider-container { width: 100%; max-width: 1200px; margin: 0 auto 2rem; position: relative; overflow: hidden; border-radius: 12px; aspect-ratio: 9/4; background: var(--surface); border: 1px solid var(--border); display: none; }
         .banner-track { display: flex; width: 100%; height: 100%; transition: transform 0.5s ease-in-out; }
         .banner-slide { min-width: 100%; height: 100%; object-fit: cover; }
@@ -171,7 +174,6 @@
         .tutorial-info h3 { font-size: 1.1rem; color: var(--primary-light); margin-bottom: 0.4rem; }
         .tutorial-info p { color: var(--text-muted); font-size: 0.85rem; }
 
-        /* Why Choose Us & About & FAQ Section */
         .info-section { margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--border); }
         .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
         .feature-card { background: var(--surface); padding: 1.5rem; border-radius: 14px; border: 1px solid var(--border); text-align: center; transition: 0.3s; }
@@ -180,11 +182,16 @@
         .feature-card h4 { font-size: 1.05rem; margin-bottom: 0.5rem; color: var(--text); }
         .feature-card p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
 
-        .faq-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; }
-        .faq-box h4 { color: var(--primary-light); margin-bottom: 0.5rem; font-size: 1rem;}
-        .faq-box p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+        /* FAQ Accordion Styling */
+        .faq-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; cursor: pointer; transition: 0.3s; }
+        .faq-box:hover { border-color: var(--primary-light); }
+        .faq-box h4 { color: var(--primary-light); font-size: 1rem; display: flex; justify-content: space-between; align-items: center; margin: 0;}
+        .faq-box h4 i.arrow { transition: transform 0.3s ease; color: var(--text-muted); font-size: 0.9rem;}
+        .faq-box.expanded h4 i.arrow { transform: rotate(180deg); color: var(--primary-light); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, opacity 0.3s ease-out; opacity: 0; }
+        .faq-box.expanded .faq-answer { max-height: 500px; opacity: 1; margin-top: 0.8rem; }
+        .faq-answer p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; }
 
-        /* General Modal Styling - Z-INDEX 99999 (Over Admin Dash) */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 99999; 
@@ -208,7 +215,7 @@
         .close-btn:hover { color: var(--danger); transform: rotate(90deg); }
 
         /* Form Controls */
-        .form-group { margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; text-align: left; }
         .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 500; }
         .form-control { 
             width: 100%; padding: 0.7rem 1rem; border-radius: 8px; border: 1px solid var(--border); 
@@ -225,10 +232,6 @@
         .cart-remove:hover { background: var(--danger); color: white; }
         .cart-total-box { border-top: 2px dashed var(--border); padding-top: 1rem; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; font-weight: 800; }
         .unique-code-info { font-size: 0.75rem; color: var(--warning); font-weight: normal; margin-top: 5px; text-align: right;}
-
-        .qris-box { background: white; padding: 1.2rem; border-radius: 10px; text-align: center; margin: 1.2rem 0; display: flex; flex-direction: column; align-items: center; }
-        #qris-canvas-container { background: white; padding: 10px; border-radius: 8px; margin-bottom: 0.8rem; display: inline-block; }
-        .qris-box p { color: #000; font-weight: 800; margin-top: 0.5rem; font-size: 1.1rem; }
 
         #admin-dashboard {
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -281,7 +284,6 @@
         .msg-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--text);}
         .msg-desc { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem; }
 
-        /* Tampilan Footer */
         .footer-new { background: #020617; padding: 3rem 5%; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2rem; margin-top: 2rem; }
         .footer-left { display: flex; flex-direction: column; gap: 0.8rem; }
         .footer-brand { display: flex; align-items: center; gap: 10px; }
@@ -302,7 +304,6 @@
         .footer-right { font-size: 1rem; font-weight: 600; color: var(--text-muted); display: flex; flex-direction: column; align-items: flex-end; }
         .footer-right span { color: var(--primary-light); font-weight: 700; margin-top: 5px; font-size: 1.2rem;}
 
-        /* Mobile Adjustments */
         @media (max-width: 768px) {
             .nav-right nav { display: none; }
             .hero { padding: 2.5rem 5% 1.5rem; }
@@ -326,7 +327,6 @@
 <body>
 
     <div id="store-view">
-        <!-- Header -->
         <header>
             <div class="container nav-container">
                 <div class="logo-area" onclick="handleLogoClick()">
@@ -338,10 +338,6 @@
                     <nav>
                         <a onclick="switchMainTab('katalog')" id="nav-katalog" class="active">Katalog</a>
                         <a onclick="switchMainTab('tutorial')" id="nav-tutorial">Cara Klaim</a>
-                        
-                        <!-- Terpisah: Profil dan Pesanan -->
-                        <a onclick="switchMainTab('profil')" id="nav-profil" style="display:none;">Profil</a>
-                        <a onclick="switchMainTab('pesanan')" id="nav-pesanan" style="display:none;">Pesanan</a>
                     </nav>
                     <div class="social-icons" style="margin-right: 5px;">
                         <a href="#" id="header-ig" target="_blank" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
@@ -363,10 +359,11 @@
                             <i class="fa-solid fa-user"></i> <span class="hide-mobile">Login</span>
                         </button>
                         
-                        <!-- Avatar Mobile -->
+                        <!-- Avatar Mobile & Desktop (Icons Only for Navigation) -->
                         <div id="user-profile-menu" style="display:none; align-items:center; gap:8px;">
-                            <button class="btn btn-outline hide-desktop-view" onclick="switchMainTab('pesanan')" style="padding: 0.5rem; border-color: var(--border);" title="Pesanan Saya">
+                            <button class="btn btn-outline" onclick="switchMainTab('pesanan')" style="padding: 0.5rem; border-color: var(--border); position: relative;" title="Pesanan Saya">
                                 <i class="fa-solid fa-clock-rotate-left"></i>
+                                <span id="user-order-badge" class="notif-dot"></span>
                             </button>
                             <button class="btn btn-outline" onclick="switchMainTab('profil')" style="padding: 0.5rem; border-color: var(--border);" title="Profil Saya">
                                 <i class="fa-solid fa-circle-user"></i>
@@ -374,8 +371,9 @@
                         </div>
                         
                         <!-- Panel Admin -->
-                        <button id="btn-admin-panel" class="btn btn-danger" onclick="toggleAdminDashboard(true)">
+                        <button id="btn-admin-panel" class="btn btn-danger" onclick="toggleAdminDashboard(true)" style="position: relative;">
                             <i class="fa-solid fa-shield-halved"></i> <span class="hide-mobile">Admin</span>
+                            <span id="admin-badge" class="notif-dot"></span>
                         </button>
                     </div>
                 </div>
@@ -386,7 +384,7 @@
         <div id="tab-katalog" class="main-tab-content active container" style="padding-top:0;">
             <section class="hero reveal">
                 <h1>Platform <br><span>Layanan Premium</span></h1>
-                <p>Penyedia akun premium otomatis dan top-up game. Pilih produk, masuk troli, bayar via QRIS otomatis, dan pesananmu diproses seketika.</p>
+                <p>Penyedia akun premium otomatis dan top-up game. Pilih produk, masuk troli, bayar via QRIS, dan pesananmu diproses seketika.</p>
             </section>
 
             <div class="marquee-container reveal">
@@ -416,7 +414,6 @@
                 <div style="text-align:center; grid-column: 1/-1; padding: 2rem; color:var(--text-muted);">Memuat katalog...</div>
             </div>
 
-            <!-- Kenapa Memilih Kami & FAQ -->
             <div class="info-section reveal">
                 <div class="section-header">
                     <h2>Kenapa Memilih Kami?</h2>
@@ -426,7 +423,7 @@
                     <div class="feature-card">
                         <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
                         <h4>Proses Instan</h4>
-                        <p>Sistem otomatis memproses pesananmu hitungan detik setelah bayar via QRIS.</p>
+                        <p>Sistem otomatis memproses pesananmu dengan cepat setelah pembayaran terkonfirmasi.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon"><i class="fa-solid fa-tags"></i></div>
@@ -456,17 +453,24 @@
                     <p>Yang paling sering ditanyakan pelanggan.</p>
                 </div>
                 <div style="max-width: 800px; margin: 0 auto;">
-                    <div class="faq-box">
-                        <h4><i class="fa-solid fa-circle-question"></i> Bagaimana cara pemesanannya?</h4>
-                        <p>Sangat mudah! Kamu tinggal pilih produk di katalog, masukkan ke Troli, lalu isi nomor WhatsApp kamu dan klik Checkout. Sistem akan otomatis membuatkan kode bayar QRIS.</p>
+                    <!-- Accordion FAQ Items -->
+                    <div class="faq-box" onclick="toggleFaq(this)">
+                        <h4><span><i class="fa-solid fa-circle-question" style="margin-right:8px;"></i> Bagaimana cara pemesanannya?</span> <i class="fa-solid fa-chevron-down arrow"></i></h4>
+                        <div class="faq-answer">
+                            <p>Sangat mudah! Kamu tinggal pilih produk di katalog, masukkan ke Troli, lalu isi nomor WhatsApp kamu dan klik Checkout. Sistem akan menampilkan kode QRIS untuk kamu bayar.</p>
+                        </div>
                     </div>
-                    <div class="faq-box">
-                        <h4><i class="fa-solid fa-circle-question"></i> Kapan pesanan saya dikirim?</h4>
-                        <p>Setelah kamu menekan tombol "Saya Sudah Bayar" pada form QRIS, pesanan otomatis masuk ke sistem Admin kami. Saat Admin menyetujui, produk berupa Game akan langsung terisi ke ID kamu, dan untuk Produk Aplikasi (Email/Password), informasinya akan langsung muncul secara tertulis di Web ini tepat di menu "Riwayat Pesanan/Lacak Pesanan" kamu!</p>
+                    <div class="faq-box" onclick="toggleFaq(this)">
+                        <h4><span><i class="fa-solid fa-circle-question" style="margin-right:8px;"></i> Kapan pesanan saya dikirim?</span> <i class="fa-solid fa-chevron-down arrow"></i></h4>
+                        <div class="faq-answer">
+                            <p>Setelah kamu menekan tombol "Saya Sudah Bayar" pada form QRIS, pesanan otomatis masuk ke sistem Admin kami. Saat Admin menyetujui, produk berupa Game akan langsung terisi ke ID kamu, dan untuk Produk Aplikasi (Email/Password), informasinya akan langsung muncul secara tertulis di Web ini tepat di menu "Riwayat Pesanan/Lacak Pesanan" kamu!</p>
+                        </div>
                     </div>
-                    <div class="faq-box">
-                        <h4><i class="fa-solid fa-circle-question"></i> Apakah produk bergaransi?</h4>
-                        <p>Tentu! Semua produk bergaransi sesuai syarat dan ketentuan masing-masing aplikasi/game. Jika akun terkendala, cukup gunakan tombol Bantuan di Riwayat Pesanan untuk menghubungi Admin langsung.</p>
+                    <div class="faq-box" onclick="toggleFaq(this)">
+                        <h4><span><i class="fa-solid fa-circle-question" style="margin-right:8px;"></i> Apakah produk bergaransi?</span> <i class="fa-solid fa-chevron-down arrow"></i></h4>
+                        <div class="faq-answer">
+                            <p>Tentu! Semua produk bergaransi sesuai syarat dan ketentuan masing-masing aplikasi/game. Jika akun terkendala, cukup gunakan tombol Bantuan di Riwayat Pesanan untuk menghubungi Admin langsung.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -519,7 +523,7 @@
                 <div class="reveal" style="display:flex; flex-direction:column; gap:1.5rem;">
                     <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem;">
                         <h3 style="color: var(--text); margin-bottom: 1rem;"><i class="fa-solid fa-shield-halved"></i> Keamanan Akun</h3>
-                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom: 1rem;">Lupa sandi lama atau ingin mengubah sandi untuk login selanjutnya? Kami akan mengirimkan link reset ke email mu.</p>
+                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom: 1rem;">Lupa sandi lama atau ingin mengubah sandi? (Batas 1 kali pengiriman setiap 4 menit).</p>
                         <button class="btn btn-outline" onclick="sendProfileResetPassword()" style="width:100%;">Kirim Link Reset Sandi</button>
                     </div>
 
@@ -543,7 +547,6 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <footer class="footer-new reveal">
             <div class="footer-left">
                 <div class="footer-brand">
@@ -622,7 +625,7 @@
 
             <!-- Reset Password Form -->
             <div id="form-reset" style="display: none;">
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Masukkan emailmu, kami akan mengirimkan link reset sandi lama.</p>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Masukkan emailmu, kami akan mengirimkan link reset sandi. (Batas 1x / 4 Menit)</p>
                 <div class="form-group">
                     <label>Email Terdaftar</label>
                     <input type="email" id="auth-res-email" class="form-control" placeholder="Email kamu">
@@ -693,30 +696,36 @@
         </div>
     </div>
 
-    <!-- Payment QRIS Modal -->
+    <!-- Payment QRIS Modal (Redesigned) -->
     <div class="modal-overlay" id="modal-payment">
-        <div class="modal-content" style="text-align: center;">
-            <div class="modal-header">
-                <h2>Selesaikan Pembayaran</h2>
-                <button class="close-btn" onclick="closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-content" style="max-width: 400px; text-align: center; background: var(--surface); padding: 2rem 1.5rem;">
+            <div class="modal-header" style="border-bottom: none; justify-content: center; margin-bottom: 0;">
+                <h2 style="font-size: 1.4rem; color: var(--primary-light);">Selesaikan Pembayaran</h2>
+                <button class="close-btn" onclick="closeModal('modal-payment')" style="position: absolute; right: 1.5rem; top: 1.5rem;"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <p style="color: var(--text-muted); font-size: 0.85rem;">Scan atau Download QRIS di bawah ini melalui aplikasi e-Wallet / M-Banking Anda.</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Scan atau Download QRIS di bawah ini menggunakan aplikasi e-Wallet / M-Banking Anda.</p>
             
-            <div class="qris-box">
-                <div id="qris-canvas-container"></div>
-                <p id="pay-total-display">Rp0</p>
-                <small style="color:var(--warning); display:block; margin-bottom:10px;">*Transfer tepat hingga 3 digit terakhir!</small>
-                <button class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.8rem; border-color:var(--border);" onclick="downloadQRIS()">
-                    <i class="fa-solid fa-download"></i> Simpan QRIS
+            <div class="qris-box" style="background: white; padding: 1.5rem; border-radius: 16px; margin-bottom: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                <div id="qris-error-msg" style="display:none; padding:1rem; background:#fee2e2; color:#ef4444; border-radius:8px; font-size: 0.85rem; margin-bottom: 1rem;">Admin belum mengunggah QRIS Pembayaran.</div>
+                <img id="qris-image-display" src="" alt="QRIS" style="width: 100%; max-width: 250px; margin: 0 auto; display: none; border-radius: 8px;">
+                
+                <div style="margin-top: 1rem; border-top: 2px dashed #e2e8f0; padding-top: 1rem;">
+                    <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 0.3rem;">Total Tagihan</p>
+                    <p id="pay-total-display" style="color: #0f172a; font-size: 1.6rem; font-weight: 800; line-height: 1;">Rp0</p>
+                    <small style="color:var(--danger); display:block; margin-top:8px; font-weight: 700;">*Transfer TEPAT sesuai nominal di atas!</small>
+                </div>
+                
+                <button class="btn btn-outline" style="width: 100%; margin-top: 1rem; color: var(--primary); border-color: var(--primary); font-weight: 600;" onclick="downloadQRIS()">
+                    <i class="fa-solid fa-download"></i> Simpan Gambar QRIS
                 </button>
             </div>
             
-            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16,185,129,0.3); padding: 0.8rem; border-radius: 8px; margin: 1.2rem 0; text-align: left;">
-                <p style="font-size:0.8rem; color:var(--text-muted); margin:0;">Tekan tombol di bawah <b>HANYA JIKA</b> Anda sudah berhasil transfer sesuai nominal di atas.</p>
+            <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--success); padding: 1rem; border-radius: 0 8px 8px 0; margin-bottom: 1.5rem; text-align: left;">
+                <p style="font-size:0.85rem; color:var(--text); margin:0; line-height: 1.5;">Tekan tombol di bawah <b>HANYA JIKA</b> Anda sudah berhasil transfer sesuai nominal.</p>
             </div>
 
-            <button id="btn-final-pay" class="btn btn-success" style="width:100%; padding:0.9rem; font-size:1rem;" onclick="finalizeCartOrder()">Saya Sudah Bayar</button>
+            <button id="btn-final-pay" class="btn btn-success" style="width:100%; padding:1rem; font-size:1.1rem; border-radius: 12px; font-weight: 700; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);" onclick="finalizeCartOrder()">Saya Sudah Bayar</button>
         </div>
     </div>
 
@@ -756,7 +765,9 @@
             <button class="btn btn-outline" onclick="toggleAdminDashboard(false)">Ke Toko</button>
         </div>
         <div class="admin-nav">
-            <button class="admin-tab active" onclick="switchAdminTab('tab-orders', this)">Pesanan</button>
+            <button class="admin-tab active" onclick="switchAdminTab('tab-orders', this)">
+                Pesanan <span id="admin-tab-order-badge" class="notif-dot" style="position:static; display:inline-block; margin-left:4px; vertical-align:middle; width:8px; height:8px;"></span>
+            </button>
             <button class="admin-tab" onclick="switchAdminTab('tab-products', this)">Produk</button>
             <button class="admin-tab" onclick="switchAdminTab('tab-tutorials', this)">Tutorial</button>
             <button class="admin-tab" onclick="switchAdminTab('tab-settings', this)">Pengaturan</button>
@@ -797,7 +808,7 @@
                 <div id="admin-tut-list" style="display: flex; flex-direction: column; gap: 1rem;"></div>
             </div>
 
-            <!-- Tab: Settings -->
+            <!-- Tab: Settings (Updated QRIS to Upload) -->
             <div id="tab-settings" class="admin-tab-content" style="display: none;">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
                     <div style="background: var(--surface); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border);">
@@ -814,10 +825,12 @@
                     </div>
 
                     <div style="background: var(--surface); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border);">
-                        <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Sistem & Kontak</h3>
+                        <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Sistem Pembayaran & Kontak</h3>
                         <div class="form-group">
-                            <label>String QRIS Statis</label>
-                            <textarea id="set-qris-string" class="form-control" rows="3" placeholder="000201010211..."></textarea>
+                            <label>Gambar QRIS Pembayaran <small>(Akan ditampilkan saat checkout)</small></label>
+                            <input type="file" id="set-qris-upload" accept="image/*" class="form-control" style="padding: 0.4rem; background: var(--bg);">
+                            <input type="hidden" id="set-qris-base64">
+                            <img id="set-qris-preview" src="" style="max-height: 150px; margin-top:10px; border-radius: 8px; display: none; border: 2px solid white;">
                         </div>
                         <div class="form-group"><label>Nomor WA (Penerima & Footer)</label><input type="number" id="set-wa" class="form-control" placeholder="Contoh: 085141748690"></div>
                         <div class="form-group"><label>Link Instagram</label><input type="text" id="set-ig" class="form-control"></div>
@@ -950,7 +963,7 @@
         let orders = [];
         let siteSettings = { 
             logoText: 'VIPER', logoAccent: 'CELL', logoImgBase64: '', marquee: 'Selamat Datang di Vipercell', 
-            qrisString: '', adminWa: '085656321860', igLink: '', ttLink: '', 
+            qrisImageBase64: '', adminWa: '085656321860', igLink: '', ttLink: '', 
             tutorialList: [], banners: []
         };
         let userProfile = { name: '', phone: '' };
@@ -959,7 +972,7 @@
         let currentUser = null;
         let cart = JSON.parse(localStorage.getItem('vipercell_cart')) || [];
         
-        // Expose to window
+        // Expose helper functions to window
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
         
@@ -993,8 +1006,6 @@
                         if (user.isAnonymous) {
                             document.getElementById('btn-login-user').style.display = 'inline-flex';
                             document.getElementById('user-profile-menu').style.display = 'none';
-                            document.getElementById('nav-profil').style.display = 'none';
-                            document.getElementById('nav-pesanan').style.display = 'none';
                             document.getElementById('btn-cek-pesanan').style.display = 'inline-flex';
                             userProfile = { name: '', phone: '' };
                         } else {
@@ -1012,8 +1023,6 @@
                             }
                             
                             document.getElementById('prof-email').value = user.email || '';
-                            document.getElementById('nav-profil').style.display = 'inline-block';
-                            document.getElementById('nav-pesanan').style.display = 'inline-block';
                             document.getElementById('btn-cek-pesanan').style.display = 'none';
                             window.renderUserOrders(); // Render pesanan member
                             updateProfileStats();
@@ -1034,8 +1043,6 @@
                         document.getElementById('btn-admin-panel').style.display = 'none';
                         document.getElementById('btn-login-user').style.display = 'inline-flex';
                         document.getElementById('user-profile-menu').style.display = 'none';
-                        document.getElementById('nav-profil').style.display = 'none';
-                        document.getElementById('nav-pesanan').style.display = 'none';
                         document.getElementById('btn-cek-pesanan').style.display = 'inline-flex';
                         signInAnonymously(auth).catch(() => {});
                     }
@@ -1070,6 +1077,9 @@
                 snapshot.forEach((doc) => { orders.push({ dbId: doc.id, ...doc.data() }); });
                 orders.sort((a,b) => new Date(b.date) - new Date(a.date));
                 if(isAdminLoggedIn) window.renderAdminOrders();
+                
+                updateOrderBadges(); // Panggil fungsi badge
+                
                 if(currentUser && !currentUser.isAnonymous) {
                     window.renderUserOrders();
                     updateProfileStats();
@@ -1077,6 +1087,28 @@
             });
         }
         
+        function updateOrderBadges() {
+            // Admin badge logic
+            if (isAdminLoggedIn) {
+                const hasPending = orders.some(o => o.status === 'PENDING');
+                document.getElementById('admin-badge').style.display = hasPending ? 'block' : 'none';
+                
+                const adminOrderTabBadge = document.getElementById('admin-tab-order-badge');
+                if(adminOrderTabBadge) adminOrderTabBadge.style.display = hasPending ? 'inline-block' : 'none';
+            }
+
+            // User badge logic
+            if (currentUser && !currentUser.isAnonymous) {
+                const hasActionNeeded = orders.some(o => o.userEmail === currentUser.email && (o.status === 'UNPAID' || o.status === 'PENDING'));
+                document.getElementById('user-order-badge').style.display = hasActionNeeded ? 'block' : 'none';
+            }
+        }
+
+        // FAQ Accordion logic
+        window.toggleFaq = function(element) {
+            element.classList.toggle('expanded');
+        }
+
         // --- AUTH SYSTEM LENGKAP ---
         window.openAuthModal = function() {
             switchAuthTab('login');
@@ -1125,11 +1157,30 @@
             } catch(e) { window.customAlert('Gagal', 'Email mungkin sudah terdaftar.', 'error'); }
         };
 
+        // Reset Password Cooldown Logic
+        function checkResetCooldown() {
+            const lastResetTime = localStorage.getItem('vipercell_last_reset') || 0;
+            const COOLDOWN = 4 * 60 * 1000; // 4 Minutes
+            const now = Date.now();
+            if (now - lastResetTime < COOLDOWN) {
+                const remaining = Math.ceil((COOLDOWN - (now - lastResetTime)) / 1000);
+                const min = Math.floor(remaining / 60);
+                const sec = remaining % 60;
+                window.customAlert('Tunggu Sebentar', `Harap tunggu <b>${min}m ${sec}s</b> lagi sebelum meminta link reset baru.`, 'warning');
+                return false;
+            }
+            return true;
+        }
+
         window.processReset = async function() {
             const em = document.getElementById('auth-res-email').value.trim();
             if(!em) { window.customAlert('Error', 'Masukkan email terdaftar.', 'error'); return; }
+            
+            if(!checkResetCooldown()) return;
+
             try {
                 await sendPasswordResetEmail(auth, em);
+                localStorage.setItem('vipercell_last_reset', Date.now());
                 window.customAlert('Sukses', 'Link reset telah dikirim ke emailmu.', 'success');
                 switchAuthTab('login');
             } catch(e) { window.customAlert('Error', 'Gagal mengirim link reset.', 'error'); }
@@ -1137,8 +1188,11 @@
         
         window.sendProfileResetPassword = async function() {
             if(!currentUser || currentUser.isAnonymous) return;
+            if(!checkResetCooldown()) return;
+
             try {
                 await sendPasswordResetEmail(auth, currentUser.email);
+                localStorage.setItem('vipercell_last_reset', Date.now());
                 window.customAlert('Sukses Mengirim', 'Cek kotak masuk email kamu untuk membuat sandi baru.', 'success');
             } catch (e) {
                 window.customAlert('Gagal', 'Terjadi kesalahan sistem.', 'error');
@@ -1185,7 +1239,7 @@
             document.querySelectorAll('nav a').forEach(el => el.classList.remove('active'));
             
             let navEl = document.getElementById('nav-'+tab);
-            if(navEl) navEl.classList.add('active');
+            if(navEl) navEl.classList.add('active'); // Will highlight nav if it's katalog or tutorial
             
             let tabEl = document.getElementById('tab-'+tab);
             if(tabEl) tabEl.classList.add('active');
@@ -1193,7 +1247,6 @@
             setTimeout(observeReveals, 100);
         };
 
-        // --- UI FORMATTERS ---
         function getHandleFromUrl(url) {
             if(!url) return "@vipercell";
             try { let parts = url.split('/').filter(p => p !== ''); let last = parts.pop(); if(last.includes('?')) last = last.split('?')[0]; return last.startsWith('@') ? last : '@' + last; } catch(e) { return "@vipercell"; }
@@ -1457,42 +1510,6 @@
             document.getElementById('cart-total-price').innerText = `Rp${baseTotal.toLocaleString('id-ID')}`;
         };
 
-        // Algoritma Penyesuaian String QRIS Otomatis (Robust CCITT)
-        function calculateCrc16(str) {
-            let crc = 0xFFFF;
-            for (let i = 0; i < str.length; i++) {
-                crc ^= (str.charCodeAt(i) << 8);
-                for (let j = 0; j < 8; j++) {
-                    if ((crc & 0x8000) > 0) crc = (crc << 1) ^ 0x1021;
-                    else crc = (crc << 1) & 0xFFFF; 
-                }
-            }
-            return crc.toString(16).toUpperCase().padStart(4, '0');
-        }
-
-        function generateDynamicQrisString(baseQris, amountNum) {
-            baseQris = baseQris.trim().replace(/\s+/g, '');
-            if(!baseQris || baseQris.length < 20) return baseQris; // Return ori jika terlalu pendek dan salahkan struktur.
-            
-            // Lepas akhiran CRC jika ada (biasanya diakhiri 6304XXXX)
-            let qrisBase = baseQris;
-            let crcIdx = qrisBase.lastIndexOf("6304");
-            if (crcIdx !== -1) {
-                qrisBase = qrisBase.substring(0, crcIdx);
-            } else if (qrisBase.substring(qrisBase.length - 8, qrisBase.length - 4) === "6304") {
-                qrisBase = qrisBase.substring(0, qrisBase.length - 4);
-            }
-            
-            // Menyusun Tag Format 54 (Transaction Amount)
-            let amountStr = amountNum.toString();
-            let tag54 = "54" + amountStr.length.toString().padStart(2, '0') + amountStr;
-
-            // Injeksi tag baru tepat sebelum 6304 (di akhir yang valid)
-            let newQris = qrisBase + tag54 + "6304";
-            
-            return newQris + calculateCrc16(newQris);
-        }
-
         window.generateCartQRIS = async function() {
             let wa = document.getElementById('cart-wa').value;
             if(currentUser && !currentUser.isAnonymous && userProfile.phone) wa = userProfile.phone;
@@ -1533,20 +1550,16 @@
         };
 
         function openQRISModal() {
-            const qrContainer = document.getElementById('qris-canvas-container');
-            qrContainer.innerHTML = ''; 
+            const qrImgDisplay = document.getElementById('qris-image-display');
+            const qrErrorMsg = document.getElementById('qris-error-msg');
             
-            let finalStr = siteSettings.qrisString;
-            
-            if(finalStr && finalStr.length > 20) {
-                try {
-                    const finalQrisString = generateDynamicQrisString(finalStr, currentCheckoutSession.finalTotal);
-                    new QRCode(qrContainer, { text: finalQrisString, width: 200, height: 200, colorDark : "#000", colorLight : "#fff" });
-                } catch(e) {
-                    qrContainer.innerHTML = `<div style="padding:1rem; background:#fee2e2; color:#ef4444; border:1px solid #ef4444; border-radius:8px;">String QRIS gagal dikonversi, hubungi admin.</div>`;
-                }
+            if(siteSettings.qrisImageBase64) {
+                qrImgDisplay.src = siteSettings.qrisImageBase64;
+                qrImgDisplay.style.display = 'block';
+                qrErrorMsg.style.display = 'none';
             } else {
-                qrContainer.innerHTML = `<div style="padding:1rem; background:#fee2e2; color:#ef4444; border:1px solid #ef4444; border-radius:8px;">Admin belum menaruh kode QRIS Valid.</div>`;
+                qrImgDisplay.style.display = 'none';
+                qrErrorMsg.style.display = 'block';
             }
 
             document.getElementById('pay-total-display').innerText = `Rp${currentCheckoutSession.finalTotal.toLocaleString('id-ID')}`;
@@ -1566,12 +1579,14 @@
         }
 
         window.downloadQRIS = function() {
-            const canvas = document.querySelector('#qris-canvas-container canvas');
-            const img = document.querySelector('#qris-canvas-container img');
-            if (img && img.src) {
-                const link = document.createElement('a'); link.download = `QRIS-Vipercell-${currentCheckoutSession.finalTotal}.png`; link.href = img.src; link.click();
-            } else if (canvas) {
-                const link = document.createElement('a'); link.download = `QRIS-Vipercell-${currentCheckoutSession.finalTotal}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+            const qrImg = document.getElementById('qris-image-display');
+            if (qrImg && qrImg.src && qrImg.style.display !== 'none') {
+                const link = document.createElement('a'); 
+                link.download = `QRIS-Vipercell.png`; 
+                link.href = qrImg.src; 
+                link.click();
+            } else {
+                window.customAlert("Gagal", "Tidak ada gambar QRIS untuk diunduh.", "error");
             }
         };
 
@@ -1585,7 +1600,7 @@
                 // Update ke pending
                 await updateDoc(doc(db, pathOrders, currentCheckoutSession.dbId), { status: 'PENDING' });
 
-                // Menyalin otomatis
+                // Menyalin otomatis ID
                 const el = document.createElement('textarea');
                 el.value = currentCheckoutSession.id; el.setAttribute('readonly', ''); el.style.position = 'absolute'; el.style.left = '-9999px';
                 document.body.appendChild(el); el.select(); try { document.execCommand('copy'); } catch(e){} document.body.removeChild(el);
@@ -1602,7 +1617,7 @@
                     
                     currentCheckoutSession = null;
                     
-                    // Arahkan ke history pesanan jika member, atau alert jika anonim
+                    // Arahkan ke history pesanan jika member
                     if(!currentUser.isAnonymous) switchMainTab('pesanan');
                 }, 2000);
             } catch (error) {
@@ -1611,7 +1626,6 @@
             }
         };
 
-        // --- TRACKING & HISTORY HELPER ---
         function generateHelpButtons(invId) {
             let adminWaNum = siteSettings.adminWa || '085656321860';
             if (adminWaNum.startsWith('0')) adminWaNum = '62' + adminWaNum.substring(1);
@@ -1715,7 +1729,6 @@
             setTimeout(observeReveals, 100);
         };
 
-        // --- ADMIN DASHBOARD ---
         window.toggleAdminDashboard = (show) => {
             if(show && !isAdminLoggedIn) { window.customAlert("Ditolak", "Anda bukan Admin.", "error"); return; }
             document.getElementById('store-view').style.display = show ? 'none' : 'block';
@@ -1960,7 +1973,6 @@
             document.getElementById('set-logo-text').value = siteSettings.logoText || 'VIPER';
             document.getElementById('set-logo-accent').value = siteSettings.logoAccent || 'CELL';
             document.getElementById('set-marquee').value = siteSettings.marquee || '';
-            document.getElementById('set-qris-string').value = siteSettings.qrisString || '';
             document.getElementById('set-wa').value = siteSettings.adminWa || '';
             document.getElementById('set-ig').value = siteSettings.igLink || '';
             document.getElementById('set-tt').value = siteSettings.ttLink || '';
@@ -1970,6 +1982,12 @@
                 document.getElementById('set-logo-preview').style.display = 'block';
                 document.getElementById('set-logo-base64').value = siteSettings.logoImgBase64;
             }
+            if(siteSettings.qrisImageBase64) {
+                document.getElementById('set-qris-preview').src = siteSettings.qrisImageBase64;
+                document.getElementById('set-qris-preview').style.display = 'block';
+                document.getElementById('set-qris-base64').value = siteSettings.qrisImageBase64;
+            }
+            
             renderAdminBannersList();
         }
 
@@ -1997,6 +2015,14 @@
                 document.getElementById('set-logo-preview').style.display = 'block';
                 document.getElementById('set-logo-base64').value = b64;
             });
+        });
+
+        document.getElementById('set-qris-upload').addEventListener('change', function(e) {
+            if (e.target.files[0]) resizeImageBase64(e.target.files[0], (b64) => {
+                document.getElementById('set-qris-preview').src = b64;
+                document.getElementById('set-qris-preview').style.display = 'block';
+                document.getElementById('set-qris-base64').value = b64;
+            }, 1000, 1000); // Higher limit for QR clarity
         });
 
         let tempBanners = [];
@@ -2027,7 +2053,7 @@
                 logoAccent: document.getElementById('set-logo-accent').value,
                 logoImgBase64: document.getElementById('set-logo-base64').value,
                 marquee: document.getElementById('set-marquee').value,
-                qrisString: document.getElementById('set-qris-string').value,
+                qrisImageBase64: document.getElementById('set-qris-base64').value,
                 adminWa: document.getElementById('set-wa').value,
                 igLink: document.getElementById('set-ig').value,
                 ttLink: document.getElementById('set-tt').value,
