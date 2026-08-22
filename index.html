@@ -271,6 +271,8 @@
         .admin-tab.active { background: rgba(37,99,235,0.1); border-color: var(--primary); color: var(--primary-light); }
         .admin-body { padding: 2rem 5%; max-width: 1200px; margin: 0 auto; overflow-x: hidden; }
         
+        .settings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+
         .table-responsive { overflow-x: auto; background: var(--surface); border-radius: 10px; border: 1px solid var(--border); padding-bottom: 5px; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; min-width: 600px;}
         th, td { padding: 0.8rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -301,6 +303,10 @@
         
         .footer-right { font-size: 1rem; font-weight: 600; color: var(--text-muted); display: flex; flex-direction: column; align-items: flex-end; }
         .footer-right span { color: var(--primary-light); font-weight: 700; margin-top: 5px; font-size: 1.2rem;}
+
+        @media (max-width: 900px) {
+            .settings-grid { grid-template-columns: 1fr; }
+        }
 
         @media (max-width: 768px) {
             /* Transform top nav to icon-only format */
@@ -356,12 +362,10 @@
                             <i class="fa-solid fa-circle-user"></i> <span class="hide-mobile">Profil</span>
                         </a>
                         <a onclick="switchMainTab('pesanan')" id="nav-pesanan" style="display:none;" title="Pesanan">
-                            <i class="fa-solid fa-clock-rotate-left" style="position:relative;">
-                                <span id="user-order-badge-mobile" class="notif-dot" style="top:-2px; right:-2px;"></span>
-                            </i> 
-                            <span class="hide-mobile" style="position:relative;">Pesanan
-                                <span id="user-order-badge" class="notif-dot" style="top:5px; right:-10px;"></span>
-                            </span>
+                            <i class="fa-solid fa-clock-rotate-left"></i> 
+                            <span class="hide-mobile">Pesanan</span>
+                            <!-- BUG FIXED: Hanya 1 Titik Badge (Absolut relative to the a-tag) -->
+                            <span id="user-order-badge" class="notif-dot" style="top:5px; right:5px;"></span>
                         </a>
                     </nav>
                     <div class="social-icons hide-mobile" style="margin: 0 5px;">
@@ -655,7 +659,7 @@
         </div>
     </div>
 
-    <!-- DIRECT BUY MODAL (Menggantikan Detail & Troli) -->
+    <!-- DIRECT BUY MODAL -->
     <div class="modal-overlay" id="modal-buy-direct">
         <div class="modal-content wide">
             <div class="modal-header">
@@ -711,7 +715,7 @@
         </div>
     </div>
 
-    <!-- Payment QRIS Modal (Static Upload UI) -->
+    <!-- Payment QRIS Modal -->
     <div class="modal-overlay" id="modal-payment">
         <div class="modal-content" style="max-width: 400px; text-align: center; background: var(--surface); padding: 2rem 1.5rem;">
             <div class="modal-header" style="border-bottom: none; justify-content: center; margin-bottom: 0;">
@@ -744,7 +748,7 @@
         </div>
     </div>
 
-    <!-- Cek Pesanan Modal (Khusus Anonymous) -->
+    <!-- Cek Pesanan Modal -->
     <div class="modal-overlay" id="modal-cek-pesanan">
         <div class="modal-content">
             <div class="modal-header">
@@ -763,7 +767,7 @@
         </div>
     </div>
 
-    <!-- Custom Alert UI -->
+    <!-- Custom Alerts -->
     <div class="msg-overlay" id="custom-alert">
         <div class="msg-box">
             <div id="ca-icon" class="msg-icon info"><i class="fa-solid fa-circle-info"></i></div>
@@ -774,7 +778,6 @@
         </div>
     </div>
     
-    <!-- Custom Prompt UI -->
     <div class="msg-overlay" id="custom-prompt-modal">
         <div class="msg-box">
             <div class="msg-icon warning" style="font-size:2rem; margin-bottom:0.5rem;"><i class="fa-solid fa-triangle-exclamation"></i></div>
@@ -822,14 +825,14 @@
             <div id="tab-products" class="admin-tab-content" style="display: none;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:10px;">
                     <div>
-                        <h3>Kelola Katalog Item</h3>
-                        <p style="font-size:0.8rem; color:var(--text-muted);">Sistem otomatis mengelompokkan item berdasarkan Nama Brand/Game.</p>
+                        <h3>Kelola Grup Item</h3>
+                        <p style="font-size:0.8rem; color:var(--text-muted);">Manajemen brand/game beserta seluruh varian nominal di dalamnya.</p>
                     </div>
-                    <button class="btn btn-primary" onclick="openProductModal()">+ Tambah Item</button>
+                    <button class="btn btn-primary" onclick="openProductGroupModal()">+ Tambah Grup / Item</button>
                 </div>
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>Brand / Game</th><th>Item & Kategori</th><th>Harga</th><th>Status</th><th>Aksi</th></tr></thead>
+                        <thead><tr><th>Brand / Game</th><th>Kategori</th><th>Harga</th><th>Status</th><th>Aksi</th></tr></thead>
                         <tbody id="admin-prod-list"></tbody>
                     </table>
                 </div>
@@ -849,101 +852,132 @@
                 </div>
             </div>
 
-            <!-- Tab: Tutorials -->
+            <!-- Tab: Tutorials (UPDATED UI) -->
             <div id="tab-tutorials" class="admin-tab-content" style="display: none;">
                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:10px;">
                     <h3>Kelola Video Panduan</h3>
-                    <button class="btn btn-primary" onclick="openTutorialModal()">+ Tambah Video</button>
+                    <button class="btn btn-primary" onclick="openTutorialModal()" style="background: linear-gradient(135deg, #3b82f6, #06b6d4); font-weight:bold;">+ Tambah Video</button>
                 </div>
-                <div id="admin-tut-list" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+                <div id="admin-tut-list" style="display: flex; flex-direction: column; gap: 0;"></div>
             </div>
 
-            <!-- Tab: Settings (QRIS Image Upload) -->
+            <!-- Tab: Settings (UPDATED UI) -->
             <div id="tab-settings" class="admin-tab-content" style="display: none;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-                    <div style="background: var(--surface); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border);">
-                        <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Tampilan & Info</h3>
+                <div class="settings-grid">
+                    <!-- Column 1 -->
+                    <div style="background: #0f172a; padding: 1.5rem; border-radius: 12px; border: 1px solid #1e293b;">
+                        <h3 style="margin-bottom: 1.5rem; color:var(--primary-light); font-size: 1.1rem;">Tampilan & Info</h3>
                         <div class="form-group"><label>Logo Teks Dasar</label><input type="text" id="set-logo-text" class="form-control" placeholder="Contoh: VIPER"></div>
                         <div class="form-group"><label>Logo Teks Aksen Biru</label><input type="text" id="set-logo-accent" class="form-control" placeholder="Contoh: CELL"></div>
+                        
                         <div class="form-group">
-                            <label>Logo Gambar (Pilih File - Juga dipakai untuk Favicon)</label>
-                            <input type="file" id="logo-upload" accept="image/*" class="form-control" style="padding: 0.4rem; background: var(--bg);">
-                            <input type="hidden" id="set-logo-base64">
+                            <label>Logo Gambar (Juga dipakai untuk Favicon)</label>
+                            <div style="display: flex; background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 5px; margin-top: 5px;">
+                                 <button class="btn btn-outline" onclick="document.getElementById('logo-upload').click()" style="padding: 4px 10px; font-size: 0.8rem; background: white; color: black; border: none; margin-right: 10px;">Pilih File</button>
+                                 <span id="set-logo-file-name" style="font-size: 0.8rem; color: #94a3b8; align-self: center;">Tidak ada file dipilih</span>
+                                 <input type="file" id="logo-upload" accept="image/*" style="display: none;">
+                                 <input type="hidden" id="set-logo-base64">
+                            </div>
                             <img id="set-logo-preview" src="" style="max-height: 40px; margin-top:10px; border-radius: 4px; display: none;">
                         </div>
-                        <div class="form-group"><label>Teks Promo Berjalan</label><textarea id="set-marquee" class="form-control" rows="2"></textarea></div>
+
+                        <div class="form-group"><label>Teks Promo Berjalan</label><textarea id="set-marquee" class="form-control" rows="3"></textarea></div>
                     </div>
 
-                    <div style="background: var(--surface); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border);">
-                        <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Sistem Pembayaran & Kontak</h3>
+                    <!-- Column 2 -->
+                    <div style="background: #0f172a; padding: 1.5rem; border-radius: 12px; border: 1px solid #1e293b;">
+                        <h3 style="margin-bottom: 1.5rem; color:var(--primary-light); font-size: 1.1rem;">Sistem Pembayaran & Kontak</h3>
                         <div class="form-group">
-                            <label>Gambar QRIS Pembayaran <small>(Akan ditampilkan otomatis saat checkout)</small></label>
-                            <input type="file" id="set-qris-upload" accept="image/*" class="form-control" style="padding: 0.4rem; background: var(--bg);">
-                            <input type="hidden" id="set-qris-base64">
-                            <img id="set-qris-preview" src="" style="max-height: 150px; margin-top:10px; border-radius: 8px; display: none; border: 2px solid white;">
+                            <label>Gambar QRIS Pembayaran (Ditampilkan saat checkout)</label>
+                            <div style="display: flex; background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 5px; margin-top: 5px;">
+                                 <button class="btn btn-outline" onclick="document.getElementById('set-qris-upload').click()" style="padding: 4px 10px; font-size: 0.8rem; background: white; color: black; border: none; margin-right: 10px;">Pilih File</button>
+                                 <span id="set-qris-file-name" style="font-size: 0.8rem; color: #94a3b8; align-self: center;">Tidak ada file dipilih</span>
+                                 <input type="file" id="set-qris-upload" accept="image/*" style="display: none;">
+                                 <input type="hidden" id="set-qris-base64">
+                            </div>
+                            <img id="set-qris-preview" src="" style="width: 150px; margin-top:10px; border-radius: 8px; display: none; border: 1px solid white; object-fit: contain; background: white;">
                         </div>
                         <div class="form-group"><label>Nomor WA Admin (Penerima Laporan)</label><input type="number" id="set-wa" class="form-control" placeholder="Contoh: 085141748690"></div>
                         <div class="form-group"><label>Link Instagram</label><input type="text" id="set-ig" class="form-control"></div>
                         <div class="form-group"><label>Link TikTok</label><input type="text" id="set-tt" class="form-control"></div>
                     </div>
                     
-                    <div style="background: var(--surface); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border); grid-column: 1 / -1;">
-                        <h3 style="margin-bottom: 1rem; color:var(--primary-light);">Banner Katalog (Maks 5)</h3>
-                        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Mendukung gambar resolusi tinggi memanjang (otomatis dioptimasi).</p>
-                        <div class="form-group">
-                            <input type="file" id="banner-upload" accept="image/*" class="form-control" style="padding: 0.4rem; background: var(--bg);">
-                        </div>
-                        <div id="admin-banner-list" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:1rem;"></div>
+                    <!-- Column 3 -->
+                    <div style="background: #0f172a; padding: 1.5rem; border-radius: 12px; border: 1px solid #1e293b;">
+                        <h3 style="margin-bottom: 1.5rem; color:var(--primary-light); font-size: 1.1rem;">Banner</h3>
+                        <div id="admin-banner-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
+                        <input type="file" id="banner-upload" accept="image/*" style="display: none;">
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%; margin-top: 1.5rem; padding: 0.9rem; font-size: 1rem;">Simpan Pengaturan</button>
+                <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%; margin-top: 2rem; padding: 1rem; font-size: 1.2rem; background: linear-gradient(135deg, #2563eb, #06b6d4); font-weight: bold; border-radius: 10px; letter-spacing: 1px;">SIMPAN</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Add/Edit Product -->
+    <!-- Modal: Add/Edit Product (UPDATED UI) -->
     <div class="modal-overlay" id="modal-manage-product">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-prod-title">Kelola Item</h2>
+        <div class="modal-content" style="max-width: 500px; padding: 25px;">
+            <div class="modal-header" style="border-bottom: none; margin-bottom: 5px;">
+                <h2 id="modal-prod-title" style="font-size: 1.3rem;">Tambah item</h2>
                 <button class="close-btn" onclick="closeModal('modal-manage-product')"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <input type="hidden" id="manage-prod-id">
             
-            <div class="form-group">
-                <label>Kategori Utama</label>
-                <select id="manage-prod-type" class="form-control"><option value="game">Top Up Game</option><option value="app">Aplikasi Premium</option></select>
-            </div>
-            <div class="form-group">
-                <label>Nama Brand / Game (Pembuat Grup) <small style="color:var(--primary-light)">*Harus sama persis agar 1 grup</small></label>
-                <input type="text" id="manage-prod-brand" class="form-control" placeholder="Contoh: Mobile Legends">
-            </div>
-            <div class="form-group">
-                <label>Nama Item / Nominal Spesifik</label>
-                <input type="text" id="manage-prod-name" class="form-control" placeholder="Contoh: 86 Diamonds / 1 Bulan">
-            </div>
+            <input type="hidden" id="manage-prod-old-brand">
             
-            <div class="form-group">
-                <label>Gambar Brand (Pilih File - Cukup isi di 1 item tiap grup)</label>
-                <input type="file" id="manage-prod-img-file" accept="image/*" class="form-control" style="padding: 0.4rem; background: var(--bg);">
-                <input type="hidden" id="manage-prod-img-base64">
-                <img id="manage-prod-img-preview" src="" style="max-height: 60px; margin-top:10px; border-radius: 6px; display: none; object-fit:cover;">
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: #94a3b8; margin-bottom: 5px;">Kategori Utama</label>
+                <select id="manage-prod-type" class="form-control" style="background: #0f172a; border-color: #1e293b;">
+                    <option value="game">Top Up Game</option>
+                    <option value="app">Aplikasi Premium</option>
+                </select>
             </div>
 
-            <div class="form-group">
-                <label>Harga Item (Tanpa Titik)</label>
-                <div style="display: flex; align-items:center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding-left: 10px;">
-                    <span style="color:var(--text-muted); font-weight:bold;">Rp</span>
-                    <input type="number" id="manage-prod-price-num" class="form-control" style="border:none; border-radius:0; background:transparent;" placeholder="15000">
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="color: #94a3b8; margin-bottom: 5px;">Nama Brand / Game</label>
+                <input type="text" id="manage-prod-brand" class="form-control" placeholder="Contoh: Mobile Legends" style="background: #0f172a; border-color: #1e293b; border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none;">
+                
+                <div style="display: flex; background: #0f172a; border: 1px solid #1e293b; border-top: none; border-radius: 0 0 8px 8px; padding: 5px;">
+                     <button class="btn btn-outline" onclick="document.getElementById('manage-prod-img-file').click()" style="padding: 4px 10px; font-size: 0.8rem; background: white; color: black; border: none; margin-right: 10px;">Pilih File</button>
+                     <span id="manage-prod-file-name" style="font-size: 0.8rem; color: #94a3b8; align-self: center;">Tidak ada file dipilih</span>
+                     <input type="file" id="manage-prod-img-file" accept="image/*" style="display: none;">
+                     <input type="hidden" id="manage-prod-img-base64">
+                </div>
+            </div>
+
+            <!-- Manajemen Item Grup/Varian Nominal -->
+            <div style="margin-top: 15px;">
+                <label style="color: #94a3b8; margin-bottom: 10px; display: block;">Daftar Item & Harga (Nominal)</label>
+                
+                <!-- Kotak form tambah nominal baru -->
+                <div style="background: transparent; border: 1px solid #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 15px; position: relative;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.75rem; color: #64748b; margin-bottom:3px;">Nama Item / Nominal Spesifik</label>
+                            <input type="text" id="temp-nom-name" class="form-control" placeholder="Contoh: 86 Diamonds" style="background: transparent; border-color: #334155; font-size: 0.85rem; padding: 8px;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.75rem; color: #64748b; margin-bottom:3px;">Harga Item (Tanpa Titik)</label>
+                            <input type="number" id="temp-nom-price" class="form-control" placeholder="(harga beli, misal: 15000)" style="background: transparent; border-color: #334155; font-size: 0.85rem; padding: 8px;">
+                        </div>
+                    </div>
+                    <button class="btn" style="width: 100%; border: 1px dashed #334155; color: #94a3b8; background: transparent; padding: 10px; font-weight: normal; font-size: 0.9rem;" onclick="addTempNominal()">
+                        <i class="fa-solid fa-plus" style="display: block; font-size: 1.5rem; margin-bottom: 5px; color: #cbd5e1;"></i>
+                        + Tambah Nominal Baru
+                    </button>
+                </div>
+
+                <!-- List Nominal Ditambahkan -->
+                <div id="manage-prod-nominals-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right:5px;">
+                    <!-- items injected via JS -->
                 </div>
             </div>
             
-            <div class="form-group" style="display:none;"><label>Deskripsi (Opsional)</label><textarea id="manage-prod-desc" class="form-control" rows="1"></textarea></div>
-            <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+            <div class="form-group" style="display:flex; align-items:center; gap:8px; margin-top: 15px;">
                 <input type="checkbox" id="manage-prod-soldout" style="width:16px; height:16px;">
-                <label style="margin:0;">Tandai Habis</label>
+                <label style="margin:0;">Tandai Habis (Berlaku untuk semua di grup ini)</label>
             </div>
-            <button class="btn btn-primary" style="width:100%; margin-top: 0.5rem;" onclick="saveProduct()">Simpan Item</button>
+            
+            <button class="btn btn-primary" style="width:100%; margin-top: 15px; padding: 12px; font-size:1.05rem; background: linear-gradient(135deg, #2563eb, #06b6d4); font-weight: bold;" onclick="saveProductGroup()">Simpan Seluruh Item Grup</button>
         </div>
     </div>
 
@@ -974,9 +1008,9 @@
                 <button class="close-btn" onclick="closeModal('modal-manage-tutorial')"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <input type="hidden" id="manage-tut-id">
-            <div class="form-group"><label>Judul</label><input type="text" id="manage-tut-title" class="form-control"></div>
-            <div class="form-group"><label>Penjelasan (Tampil di bawah video)</label><textarea id="manage-tut-desc" class="form-control" rows="3"></textarea></div>
-            <div class="form-group"><label>Link Google Drive</label><input type="text" id="manage-tut-link" class="form-control"></div>
+            <div class="form-group"><label>Judul</label><input type="text" id="manage-tut-title" class="form-control" placeholder="Contoh: LOGIN VIU"></div>
+            <div class="form-group"><label>Penjelasan Singkat</label><textarea id="manage-tut-desc" class="form-control" rows="3" placeholder="Panduan video langkah-langkah..."></textarea></div>
+            <div class="form-group"><label>Link Google Drive (Video)</label><input type="text" id="manage-tut-link" class="form-control"></div>
             <div class="form-group" style="display:flex; align-items:center; gap:8px;">
                 <input type="checkbox" id="manage-tut-hidden" style="width:16px; height:16px;">
                 <label style="margin:0;">Sembunyikan dari Publik</label>
@@ -1056,6 +1090,9 @@
         let appliedPromo = null; 
         let currentCheckoutSession = null; 
 
+        // Admin Product Temp Group Editor State
+        let currentGroupNominals = [];
+
         // Expose to window
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
@@ -1101,7 +1138,7 @@
             const iframes = document.querySelectorAll('#public-tutorial-list iframe');
             iframes.forEach(iframe => {
                 let currentSrc = iframe.src;
-                iframe.src = currentSrc; // Hack to force stop youtube/drive video on tab switch
+                iframe.src = currentSrc;
             });
         }
 
@@ -1121,7 +1158,6 @@
                         } else {
                             document.getElementById('btn-login-user').style.display = 'none';
                             
-                            // Fetch Profile
                             const userDoc = await getDoc(doc(db, pathUsers, user.uid));
                             if(userDoc.exists()) {
                                 userProfile = userDoc.data();
@@ -1149,7 +1185,6 @@
                         }
                         listenData();
                     } else {
-                        // Force Anonymous Mode
                         isAdminLoggedIn = false;
                         document.getElementById('btn-admin-panel').style.display = 'none';
                         document.getElementById('btn-login-user').style.display = 'inline-flex';
@@ -1180,11 +1215,11 @@
                 // Build groupedBrands logic
                 groupedBrands = [];
                 products.forEach(p => {
-                    const brandName = p.brand || p.name; // Fallback to name if old data
+                    const brandName = p.brand || p.name;
                     const existing = groupedBrands.find(b => b.brandName === brandName);
                     if(existing) {
                         existing.items.push(p);
-                        if(p.imgUrlBase64 && !existing.imgUrlBase64) existing.imgUrlBase64 = p.imgUrlBase64; // Take first image available
+                        if(p.imgUrlBase64 && !existing.imgUrlBase64) existing.imgUrlBase64 = p.imgUrlBase64;
                     } else {
                         groupedBrands.push({
                             brandName: brandName,
@@ -1205,7 +1240,6 @@
                 promos = [];
                 snapshot.forEach((doc) => { promos.push({ dbId: doc.id, ...doc.data() }); });
                 if(isAdminLoggedIn) window.renderAdminPromos();
-                // Refresh modal total if promo applies
                 if(selectedProductForBuy) calculateDirectBuyTotal();
             });
 
@@ -1235,8 +1269,8 @@
 
             if (currentUser && !currentUser.isAnonymous) {
                 const hasActionNeeded = orders.some(o => o.userEmail === currentUser.email && (o.status === 'UNPAID' || o.status === 'PENDING'));
+                /* BUG FIX: Memperbaiki kemunculan titik notifikasi ganda */
                 document.getElementById('user-order-badge').style.display = hasActionNeeded ? 'block' : 'none';
-                document.getElementById('user-order-badge-mobile').style.display = hasActionNeeded ? 'block' : 'none';
             }
         }
 
@@ -1293,7 +1327,7 @@
 
         function checkResetCooldown() {
             const lastResetTime = localStorage.getItem('vipercell_last_reset') || 0;
-            const COOLDOWN = 4 * 60 * 1000; // 4 Minutes
+            const COOLDOWN = 4 * 60 * 1000;
             const now = Date.now();
             if (now - lastResetTime < COOLDOWN) {
                 const remaining = Math.ceil((COOLDOWN - (now - lastResetTime)) / 1000);
@@ -1364,7 +1398,7 @@
         }
 
         window.switchMainTab = function(tab) {
-            cutTutorialVideos(); // Stop video if playing
+            cutTutorialVideos();
             
             document.querySelectorAll('.main-tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('nav a').forEach(el => el.classList.remove('active'));
@@ -1375,7 +1409,7 @@
             let tabEl = document.getElementById('tab-'+tab);
             if(tabEl) {
                 tabEl.classList.add('active');
-                window.scrollTo(0, 0); // Reset scroll position when switching tabs
+                window.scrollTo(0, 0); 
             }
             
             setTimeout(observeReveals, 100);
@@ -1407,7 +1441,7 @@
             if(siteSettings.logoImgBase64) {
                 imgEl.src = siteSettings.logoImgBase64; imgEl.style.display = 'block';
                 fImgEl.src = siteSettings.logoImgBase64; fImgEl.style.display = 'block';
-                favicon.href = siteSettings.logoImgBase64; // Apply Favicon
+                favicon.href = siteSettings.logoImgBase64; 
             } else {
                 imgEl.style.display = 'none'; fImgEl.style.display = 'none';
             }
@@ -1553,7 +1587,7 @@
             if(brandObj.imgUrlBase64) {
                 imgEl.src = brandObj.imgUrlBase64; imgEl.style.display = 'block';
             } else {
-                imgEl.style.display = 'none'; // Fallback handled visually in grid
+                imgEl.style.display = 'none';
             }
 
             // Set Items Grid
@@ -1595,14 +1629,13 @@
                 waInputGroup.style.display = 'block';
             }
 
-            calculateDirectBuyTotal(); // initial calculate (0)
+            calculateDirectBuyTotal();
             window.openModal('modal-buy-direct');
         };
 
         window.selectItemToBuy = function(dbId) {
             selectedProductForBuy = currentCheckoutBrand.items.find(i => i.dbId === dbId);
             
-            // UI Selection
             document.querySelectorAll('.item-card').forEach(el => el.classList.remove('selected'));
             document.getElementById(`buy-card-${dbId}`).classList.add('selected');
             
@@ -1674,7 +1707,6 @@
                 playerInfo = `Akun Premium`;
             }
 
-            // Calculation
             let rawTotal = selectedProductForBuy.priceNum;
             let discountApplied = 0;
             let promoUsedCode = '';
@@ -1691,7 +1723,6 @@
             let finalTotal = baseTotal + uniqueCode;
             const invId = 'VP-' + Math.floor(100000 + Math.random() * 900000);
 
-            // Construct 1-item cart equivalent for DB
             const singleItem = { 
                 cartId: Date.now().toString(), 
                 productDbId: selectedProductForBuy.dbId, 
@@ -1704,7 +1735,7 @@
             const newOrder = {
                 id: invId,
                 userEmail: currentUser.isAnonymous ? null : currentUser.email,
-                items: [singleItem], // Storing as array to maintain compatibility with Admin panel
+                items: [singleItem],
                 customerWa: wa,
                 finalTotal: finalTotal,
                 baseTotal: baseTotal,
@@ -1717,7 +1748,6 @@
             };
 
             try {
-                // Save Order directly
                 const docRef = await addDoc(collection(db, pathOrders), newOrder);
                 currentCheckoutSession = { dbId: docRef.id, id: invId, finalTotal: finalTotal };
 
@@ -1781,10 +1811,8 @@
             btnPay.innerText = 'Memproses...'; btnPay.disabled = true;
 
             try {
-                // Update order to pending
                 await updateDoc(doc(db, pathOrders, currentCheckoutSession.dbId), { status: 'PENDING' });
 
-                // Menyalin otomatis ID
                 const el = document.createElement('textarea');
                 el.value = currentCheckoutSession.id; el.setAttribute('readonly', ''); el.style.position = 'absolute'; el.style.left = '-9999px';
                 document.body.appendChild(el); el.select(); try { document.execCommand('copy'); } catch(e){} document.body.removeChild(el);
@@ -1796,14 +1824,12 @@
 
                 window.closeModal('modal-payment');
                 
-                // Fallback / Auto direct
                 const successMsg = `Pembayaran sedang diproses! ID Anda: <strong>${currentCheckoutSession.id}</strong> (Disalin).<br><br>Sistem mengalihkan Anda ke WhatsApp Admin. <b>JIKA</b> tidak dialihkan otomatis, tekan tombol di bawah ini.`;
                 
                 document.getElementById('ca-extra-action').innerHTML = `<a href="${waUrl}" target="_blank" class="btn btn-primary" style="display:inline-block; width:100%; margin-top:10px;"><i class="fa-brands fa-whatsapp"></i> Buka WA Manual</a>`;
                 window.customAlert('Berhasil', successMsg, 'success');
 
                 setTimeout(() => {
-                    // Try automatic redirect
                     window.open(waUrl, '_blank');
                     currentCheckoutSession = null;
                     if(!currentUser.isAnonymous) switchMainTab('pesanan');
@@ -1816,7 +1842,6 @@
         };
 
         function generateHelpButtons(invId, orderStatus) {
-            // Hanya aktif jika pesanan SUCCESS
             if(orderStatus !== 'SUCCESS') return '';
 
             let adminWaNum = siteSettings.adminWa || '085656321860';
@@ -1950,7 +1975,6 @@
                     ? `<button class="btn btn-primary" style="padding:0.4rem 0.8rem; font-size:0.75rem;" onclick="promptProcessOrder('${o.dbId}')">Proses</button>` 
                     : `<span style="font-size:0.75rem;color:var(--text-muted)">Ditinjau</span>`;
                 
-                // Menggunakan Custom Prompt
                 let deleteBtn = `<button class="btn btn-outline" style="padding:0.4rem; color:var(--danger); border-color:transparent;" title="Hapus Permanen" onclick="promptDeleteOrder('${o.dbId}', '${o.id}')"><i class="fa-solid fa-trash"></i></button>`;
 
                 tbody.innerHTML += `<tr>
@@ -1989,52 +2013,191 @@
 
         window.promptDeleteOrder = function(dbId, invoiceId) {
             if(!currentUser) return;
-            
-            // Custom popup alert using beautiful UI
-            window.openCustomPrompt(
-                "Hapus Permanen",
-                `Ketik <b>HAPUS</b> untuk menghapus riwayat Invoice ${invoiceId} selamanya.`,
-                async (inputVal) => {
-                    if(inputVal === "HAPUS") {
-                        await deleteDoc(doc(db, pathOrders, dbId));
-                        window.customAlert("Terhapus", `Invoice ${invoiceId} berhasil dihapus dari sistem.`, "success");
-                    } else {
-                        window.customAlert("Gagal", "Kata pengaman salah. Penghapusan dibatalkan.", "error");
-                    }
+            window.openCustomPrompt("Hapus Permanen", `Ketik <b>HAPUS</b> untuk menghapus riwayat Invoice ${invoiceId} selamanya.`, async (inputVal) => {
+                if(inputVal === "HAPUS") {
+                    await deleteDoc(doc(db, pathOrders, dbId));
+                    window.customAlert("Terhapus", `Invoice ${invoiceId} berhasil dihapus dari sistem.`, "success");
+                } else {
+                    window.customAlert("Gagal", "Kata pengaman salah. Penghapusan dibatalkan.", "error");
                 }
-            );
+            });
         };
 
+        // --- SISTEM GRUP PRODUK (Sesuai Foto) ---
         window.renderAdminProducts = function() {
             const tbody = document.getElementById('admin-prod-list');
             tbody.innerHTML = '';
-            products.forEach(p => {
-                const displayBrand = p.brand || p.name; // Backward compatible
-                const imgHtml = p.imgUrlBase64 
-                    ? `<img src="${p.imgUrlBase64}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">` 
-                    : `<div style="width:35px; height:35px; background:var(--primary); color:white; display:flex; justify-content:center; align-items:center; border-radius:4px; font-weight:bold;">${displayBrand.charAt(0)}</div>`;
+            if(groupedBrands.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Kosong</td></tr>`; return; }
+
+            groupedBrands.forEach(b => {
+                const imgHtml = b.imgUrlBase64 
+                    ? `<img src="${b.imgUrlBase64}" style="width:35px; height:35px; object-fit:cover; border-radius:4px;">` 
+                    : `<div style="width:35px; height:35px; background:var(--primary); color:white; display:flex; justify-content:center; align-items:center; border-radius:4px; font-weight:bold;">${b.brandName.charAt(0)}</div>`;
+
+                const itemsCount = b.items.length;
+                const isSoldOut = b.items[0]?.soldOut;
 
                 tbody.innerHTML += `<tr>
                     <td>
                         <div style="display:flex; align-items:center; gap:8px;">
                             ${imgHtml}
                             <div>
-                                <strong>${displayBrand}</strong><br>
-                                <small style="color:var(--text-muted)">Item: ${p.name}</small>
+                                <strong>${b.brandName}</strong><br>
+                                <small style="color:var(--text-muted)">${itemsCount} Varian Nominal</small>
                             </div>
                         </div>
                     </td>
-                    <td>${p.type === 'app' ? 'Aplikasi' : 'Game'}</td>
-                    <td>Rp${(p.priceNum || 0).toLocaleString('id-ID')}</td>
-                    <td>${p.soldOut ? '<span style="color:var(--danger); font-size:0.75rem;">Habis</span>' : '<span style="color:var(--success); font-size:0.75rem;">Ada</span>'}</td>
+                    <td>${b.type === 'app' ? 'Aplikasi' : 'Game'}</td>
+                    <td>-</td>
+                    <td>${isSoldOut ? '<span class="status-badge status-failed" style="font-size:0.75rem;">Habis</span>' : '<span class="status-badge status-success" style="font-size:0.75rem;">Ada</span>'}</td>
                     <td style="white-space:nowrap;">
-                        <button class="btn btn-outline" style="padding:0.4rem; font-size:0.75rem; margin-right:4px;" onclick="openProductModal('${p.dbId}')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-danger" style="padding:0.4rem; font-size:0.75rem;" onclick="deleteProduct('${p.dbId}')"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn btn-outline" style="padding:0.4rem; font-size:0.75rem; margin-right:4px;" onclick="openProductGroupModal('${b.brandName}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-danger" style="padding:0.4rem; font-size:0.75rem;" onclick="deleteProductGroup('${b.brandName}')"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>`;
             });
         };
 
+        window.openProductGroupModal = function(brandName = null) {
+            currentGroupNominals = [];
+            
+            if(brandName) {
+                const group = groupedBrands.find(b => b.brandName === brandName);
+                if(group) {
+                    document.getElementById('modal-prod-title').innerText = 'Edit Grup Item';
+                    document.getElementById('manage-prod-old-brand').value = brandName;
+                    document.getElementById('manage-prod-type').value = group.type;
+                    document.getElementById('manage-prod-brand').value = group.brandName;
+                    document.getElementById('manage-prod-img-base64').value = group.imgUrlBase64 || '';
+                    document.getElementById('manage-prod-file-name').innerText = group.imgUrlBase64 ? 'Gambar tersimpan' : 'Tidak ada file dipilih';
+                    document.getElementById('manage-prod-soldout').checked = group.items[0]?.soldOut || false;
+                    
+                    currentGroupNominals = group.items.map(i => ({ dbId: i.dbId, name: i.name, priceNum: i.priceNum }));
+                }
+            } else {
+                document.getElementById('modal-prod-title').innerText = 'Tambah item';
+                document.getElementById('manage-prod-old-brand').value = '';
+                document.getElementById('manage-prod-type').value = 'game';
+                document.getElementById('manage-prod-brand').value = '';
+                document.getElementById('manage-prod-img-base64').value = '';
+                document.getElementById('manage-prod-file-name').innerText = 'Tidak ada file dipilih';
+                document.getElementById('manage-prod-soldout').checked = false;
+            }
+            
+            document.getElementById('temp-nom-name').value = '';
+            document.getElementById('temp-nom-price').value = '';
+            
+            renderTempNominals();
+            window.openModal('modal-manage-product');
+        };
+
+        window.addTempNominal = function() {
+            const name = document.getElementById('temp-nom-name').value.trim();
+            const priceNum = parseInt(document.getElementById('temp-nom-price').value) || 0;
+            if(!name || priceNum <= 0) {
+                window.customAlert('Error', 'Nama Item dan Harga nominal wajib diisi dan valid.', 'error');
+                return;
+            }
+            currentGroupNominals.push({ dbId: null, name, priceNum });
+            document.getElementById('temp-nom-name').value = '';
+            document.getElementById('temp-nom-price').value = '';
+            renderTempNominals();
+        };
+
+        window.removeTempNominal = function(index) {
+            currentGroupNominals.splice(index, 1);
+            renderTempNominals();
+        };
+
+        window.renderTempNominals = function() {
+            const container = document.getElementById('manage-prod-nominals-list');
+            container.innerHTML = '';
+            if(currentGroupNominals.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:#64748b; font-size:0.8rem; padding: 10px;">Belum ada nominal ditambahkan.</div>`;
+                return;
+            }
+            
+            currentGroupNominals.forEach((nom, index) => {
+                container.innerHTML += `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #1e293b;">
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: bold; color: white;">${nom.name}</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;">Rp${nom.priceNum.toLocaleString('id-ID')}</div>
+                    </div>
+                    <button class="btn btn-outline" style="border: none; color: #ef4444;" onclick="removeTempNominal(${index})"><i class="fa-solid fa-trash"></i></button>
+                </div>`;
+            });
+        };
+
+        document.getElementById('manage-prod-img-file').addEventListener('change', function(e) {
+            if (e.target.files[0]) {
+                document.getElementById('manage-prod-file-name').innerText = e.target.files[0].name;
+                resizeImageBase64(e.target.files[0], (b64) => {
+                    document.getElementById('manage-prod-img-base64').value = b64;
+                }, 800, 800);
+            }
+        });
+
+        window.saveProductGroup = async function() {
+            if(!currentUser) return;
+            const type = document.getElementById('manage-prod-type').value;
+            const brand = document.getElementById('manage-prod-brand').value.trim();
+            const imgBase64 = document.getElementById('manage-prod-img-base64').value;
+            const soldOut = document.getElementById('manage-prod-soldout').checked;
+            const oldBrand = document.getElementById('manage-prod-old-brand').value;
+
+            if(!brand) { window.customAlert('Error', 'Nama Brand wajib diisi.', 'error'); return; }
+            if(currentGroupNominals.length === 0) { window.customAlert('Error', 'Tambahkan minimal 1 nominal ke dalam grup ini.', 'error'); return; }
+
+            // Menghapus data item yang diremove user dari UI
+            const oldGroup = groupedBrands.find(b => b.brandName === oldBrand);
+            const oldDbIds = oldGroup ? oldGroup.items.map(i => i.dbId) : [];
+            const newDbIds = currentGroupNominals.map(n => n.dbId).filter(id => id);
+            
+            const toDelete = oldDbIds.filter(id => !newDbIds.includes(id));
+            for(const id of toDelete) {
+                await deleteDoc(doc(db, pathProducts, id));
+            }
+
+            // Tambahkan / Update item sisanya
+            for(const nom of currentGroupNominals) {
+                const prodData = {
+                    type: type,
+                    brand: brand,
+                    name: nom.name,
+                    priceNum: nom.priceNum,
+                    imgUrlBase64: imgBase64,
+                    desc: '', 
+                    soldOut: soldOut
+                };
+
+                if(nom.dbId) {
+                    await updateDoc(doc(db, pathProducts, nom.dbId), prodData);
+                } else {
+                    await addDoc(collection(db, pathProducts), prodData);
+                }
+            }
+
+            window.closeModal('modal-manage-product');
+            window.customAlert('Sukses', `Seluruh item grup ${brand} tersimpan.`, 'success');
+        };
+
+        window.deleteProductGroup = function(brandName) {
+            if(!currentUser) return;
+            window.openCustomPrompt("Hapus Grup", `Ketik <b>YAKIN</b> untuk menghapus seluruh item ${brandName}.`, async (val) => {
+                if(val === 'YAKIN') {
+                    const group = groupedBrands.find(b => b.brandName === brandName);
+                    if(group) {
+                        for(const item of group.items) {
+                            await deleteDoc(doc(db, pathProducts, item.dbId));
+                        }
+                        window.customAlert('Sukses', `Semua Item ${brandName} telah dihapus.`, 'info');
+                    }
+                }
+            });
+        };
+
+        // --- MANAJEMEN PROMO ---
         window.renderAdminPromos = function() {
             const tbody = document.getElementById('admin-promo-list');
             tbody.innerHTML = '';
@@ -2080,12 +2243,12 @@
                 amount: parseInt(document.getElementById('manage-promo-amount').value) || 0,
                 maxUses: parseInt(document.getElementById('manage-promo-max').value) || 0,
                 active: document.getElementById('manage-promo-active').checked,
-                usedCount: 0 // Reset if new, ignored if updating
+                usedCount: 0 
             };
             if(!data.code || data.amount <= 0 || data.maxUses <= 0) { window.customAlert('Error', 'Data promo tidak valid.', 'error'); return; }
             
             if(dbId) {
-                delete data.usedCount; // Don't reset usage on edit
+                delete data.usedCount; 
                 await updateDoc(doc(db, pathPromos, dbId), data);
             } else {
                 await addDoc(collection(db, pathPromos), data);
@@ -2103,96 +2266,31 @@
             });
         };
 
-        document.getElementById('manage-prod-img-file').addEventListener('change', function(e) {
-            if (e.target.files[0]) resizeImageBase64(e.target.files[0], (b64) => {
-                document.getElementById('manage-prod-img-preview').src = b64;
-                document.getElementById('manage-prod-img-preview').style.display = 'block';
-                document.getElementById('manage-prod-img-base64').value = b64;
-            }, 800, 800);
-        });
-
-        window.openProductModal = function(dbId = null) {
-            if(dbId) {
-                const p = products.find(x => x.dbId === dbId);
-                if(!p) return;
-                document.getElementById('modal-prod-title').innerText = 'Edit Item';
-                document.getElementById('manage-prod-id').value = p.dbId;
-                document.getElementById('manage-prod-type').value = p.type;
-                document.getElementById('manage-prod-brand').value = p.brand || p.name; // Fallback
-                document.getElementById('manage-prod-name').value = p.name;
-                document.getElementById('manage-prod-price-num').value = p.priceNum || '';
-                document.getElementById('manage-prod-desc').value = p.desc || '';
-                document.getElementById('manage-prod-soldout').checked = p.soldOut || false;
-                
-                if(p.imgUrlBase64) {
-                    document.getElementById('manage-prod-img-base64').value = p.imgUrlBase64;
-                    document.getElementById('manage-prod-img-preview').src = p.imgUrlBase64;
-                    document.getElementById('manage-prod-img-preview').style.display = 'block';
-                } else {
-                    document.getElementById('manage-prod-img-base64').value = '';
-                    document.getElementById('manage-prod-img-preview').style.display = 'none';
-                }
-            } else {
-                document.getElementById('modal-prod-title').innerText = 'Tambah Item';
-                document.getElementById('manage-prod-id').value = '';
-                ['manage-prod-brand','manage-prod-name','manage-prod-price-num','manage-prod-desc','manage-prod-img-base64','manage-prod-img-file'].forEach(id => document.getElementById(id).value = '');
-                document.getElementById('manage-prod-img-preview').style.display = 'none';
-                document.getElementById('manage-prod-soldout').checked = false;
-            }
-            window.openModal('modal-manage-product');
-        };
-
-        window.saveProduct = async function() {
-            if(!currentUser) return;
-            const dbId = document.getElementById('manage-prod-id').value;
-            const pNum = parseInt(document.getElementById('manage-prod-price-num').value) || 0;
-            
-            const prodData = { 
-                type: document.getElementById('manage-prod-type').value, 
-                brand: document.getElementById('manage-prod-brand').value, // Group Name
-                name: document.getElementById('manage-prod-name').value, // Item Name
-                imgUrlBase64: document.getElementById('manage-prod-img-base64').value,
-                priceNum: pNum,
-                desc: document.getElementById('manage-prod-desc').value || '',
-                soldOut: document.getElementById('manage-prod-soldout').checked
-            };
-            if(!prodData.name || !prodData.brand || pNum <= 0) { window.customAlert('Error', 'Brand, Nama Item dan Harga wajib diisi.', 'error'); return; }
-            
-            if(dbId) await updateDoc(doc(db, pathProducts, dbId), prodData);
-            else await addDoc(collection(db, pathProducts), prodData);
-            
-            window.closeModal('modal-manage-product');
-            window.customAlert('Sukses', 'Item tersimpan.', 'success');
-        };
-
-        window.deleteProduct = function(dbId) {
-            if(!currentUser) return;
-            window.openCustomPrompt("Hapus Item", "Ketik <b>YAKIN</b> untuk menghapus item produk ini.", async (val) => {
-                if(val === 'YAKIN') {
-                    await deleteDoc(doc(db, pathProducts, dbId));
-                    window.customAlert('Sukses', 'Produk dihapus.', 'info');
-                }
-            });
-        };
-
+        // --- MANAJEMEN PANDUAN TUTORIAL (UI SESUAI FOTO) ---
         window.renderAdminTutorials = function() {
             const listContainer = document.getElementById('admin-tut-list');
             listContainer.innerHTML = '';
             const list = siteSettings.tutorialList || [];
-            if(list.length === 0) listContainer.innerHTML = '<p style="color:var(--text-muted)">Belum ada panduan.</p>';
+            if(list.length === 0) listContainer.innerHTML = '<p style="color:var(--text-muted)">Belum ada video panduan.</p>';
 
             list.forEach((tut, index) => {
                 listContainer.innerHTML += `
-                    <div style="background: rgba(255,255,255,0.02); padding: 1rem; border: 1px solid var(--border); border-radius: 8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                        <div>
-                            <h4 style="color:var(--primary-light); margin-bottom:5px; font-size:0.95rem;">${tut.title} ${tut.isHidden ? '<span style="color:var(--warning); font-size:0.75rem;">(Disembunyikan)</span>' : ''}</h4>
-                            <p style="font-size:0.8rem; color:var(--text-muted); max-width: 300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${tut.desc}</p>
+                <div style="background: #0f172a; padding: 1rem; border: 1px solid #1e293b; border-radius: 8px; display:flex; gap: 15px; margin-bottom: 1rem; align-items: stretch;">
+                    <div style="width: 150px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #000; position: relative;">
+                         <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; opacity:0.5;"><i class="fa-solid fa-play fa-2x"></i></div>
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="margin-bottom: 8px;">
+                            <span style="background: rgba(37,99,235,0.2); color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">${tut.title}</span>
+                            ${tut.isHidden ? '<span style="color:var(--warning); font-size:0.75rem; margin-left:8px;">(Disembunyikan)</span>' : ''}
                         </div>
-                        <div style="white-space:nowrap;">
-                            <button class="btn btn-outline" style="padding:0.4rem; font-size:0.75rem; margin-right:4px;" onclick="openTutorialModal(${index})"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn btn-danger" style="padding:0.4rem; font-size:0.75rem;" onclick="deleteTutorial(${index})"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>`;
+                        <p style="font-size:0.85rem; color:#94a3b8; margin: 0;">${tut.desc}</p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 8px;">
+                        <button class="btn btn-outline" style="padding:0.5rem; font-size:0.85rem; background: #1e293b; border:none; color: white;" onclick="openTutorialModal(${index})"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-danger" style="padding:0.5rem; font-size:0.85rem; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none;" onclick="deleteTutorial(${index})"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`;
             });
         }
 
@@ -2242,6 +2340,7 @@
             });
         };
 
+        // --- PENGATURAN (UI GRID SESUAI FOTO) ---
         function populateAdminSettings() {
             document.getElementById('set-logo-text').value = siteSettings.logoText || 'VIPER';
             document.getElementById('set-logo-accent').value = siteSettings.logoAccent || 'CELL';
@@ -2254,11 +2353,13 @@
                 document.getElementById('set-logo-preview').src = siteSettings.logoImgBase64;
                 document.getElementById('set-logo-preview').style.display = 'block';
                 document.getElementById('set-logo-base64').value = siteSettings.logoImgBase64;
+                document.getElementById('set-logo-file-name').innerText = 'Gambar Tersimpan';
             }
             if(siteSettings.qrisImageBase64) {
                 document.getElementById('set-qris-preview').src = siteSettings.qrisImageBase64;
                 document.getElementById('set-qris-preview').style.display = 'block';
                 document.getElementById('set-qris-base64').value = siteSettings.qrisImageBase64;
+                document.getElementById('set-qris-file-name').innerText = 'QRIS Tersimpan';
             }
             
             renderAdminBannersList();
@@ -2283,33 +2384,48 @@
         }
 
         document.getElementById('logo-upload').addEventListener('change', function(e) {
-            if (e.target.files[0]) resizeImageBase64(e.target.files[0], (b64) => {
-                document.getElementById('set-logo-preview').src = b64;
-                document.getElementById('set-logo-preview').style.display = 'block';
-                document.getElementById('set-logo-base64').value = b64;
-            });
+            if (e.target.files[0]) {
+                document.getElementById('set-logo-file-name').innerText = e.target.files[0].name;
+                resizeImageBase64(e.target.files[0], (b64) => {
+                    document.getElementById('set-logo-preview').src = b64;
+                    document.getElementById('set-logo-preview').style.display = 'block';
+                    document.getElementById('set-logo-base64').value = b64;
+                });
+            }
         });
 
         document.getElementById('set-qris-upload').addEventListener('change', function(e) {
-            if (e.target.files[0]) resizeImageBase64(e.target.files[0], (b64) => {
-                document.getElementById('set-qris-preview').src = b64;
-                document.getElementById('set-qris-preview').style.display = 'block';
-                document.getElementById('set-qris-base64').value = b64;
-            }, 1000, 1000); 
+            if (e.target.files[0]) {
+                document.getElementById('set-qris-file-name').innerText = e.target.files[0].name;
+                resizeImageBase64(e.target.files[0], (b64) => {
+                    document.getElementById('set-qris-preview').src = b64;
+                    document.getElementById('set-qris-preview').style.display = 'block';
+                    document.getElementById('set-qris-base64').value = b64;
+                }, 1000, 1000); 
+            }
         });
 
         let tempBanners = [];
         function renderAdminBannersList() { tempBanners = siteSettings.banners ? [...siteSettings.banners] : []; drawTempBanners(); }
+        
         function drawTempBanners() {
             const list = document.getElementById('admin-banner-list'); list.innerHTML = '';
-            tempBanners.forEach((b64, idx) => {
-                list.innerHTML += `
-                <div style="position:relative; width:100px; height:50px; border-radius:4px; overflow:hidden; border:1px solid var(--border);">
-                    <img src="${b64}" style="width:100%; height:100%; object-fit:cover;">
-                    <button onclick="removeTempBanner(${idx})" style="position:absolute; top:2px; right:2px; background:rgba(239,68,68,0.9); color:white; border:none; border-radius:50%; width:20px; height:20px; font-size:10px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
-                </div>`;
-            });
+            for(let i=0; i<5; i++) {
+                if(tempBanners[i]) {
+                    list.innerHTML += `
+                    <div style="position:relative; aspect-ratio: 1; border-radius:8px; overflow:hidden; border:1px solid var(--border);">
+                        <img src="${tempBanners[i]}" style="width:100%; height:100%; object-fit:cover;">
+                        <button onclick="removeTempBanner(${i})" style="position:absolute; top:4px; right:4px; background:rgba(239,68,68,0.9); color:white; border:none; border-radius:4px; width:24px; height:24px; font-size:12px; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+                } else {
+                    list.innerHTML += `
+                    <div onclick="document.getElementById('banner-upload').click()" style="aspect-ratio: 1; border-radius:8px; border: 2px dashed #334155; display:flex; justify-content:center; align-items:center; cursor:pointer; color: #3b82f6; font-size: 2rem; transition: 0.2s;">
+                        +
+                    </div>`;
+                }
+            }
         }
+        
         window.removeTempBanner = function(idx) { tempBanners.splice(idx, 1); drawTempBanners(); };
         
         document.getElementById('banner-upload').addEventListener('change', function(e) {
@@ -2337,7 +2453,6 @@
         };
 
         window.onload = initApp;
-
     </script>
 </body>
 </html>
