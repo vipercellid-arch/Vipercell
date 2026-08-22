@@ -43,9 +43,6 @@
 
         .container { width: 100%; padding: 0 4%; max-width: 1800px; margin: 0 auto; }
 
-        /* =======================================================
-           CSS MEDIA QUERIES UNTUK ANIMASI HP (Ringan) vs PC (Berat)
-           ======================================================= */
         .reveal { opacity: 0; transform: translateY(10px); transition: all 0.3s ease-out; }
         .reveal-visible { opacity: 1; transform: translateY(0); }
         
@@ -188,7 +185,7 @@
 
         .tutorial-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; max-width: 800px; margin: 0 auto; }
         .tutorial-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; border-bottom: 1px solid var(--border); }
+        .video-container { position: relative; width: 100%; height: 0; padding-bottom: 56.25%; overflow: hidden; background: #000; border-bottom: 1px solid var(--border); }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
         .tutorial-info { padding: 1.2rem; }
         .tutorial-info h3 { font-size: 1.1rem; color: var(--primary-light); margin-bottom: 0.4rem; }
@@ -399,10 +396,13 @@
             
             .item-selection-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
             .type-grid { grid-template-columns: 1fr; } 
+            
+            /* CSS Fix Iframe Google Drive HP */
+            .video-container { padding-bottom: 0; height: 280px; }
         }
     </style>
 </head>
-<body onclick="resumeAudioContext()"> <!-- Agar browser allow Audio Play -->
+<body>
 
     <div id="store-view">
         <header>
@@ -1000,7 +1000,7 @@
                                  <button class="btn btn-outline" onclick="document.getElementById('logo-upload').click()" style="padding: 4px 10px; font-size: 0.8rem; background: white; color: black; border: none; margin-right: 10px;">Pilih File</button>
                                  <span id="set-logo-file-name" style="font-size: 0.8rem; color: #94a3b8; align-self: center;">Gambar Tersimpan</span>
                                  <input type="file" id="logo-upload" accept="image/*" style="display: none;">
-                                 <input type="hidden" id="set-logo-base64">
+                                 <input type="hidden" id="set-logo-base64"> <!-- ID yang benar -->
                             </div>
                             <img id="set-logo-preview" src="" style="max-height: 40px; margin-top:10px; border-radius: 4px; display: none;">
                         </div>
@@ -1073,7 +1073,7 @@
             <div id="proc-stock-section" style="display:none; margin-bottom:15px; padding:15px; background:rgba(6, 182, 212, 0.1); border:1px solid var(--primary-light); border-radius:8px;">
                 <label style="color:var(--primary-light); font-weight:bold; margin-bottom:8px; display:block;">Pilih Akun dari Stok Ready:</label>
                 <select id="proc-stock-select" class="form-control" style="background:var(--bg); border-color:var(--primary);"></select>
-                <small style="color:var(--text-muted); display:block; margin-top:5px;">Sistem akan otomatis mengubah status stok menjadi Terjual dan mengirim data ke pembeli.</small>
+                <small style="color:var(--text-muted); display:block; margin-top:5px;">Sistem akan otomatis mengubah status stok menjadi Terjual dan mengisi kotak balasan.</small>
             </div>
 
             <div class="form-group">
@@ -1234,7 +1234,31 @@
         import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc, query, where, getDocs, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Web Audio API Synthesizer - Suara Notifikasi Handphone
+        // Web Audio API Synthesizer - Suara Notifikasi Handphone yang Matang
+        let audioUnlocked = false;
+        function initAudio() {
+            if(audioUnlocked) return;
+            try {
+                window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(window.audioCtx.state === 'suspended') window.audioCtx.resume();
+                
+                // Bunyi senyap agar browser memberi izin play audio ke depannya
+                const oscillator = window.audioCtx.createOscillator();
+                const gainNode = window.audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(window.audioCtx.destination);
+                gainNode.gain.value = 0.001; 
+                oscillator.start();
+                oscillator.stop(window.audioCtx.currentTime + 0.01);
+                
+                audioUnlocked = true;
+                document.removeEventListener('click', initAudio);
+                document.removeEventListener('touchstart', initAudio);
+            } catch (e) {}
+        }
+        document.addEventListener('click', initAudio);
+        document.addEventListener('touchstart', initAudio);
+
         window.resumeAudioContext = function() {
             if (window.audioCtx && window.audioCtx.state === 'suspended') {
                 window.audioCtx.resume();
@@ -1260,9 +1284,9 @@
                 };
                 
                 const now = window.audioCtx.currentTime;
-                // Phone-like notification double chime
-                playTone(850, 'sine', now, 0.15, 0.3);
-                playTone(1050, 'sine', now + 0.15, 0.3, 0.3);
+                // Phone-like notification double chime, matang dan kencang
+                playTone(900, 'sine', now, 0.2, 0.5);
+                playTone(1200, 'sine', now + 0.15, 0.4, 0.5);
             } catch(e) { console.log('Audio error:', e); }
         };
 
@@ -2006,7 +2030,8 @@
         window.populateAdminSettings = function() {
             document.getElementById('set-logo-text').value = siteSettings.logoText || '';
             document.getElementById('set-logo-accent').value = siteSettings.logoAccent || '';
-            document.getElementById('set-logo-img-base64').value = siteSettings.logoImgBase64 || '';
+            // --- FIX PENTING: Panggil ID yang benar agar script tidak error & berhenti di tengah jalan! ---
+            document.getElementById('set-logo-base64').value = siteSettings.logoImgBase64 || '';
             document.getElementById('set-marquee').value = siteSettings.marquee || '';
             document.getElementById('set-wa').value = siteSettings.adminWa || '';
             document.getElementById('set-ig').value = siteSettings.igLink || '';
@@ -2029,7 +2054,7 @@
             const newSettings = {
                 logoText: document.getElementById('set-logo-text').value.trim(),
                 logoAccent: document.getElementById('set-logo-accent').value.trim(),
-                logoImgBase64: document.getElementById('set-logo-img-base64').value,
+                logoImgBase64: document.getElementById('set-logo-base64').value, // Fix Panggilan ID 
                 marquee: document.getElementById('set-marquee').value.trim(),
                 adminWa: document.getElementById('set-wa').value.trim(),
                 igLink: document.getElementById('set-ig').value.trim(),
@@ -2055,7 +2080,7 @@
             if (e.target.files[0]) {
                 document.getElementById('set-logo-file-name').innerText = e.target.files[0].name;
                 window.resizeImageBase64(e.target.files[0], (b64) => {
-                    document.getElementById('set-logo-base64').value = b64;
+                    document.getElementById('set-logo-base64').value = b64; // Fix Panggilan ID 
                     const p = document.getElementById('set-logo-preview');
                     p.src = b64; p.style.display = 'block';
                 }, 800, 800);
@@ -2371,8 +2396,8 @@
             let baseTotal = rawTotal - discountApplied;
             if(baseTotal < 0) baseTotal = 0;
 
-            // KODE UNIK DIBATASI MAKSIMAL RP 300
-            let uniqueCode = Math.floor(Math.random() * 299) + 1;
+            // KODE UNIK LIMIT MAKSIMAL RP 300
+            let uniqueCode = Math.floor(Math.random() * 300) + 1;
             let finalTotal = baseTotal + uniqueCode;
             const invId = 'VP-' + Math.floor(100000 + Math.random() * 900000);
 
@@ -2757,15 +2782,16 @@
                 stockSec.style.display = 'block';
                 stockSel.innerHTML = '<option value="">-- Pilih Stok dari Database --</option>';
                 const appItem = order.items.find(i => i.type === 'app');
-                const cleanBrandName = appItem.name.split(' - ')[0]; // E.g., "Viu Premium - 30 Hari" -> "Viu Premium"
+                const cleanBrandName = appItem.name.split(' - ')[0]; 
                 
                 const readyStocks = stocks.filter(s => s.brand === cleanBrandName && s.status === 'Ready');
                 if(readyStocks.length === 0) {
                     stockSel.innerHTML += '<option value="" disabled>Stok Habis / Kosong!</option>';
                 } else {
-                    readyStocks.forEach(s => {
+                    readyStocks.forEach((s, index) => {
                         const em = s.data.split('|')[0];
-                        stockSel.innerHTML += `<option value="${s.dbId}">${em} | [Ready]</option>`;
+                        // Auto select yang pertama di barisan
+                        stockSel.innerHTML += `<option value="${s.dbId}" ${index === 0 ? 'selected' : ''}>${em} | [Ready]</option>`;
                     });
                 }
                 
@@ -2778,6 +2804,9 @@
                         document.getElementById('proc-reply').value = `Detail Akun Premium Anda:\nEmail/NoHP: ${parts[0] || '-'}\nPassword: ${parts[1] || '-'}\nDurasi/Ket: ${parts[2] || '-'}`;
                     }
                 };
+                // Langsung trigger onchange agar kotak teks langsung terisi dari Auto-Assign!
+                if (readyStocks.length > 0) stockSel.onchange();
+
             } else {
                 stockSec.style.display = 'none';
             }
