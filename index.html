@@ -31,7 +31,6 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        /* Dibuat tanpa smooth agar loading UI di HP super cepat seperti aplikasi native */
         body { background-color: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
         a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
@@ -42,11 +41,32 @@
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.5); }
 
-        /* Container Desktop Maksimal (Lega dan Full) */
         .container { width: 100%; padding: 0 4%; max-width: 1800px; margin: 0 auto; }
 
-        .reveal { opacity: 0; transform: translateY(20px); transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
+        /* =======================================================
+           CSS MEDIA QUERIES UNTUK ANIMASI HP (Ringan) vs PC (Berat)
+           ======================================================= */
+        /* DEFAULT (MOBILE): Animasi Ringan & Cepat */
+        .reveal { opacity: 0; transform: translateY(10px); transition: all 0.3s ease-out; }
         .reveal-visible { opacity: 1; transform: translateY(0); }
+        
+        .main-tab-content { display: none; animation: tabFadeInLight 0.25s ease-out forwards; padding: 1rem 0 4rem; opacity: 0; }
+        .main-tab-content.active { display: block; }
+        @keyframes tabFadeInLight { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* DESKTOP/TABLET: Animasi Berat & Elegan */
+        @media (min-width: 768px) {
+            .reveal { transform: translateY(30px); transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+            
+            .main-tab-content { animation: tabFadeInHeavy 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+            @keyframes tabFadeInHeavy { 
+                from { opacity: 0; transform: translateY(20px); } 
+                to { opacity: 1; transform: translateY(0); } 
+            }
+        }
 
         header { 
             position: sticky; top: 0; z-index: 100; 
@@ -95,7 +115,6 @@
         .btn-outline:hover { background: var(--surface-hover); border-color: var(--text-muted); }
         .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
         .btn-danger:hover { background: var(--danger); color: white; }
-        .btn-disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; opacity: 0.7; }
         
         .notif-dot {
             position: absolute; top: 0px; right: 0px;
@@ -107,7 +126,6 @@
         .hero::before { content: ''; position: absolute; top: -50%; left: 50%; transform: translateX(-50%); width: 80vw; height: 80vw; background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, rgba(0,0,0,0) 70%); z-index: -1; }
         .hero h1 { font-size: clamp(2rem, 5vw, 4.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 1rem; letter-spacing: -1.5px; }
         
-        /* Efek Ketik Mulus & Matang */
         .tw-container { display: inline-flex; align-items: center; justify-content: center; position: relative; min-height: 1.2em;}
         #tw-text { color: var(--primary-light); background: -webkit-linear-gradient(0deg, #3b82f6, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .tw-cursor { display: inline-block; width: 4px; height: 1em; background-color: var(--primary-light); margin-left: 2px; animation: blink 1s step-end infinite; vertical-align: middle; }
@@ -131,16 +149,11 @@
         .section-header h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.3rem; color: var(--text); letter-spacing: -0.5px;}
         .section-header p { color: var(--text-muted); font-size: 0.95rem;}
         
-        .main-tab-content { display: none; animation: tabFadeIn 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards; padding: 1rem 0 4rem; opacity: 0; }
-        .main-tab-content.active { display: block; }
-        @keyframes tabFadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
         .tabs { display: flex; justify-content: center; gap: 0.8rem; margin-bottom: 2rem; flex-wrap: wrap; }
         .tab-btn { padding: 0.6rem 1.2rem; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.9rem; font-weight: 600; transition: 0.3s; }
         .tab-btn.active { background: rgba(37, 99, 235, 0.15); color: var(--primary-light); border-color: var(--primary); }
         .tab-btn:hover:not(.active) { background: var(--surface-hover); color: var(--text); }
         
-        /* Grid Lebar Penuh (Max Width 100%) */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; max-width: 100%; margin: 0 auto; }
         
         .brand-card { 
@@ -233,7 +246,6 @@
         .form-control:focus { border-color: var(--primary-light); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
         textarea.form-control { resize: vertical; min-height: 80px; }
 
-        /* Tipe Input ID Admin UI */
         .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
         .type-card { border: 1px solid var(--border); background: var(--bg); border-radius: 8px; padding: 10px; cursor: pointer; text-align: center; transition: 0.2s; position: relative; }
         .type-card.active { border-color: var(--primary-light); background: rgba(37,99,235,0.1); }
@@ -243,7 +255,6 @@
         .type-card small { font-size: 0.65rem; color: var(--text-muted); line-height: 1; }
         .type-preview { background: rgba(255,255,255,0.03); border: 1px dashed var(--border); padding: 10px; border-radius: 8px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; }
 
-        /* Custom Alert & Prompt */
         .msg-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.6); z-index: 100000; display: flex; justify-content: center; align-items: center;
@@ -311,7 +322,6 @@
         .footer-brand h2 span { color: var(--primary-light); }
         .footer-tagline { color: var(--text-muted); font-size: 0.85rem; font-weight: 500; }
         
-        /* Tombol IG dan TikTok (Bawah) */
         .footer-social-links { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;}
         .soc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; transition: 0.3s; text-decoration: none; }
         .soc-ig { border: 1px solid #ef4444; color: #ef4444; }
@@ -323,9 +333,46 @@
         .wa-contact-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 1.1rem; margin-top: 8px; transition: 0.3s; text-decoration: none;}
         .wa-contact-btn:hover { background: var(--success); color: white; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(16,185,129,0.3); }
 
-        @media (max-width: 1024px) {
-            .settings-grid { grid-template-columns: repeat(2, 1fr); }
+        /* LIVE CHAT UI */
+        .chat-fab {
+            position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; background: var(--primary-gradient);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white;
+            font-size: 1.5rem; box-shadow: 0 10px 25px rgba(37,99,235,0.4); cursor: pointer; z-index: 9999;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        .chat-fab:hover { transform: scale(1.1); }
+        .chat-fab .notif-badge {
+            position: absolute; top: 0; right: 0; background: var(--danger); width: 14px; height: 14px; border-radius: 50%;
+            display: none; border: 2px solid var(--bg);
+        }
+        
+        .chat-window {
+            position: fixed; bottom: 85px; right: 20px; width: 320px; max-width: calc(100vw - 40px);
+            background: var(--bg); border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); z-index: 9999; overflow: hidden;
+            transform: translateY(20px) scale(0.9); opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: bottom right;
+        }
+        .chat-window.active { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
+        
+        .chat-header { background: var(--surface); padding: 12px 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text); }
+        .chat-body { height: 350px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+        .chat-msg { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; line-height: 1.4; word-wrap: break-word;}
+        .chat-msg.admin { background: var(--surface-hover); color: var(--text); align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .chat-time { font-size: 0.65rem; color: var(--text-muted); text-align: right; margin-top: 4px; display: block; opacity:0.7;}
+        
+        .chat-footer { padding: 10px; background: var(--surface); border-top: 1px solid var(--border); display: flex; gap: 8px; }
+        .chat-footer input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 20px; outline: none; font-size: 0.85rem; }
+        .chat-footer button { background: var(--primary-light); color: white; border: none; padding: 0 15px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s;}
+        .chat-footer button:hover { background: var(--primary); }
+
+        /* Admin Chat Tab Styling */
+        .admin-chat-card { background: var(--surface); border: 1px solid var(--border); padding: 1rem; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .admin-chat-card:hover { border-color: var(--primary-light); }
+        .admin-chat-card .badge { background: var(--danger); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
+
+        @media (max-width: 1024px) { .settings-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 768px) {
             .settings-grid { grid-template-columns: 1fr; }
             .nav-right { gap: 0.3rem; }
@@ -358,7 +405,7 @@
         }
     </style>
 </head>
-<body>
+<body onclick="resumeAudioContext()"> <!-- Agar browser allow Audio Play -->
 
     <div id="store-view">
         <header>
@@ -385,7 +432,6 @@
                             <span id="user-order-badge" class="notif-dot" style="top:5px; right:5px;"></span>
                         </a>
                         
-                        <!-- Panel Admin -->
                         <a onclick="window.toggleAdminDashboard(true)" id="nav-admin" style="display:none;" title="Admin Panel">
                             <i class="fa-solid fa-shield-halved"></i> <span class="hide-mobile">Admin</span>
                             <span id="admin-badge" class="notif-dot" style="top:5px; right:5px;"></span>
@@ -407,7 +453,7 @@
         <!-- TAB: KATALOG -->
         <div id="tab-katalog" class="main-tab-content active container" style="padding-top:0;">
             <section class="hero reveal">
-                <!-- Efek Typewriter Loop Otomatis 'Selamat Datang' -->
+                <!-- Efek Typewriter Berulang -->
                 <h1 style="margin-bottom: 0.5rem;">
                     <div class="tw-container">
                         <span id="tw-text"></span><span class="tw-cursor"></span>
@@ -424,7 +470,6 @@
                 </div>
             </div>
 
-            <!-- Banner Otomatis Tampil -->
             <div class="banner-slider-container reveal" id="banner-container">
                 <div class="banner-track" id="banner-track"></div>
                 <div class="banner-dots" id="banner-dots"></div>
@@ -445,7 +490,6 @@
                 <div style="text-align:center; grid-column: 1/-1; padding: 2rem; color:var(--text-muted);">Memuat katalog...</div>
             </div>
 
-            <!-- Kenapa Memilih Kami & FAQ -->
             <div class="info-section reveal">
                 <div class="section-header">
                     <h2>Kenapa Memilih Kami?</h2>
@@ -485,7 +529,6 @@
                     <p>Yang paling sering ditanyakan pelanggan.</p>
                 </div>
                 <div>
-                    <!-- Accordion FAQ Items -->
                     <div class="faq-box" onclick="window.toggleFaq(this)">
                         <h4><span><i class="fa-solid fa-circle-question" style="margin-right:8px;"></i> Bagaimana cara pemesanannya?</span> <i class="fa-solid fa-chevron-down arrow"></i></h4>
                         <div class="faq-answer">
@@ -508,9 +551,9 @@
             </div>
         </div>
 
-        <!-- TAB: CARA KLAIM (TUTORIALS) -->
+        <!-- TAB: CARA KLAIM (TUTORIALS) BUG FIXED -->
         <div id="tab-tutorial" class="main-tab-content container">
-            <div class="section-header reveal">
+            <div class="section-header">
                 <h2>Panduan & Cara Klaim</h2>
                 <p>Ikuti langkah-langkah pada video di bawah ini untuk mengklaim atau menggunakan produk pesananmu.</p>
             </div>
@@ -522,13 +565,13 @@
 
         <!-- TAB: PROFIL -->
         <div id="tab-profil" class="main-tab-content container">
-            <div class="section-header reveal">
+            <div class="section-header">
                 <h2>Profil Akun</h2>
                 <p>Kelola data akun, password, dan pantau statistik mu.</p>
             </div>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                <div class="reveal" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem;">
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem;">
                     <h3 style="color: var(--primary-light); margin-bottom: 1rem;"><i class="fa-solid fa-user-pen"></i> Info Akun</h3>
                     <div class="form-group">
                         <label>Email Terdaftar</label>
@@ -550,7 +593,7 @@
                     </div>
                 </div>
 
-                <div class="reveal" style="display:flex; flex-direction:column; gap:1.5rem;">
+                <div style="display:flex; flex-direction:column; gap:1.5rem;">
                     <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem;">
                         <h3 style="color: var(--text); margin-bottom: 1rem;"><i class="fa-solid fa-shield-halved"></i> Keamanan Akun</h3>
                         <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom: 1rem;">Lupa sandi atau ingin mengubahnya? Kami akan mengirimkan tautan reset ke emailmu (Batas 1x / 4 Menit).</p>
@@ -568,11 +611,11 @@
 
         <!-- TAB: PESANAN -->
         <div id="tab-pesanan" class="main-tab-content container">
-            <div class="section-header reveal">
+            <div class="section-header">
                 <h2>Riwayat Pesanan</h2>
                 <p>Status pesananmu akan terupdate secara otomatis disini.</p>
             </div>
-            <div class="grid reveal" id="user-order-grid" style="grid-template-columns: 1fr; max-width:1000px; margin-left:auto; margin-right:auto;">
+            <div class="grid" id="user-order-grid" style="grid-template-columns: 1fr; max-width:1000px; margin-left:auto; margin-right:auto;">
                 <!-- User Order Cards -->
             </div>
         </div>
@@ -607,6 +650,25 @@
         </footer>
     </div>
     <!-- END MAIN STORE VIEW -->
+
+    <!-- USER LIVE CHAT UI -->
+    <div class="chat-fab" id="user-chat-fab" onclick="window.toggleUserChat()" style="display: none;">
+        <i class="fa-solid fa-headset"></i>
+        <div class="notif-badge" id="user-chat-badge"></div>
+    </div>
+    <div class="chat-window" id="user-chat-window">
+        <div class="chat-header">
+            Bantuan Langsung
+            <button onclick="window.toggleUserChat()" style="color:var(--text-muted); font-size:1.1rem;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="chat-body" id="user-chat-body">
+            <!-- Messages Here -->
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="user-chat-input" placeholder="Tanya sesuatu..." onkeypress="if(event.key === 'Enter') window.sendUserChat()">
+            <button onclick="window.sendUserChat()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
 
     <!-- AUTHENTICATION MODAL -->
     <div class="modal-overlay" id="modal-auth">
@@ -685,9 +747,7 @@
             </div>
 
             <h4 style="font-size:0.9rem; margin-bottom:10px; color:var(--text);">1. Pilih Item / Nominal</h4>
-            <div id="buy-item-grid" class="item-selection-grid">
-                <!-- Diisi via JS -->
-            </div>
+            <div id="buy-item-grid" class="item-selection-grid"></div>
             
             <div style="margin-top: 1.5rem;">
                 <h4 style="font-size:0.9rem; margin-bottom:10px; color:var(--text);">2. Informasi Tujuan</h4>
@@ -817,13 +877,15 @@
             <button class="admin-tab" onclick="window.switchAdminTab('tab-products', this)">Produk Item</button>
             <button class="admin-tab" onclick="window.switchAdminTab('tab-promos', this)">Promo</button>
             <button class="admin-tab" onclick="window.switchAdminTab('tab-tutorials', this)">Tutorial</button>
+            <button class="admin-tab" onclick="window.switchAdminTab('tab-livechat', this)">
+                Live Chat <span id="admin-chat-tab-badge" class="notif-dot" style="position:static; display:inline-block; margin-left:4px; vertical-align:middle; width:8px; height:8px;"></span>
+            </button>
             <button class="admin-tab" onclick="window.switchAdminTab('tab-settings', this)">Pengaturan</button>
         </div>
 
         <div class="admin-body">
             <!-- Tab: Orders -->
             <div id="tab-orders" class="admin-tab-content">
-                <!-- FITUR CARI ID INVOICE ADMIN -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:10px;">
                     <h3 style="margin:0;">Daftar Pesanan Masuk</h3>
                     <div style="display:flex; gap:8px; flex-grow:1; max-width: 300px; justify-content:flex-end;">
@@ -882,6 +944,19 @@
                 <div id="admin-tut-list" style="display: flex; flex-direction: column; gap: 0;"></div>
             </div>
 
+            <!-- Tab: Live Chat Admin -->
+            <div id="tab-livechat" class="admin-tab-content" style="display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <h3>Sesi Live Chat Aktif</h3>
+                        <p style="font-size:0.8rem; color:var(--text-muted);">Merespon komplain atau pertanyaan user secara langsung.</p>
+                    </div>
+                </div>
+                <div class="grid" id="admin-chat-list" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+                    <!-- Chat cards here -->
+                </div>
+            </div>
+
             <!-- Tab: Settings (TOMBOL SIMPAN DIPINDAH KE DALAM KOTAK PERTAMA) -->
             <div id="tab-settings" class="admin-tab-content" style="display: none;">
                 <div class="settings-grid">
@@ -934,6 +1009,25 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Admin Reply Chat -->
+    <div class="modal-overlay" id="modal-admin-chat">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="admin-chat-title">Live Chat User</h2>
+                <button class="close-btn" onclick="window.closeModal('modal-admin-chat')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <input type="hidden" id="admin-active-chat-id">
+            <div class="chat-body" id="admin-chat-body" style="height: 300px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px;"></div>
+            <div class="chat-footer" style="padding: 0; border: none; background: transparent;">
+                <input type="text" id="admin-chat-input" placeholder="Tulis balasan..." onkeypress="if(event.key === 'Enter') window.sendAdminChat()">
+                <button onclick="window.sendAdminChat()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+            <button class="btn btn-success" style="width: 100%; margin-top: 15px;" onclick="window.resolveChat()">
+                <i class="fa-solid fa-check-double"></i> Tandai Selesai & Hapus Chat
+            </button>
         </div>
     </div>
 
@@ -1014,9 +1108,7 @@
                     </button>
                 </div>
 
-                <div id="manage-prod-nominals-list" style="display: flex; flex-direction: column; gap: 0; max-height: 180px; overflow-y: auto; padding-right:5px; margin-bottom:10px;">
-                    <!-- items injected via JS -->
-                </div>
+                <div id="manage-prod-nominals-list" style="display: flex; flex-direction: column; gap: 0; max-height: 180px; overflow-y: auto; padding-right:5px; margin-bottom:10px;"></div>
             </div>
             
             <div class="form-group" style="display:flex; align-items:center; gap:8px; margin-top: 15px;">
@@ -1028,70 +1120,39 @@
         </div>
     </div>
 
-    <!-- Modal: Add/Edit Promo -->
-    <div class="modal-overlay" id="modal-manage-promo">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-promo-title">Kelola Promo</h2>
-                <button class="close-btn" onclick="window.closeModal('modal-manage-promo')"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <input type="hidden" id="manage-promo-id">
-            <div class="form-group"><label>Kode Promo (Tanpa Spasi)</label><input type="text" id="manage-promo-code" class="form-control" style="text-transform: uppercase;"></div>
-            <div class="form-group"><label>Potongan Diskon (Rp)</label><input type="number" id="manage-promo-amount" class="form-control" placeholder="5000"></div>
-            <div class="form-group"><label>Maksimal Pemakaian (Berapa Kali)</label><input type="number" id="manage-promo-max" class="form-control" placeholder="100"></div>
-            <div class="form-group" style="display:flex; align-items:center; gap:8px;">
-                <input type="checkbox" id="manage-promo-active" style="width:16px; height:16px;" checked>
-                <label style="margin:0;">Aktif</label>
-            </div>
-            <button class="btn btn-primary" style="width:100%" onclick="window.savePromo()">Simpan Promo</button>
-        </div>
-    </div>
-
-    <!-- Modal: Add/Edit Tutorial -->
-    <div class="modal-overlay" id="modal-manage-tutorial">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-tut-title">Kelola Video Panduan</h2>
-                <button class="close-btn" onclick="window.closeModal('modal-manage-tutorial')"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <input type="hidden" id="manage-tut-id">
-            <div class="form-group"><label>Judul</label><input type="text" id="manage-tut-title" class="form-control" placeholder="Contoh: LOGIN VIU"></div>
-            <div class="form-group"><label>Penjelasan Singkat</label><textarea id="manage-tut-desc" class="form-control" rows="3" placeholder="Panduan video langkah-langkah..."></textarea></div>
-            <div class="form-group"><label>Link Google Drive (Video)</label><input type="text" id="manage-tut-link" class="form-control"></div>
-            <div class="form-group" style="display:flex; align-items:center; gap:8px;">
-                <input type="checkbox" id="manage-tut-hidden" style="width:16px; height:16px;">
-                <label style="margin:0;">Sembunyikan dari Publik</label>
-            </div>
-            <button class="btn btn-primary" style="width:100%" onclick="window.saveTutorial()">Simpan Video</button>
-        </div>
-    </div>
-
-    <!-- Modal: Process Order Detail -->
-    <div class="modal-overlay" id="modal-process-order">
-        <div class="modal-content large">
-            <div class="modal-header">
-                <h2>Proses Pesanan <span id="proc-inv" style="color:var(--primary-light)"></span></h2>
-                <button class="close-btn" onclick="window.closeModal('modal-process-order')"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <input type="hidden" id="proc-order-id">
-            <div id="proc-items-list" style="margin-bottom:1rem; max-height:30vh; overflow-y:auto; overflow-x:hidden; background:var(--surface); padding:0.8rem; border-radius:8px; border:1px solid var(--border);"></div>
-            <div class="form-group">
-                <label>Beri Balasan / Info Akun (Penting jika pesanan berupa Aplikasi)</label>
-                <textarea id="proc-reply" class="form-control" rows="4" placeholder="Tulis info email/password akun disini agar langsung muncul di web member..."></textarea>
-            </div>
-            <div style="display:flex; gap:10px; margin-top:1rem;">
-                <button class="btn btn-danger" style="flex:1; padding:0.8rem;" onclick="window.markOrderComplete('FAILED')">Gagalkan</button>
-                <button class="btn btn-success" style="flex:2; padding:0.8rem;" onclick="window.markOrderComplete('SUCCESS')">Tandai Selesai</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Script Utama -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc, query, where, getDocs, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc, query, where, getDocs, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase config
+        // Web Audio API Synthesizer (Notifikasi BEEP Tanpa File MP3 Eksternal)
+        window.resumeAudioContext = function() {
+            if (window.audioCtx && window.audioCtx.state === 'suspended') {
+                window.audioCtx.resume();
+            }
+        };
+
+        window.playBeep = function() {
+            try {
+                if (!window.audioCtx) window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (window.audioCtx.state === 'suspended') window.audioCtx.resume();
+                
+                const osc = window.audioCtx.createOscillator();
+                const gain = window.audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(window.audioCtx.destination);
+                
+                osc.type = 'sine'; // Suara jernih
+                osc.frequency.setValueAtTime(800, window.audioCtx.currentTime); // Tinggi nada beep
+                gain.gain.setValueAtTime(0.2, window.audioCtx.currentTime); // Volume
+                
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.00001, window.audioCtx.currentTime + 0.3);
+                osc.stop(window.audioCtx.currentTime + 0.3);
+            } catch(e) { console.log('Audio error:', e); }
+        };
+
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyBQGZjl7uj5CRiLWCvPQKjiK4HvIYnXSJg",
             authDomain: "vipercell-fc50e.firebaseapp.com",
@@ -1116,6 +1177,7 @@
         const pathSettings = isWorkspace ? `artifacts/${appId}/public/data/settings` : 'settings';
         const pathUsers = isWorkspace ? `artifacts/${appId}/public/data/users` : 'users';
         const pathPromos = isWorkspace ? `artifacts/${appId}/public/data/promos` : 'promos';
+        const pathChats = isWorkspace ? `artifacts/${appId}/public/data/chats` : 'chats';
 
         let products = [];
         let groupedBrands = []; 
@@ -1136,8 +1198,15 @@
         let appliedPromo = null; 
         let currentCheckoutSession = null; 
         let currentGroupNominals = [];
+        
+        // Chat states
+        let allLiveChats = [];
+        let userChatMessages = [];
+        let chatUnsubscribe = null;
+        let adminChatUnsubscribe = null;
+        let initialChatLoad = true;
+        let initialOrderLoad = true;
 
-        // Expose to window (Mencegah ReferenceError di Modules)
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
         window.handleLogoClick = () => window.switchMainTab('katalog');
@@ -1187,7 +1256,6 @@
             });
         }
         
-        // EFEK TYPEWRITER LOOP MATANG (Berulang Otomatis)
         function typeWriterEffect() {
             const text = "Selamat Datang";
             const twEl = document.getElementById('tw-text');
@@ -1199,10 +1267,10 @@
                 const currentText = text.substring(0, i);
                 twEl.innerHTML = currentText;
                 
-                let typeSpeed = 120; // Kecepatan Ngetik
+                let typeSpeed = 120; 
                 
                 if (isDeleting) {
-                    typeSpeed = 60; // Kecepatan Hapus
+                    typeSpeed = 60; 
                     i--;
                 } else {
                     i++;
@@ -1210,12 +1278,11 @@
                 
                 if (!isDeleting && i === text.length + 1) {
                     isDeleting = true;
-                    typeSpeed = 2500; // Pause 2.5s ketika teks penuh
+                    typeSpeed = 2500; 
                 } else if (isDeleting && i === 0) {
                     isDeleting = false;
-                    typeSpeed = 800; // Pause sebelum mulai ngetik lagi
+                    typeSpeed = 800; 
                 }
-                
                 setTimeout(type, typeSpeed);
             }
             type();
@@ -1258,10 +1325,14 @@
                         if (user.email === 'vipercell.id@gmail.com') {
                             isAdminLoggedIn = true;
                             document.getElementById('nav-admin').style.display = 'flex';
+                            listenAdminLiveChat();
                         } else {
                             isAdminLoggedIn = false;
                             document.getElementById('nav-admin').style.display = 'none';
                             if (document.getElementById('admin-dashboard').style.display === 'block') window.toggleAdminDashboard(false);
+                            // Tampilkan Chat User
+                            document.getElementById('user-chat-fab').style.display = 'flex';
+                            listenUserChat();
                         }
                         listenData();
                     } else {
@@ -1338,6 +1409,14 @@
                     window.renderUserOrders();
                     updateProfileStats();
                 }
+
+                // Notifikasi Bunyi Order Baru untuk Admin
+                if(isAdminLoggedIn) {
+                    snapshot.docChanges().forEach((change) => {
+                        if(change.type === 'added' && !initialOrderLoad) window.playBeep();
+                    });
+                }
+                initialOrderLoad = false;
             });
         }
         
@@ -1345,7 +1424,6 @@
             if (isAdminLoggedIn) {
                 const hasPending = orders.some(o => o.status === 'PENDING');
                 document.getElementById('admin-badge').style.display = hasPending ? 'block' : 'none';
-                
                 const adminOrderTabBadge = document.getElementById('admin-tab-order-badge');
                 if(adminOrderTabBadge) adminOrderTabBadge.style.display = hasPending ? 'inline-block' : 'none';
             }
@@ -1355,6 +1433,220 @@
                 document.getElementById('user-order-badge').style.display = hasActionNeeded ? 'block' : 'none';
             }
         }
+
+        // ==========================================
+        // FITUR LIVE CHAT EPHEMERAL
+        // ==========================================
+        window.toggleUserChat = function() {
+            const chatWindow = document.getElementById('user-chat-window');
+            chatWindow.classList.toggle('active');
+            if(chatWindow.classList.contains('active')) {
+                document.getElementById('user-chat-badge').style.display = 'none'; // Clear badge
+                scrollToBottomUserChat();
+            }
+        }
+
+        function listenUserChat() {
+            if(!currentUser) return;
+            const chatRef = doc(db, pathChats, currentUser.uid);
+            if(chatUnsubscribe) chatUnsubscribe();
+            
+            chatUnsubscribe = onSnapshot(chatRef, (docSnap) => {
+                if(docSnap.exists()) {
+                    const data = docSnap.data();
+                    const oldLen = userChatMessages.length;
+                    userChatMessages = data.messages || [];
+                    
+                    window.renderUserChatMessages();
+                    
+                    // Notif jika ada balasan baru dari admin
+                    if(userChatMessages.length > oldLen && oldLen > 0) {
+                        const lastMsg = userChatMessages[userChatMessages.length - 1];
+                        if(lastMsg.sender === 'admin') {
+                            window.playBeep();
+                            if(!document.getElementById('user-chat-window').classList.contains('active')) {
+                                document.getElementById('user-chat-badge').style.display = 'block';
+                            }
+                        }
+                    }
+                } else {
+                    userChatMessages = [];
+                    window.renderUserChatMessages();
+                }
+            });
+        }
+
+        window.renderUserChatMessages = function() {
+            const body = document.getElementById('user-chat-body');
+            body.innerHTML = '';
+            
+            if(userChatMessages.length === 0) {
+                body.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.8rem; margin-top:20px;">Belum ada obrolan. Kirim pesan untuk memulai.</p>';
+                return;
+            }
+
+            userChatMessages.forEach(msg => {
+                const isUser = msg.sender === 'user';
+                body.innerHTML += `
+                    <div class="chat-msg ${isUser ? 'user' : 'admin'}">
+                        ${msg.text}
+                        <span class="chat-time">${new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                `;
+            });
+            scrollToBottomUserChat();
+        }
+
+        function scrollToBottomUserChat() {
+            const body = document.getElementById('user-chat-body');
+            setTimeout(() => { body.scrollTop = body.scrollHeight; }, 100);
+        }
+
+        window.sendUserChat = async function() {
+            if(!currentUser) return;
+            const input = document.getElementById('user-chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+            
+            input.value = ''; // clear
+            const chatRef = doc(db, pathChats, currentUser.uid);
+            
+            const newMsg = { sender: 'user', text: text, timestamp: Date.now() };
+            
+            const docSnap = await getDoc(chatRef);
+            if(!docSnap.exists()) {
+                const userInfo = userProfile.name ? `${userProfile.name} (${userProfile.phone})` : (currentUser.isAnonymous ? 'User Guest' : currentUser.email);
+                await setDoc(chatRef, {
+                    uid: currentUser.uid,
+                    userInfo: userInfo,
+                    updatedAt: Date.now(),
+                    messages: [newMsg]
+                });
+            } else {
+                await updateDoc(chatRef, {
+                    updatedAt: Date.now(),
+                    messages: arrayUnion(newMsg)
+                });
+            }
+            scrollToBottomUserChat();
+        }
+
+        // --- ADMIN CHAT LOGIC ---
+        function listenAdminLiveChat() {
+            if(adminChatUnsubscribe) adminChatUnsubscribe();
+            adminChatUnsubscribe = onSnapshot(collection(db, pathChats), (snapshot) => {
+                allLiveChats = [];
+                snapshot.forEach(doc => {
+                    allLiveChats.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by latest updated
+                allLiveChats.sort((a,b) => b.updatedAt - a.updatedAt);
+                
+                window.renderAdminChatList();
+                
+                const badge = document.getElementById('admin-chat-tab-badge');
+                if(allLiveChats.length > 0) { badge.style.display = 'inline-block'; } else { badge.style.display = 'none'; }
+                
+                // Beep on new message
+                snapshot.docChanges().forEach(change => {
+                    if ((change.type === 'added' || change.type === 'modified') && !initialChatLoad) {
+                        const data = change.doc.data();
+                        const msgs = data.messages || [];
+                        if(msgs.length > 0 && msgs[msgs.length-1].sender === 'user') {
+                            window.playBeep();
+                        }
+                    }
+                });
+                initialChatLoad = false;
+                
+                // If admin is currently viewing a chat, refresh it
+                const activeId = document.getElementById('admin-active-chat-id').value;
+                if(activeId && document.getElementById('modal-admin-chat').classList.contains('active')) {
+                    window.openAdminChatDetail(activeId); // re-render detail
+                }
+            });
+        }
+
+        window.renderAdminChatList = function() {
+            const list = document.getElementById('admin-chat-list');
+            if(!list) return;
+            list.innerHTML = '';
+            if(allLiveChats.length === 0) {
+                list.innerHTML = '<p style="color:var(--text-muted); grid-column:1/-1;">Tidak ada sesi obrolan aktif.</p>';
+                return;
+            }
+
+            allLiveChats.forEach(chat => {
+                const msgs = chat.messages || [];
+                const lastMsg = msgs.length > 0 ? msgs[msgs.length-1] : null;
+                const hasUnread = lastMsg && lastMsg.sender === 'user';
+                
+                list.innerHTML += `
+                    <div class="admin-chat-card" onclick="window.openAdminChatDetail('${chat.id}')">
+                        <div style="flex:1; overflow:hidden;">
+                            <strong style="color:var(--text); font-size:0.9rem; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${chat.userInfo}</strong>
+                            <small style="color:var(--text-muted); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${lastMsg ? lastMsg.text : '...'}</small>
+                        </div>
+                        ${hasUnread ? '<span class="badge">Baru</span>' : ''}
+                    </div>
+                `;
+            });
+        }
+
+        window.openAdminChatDetail = function(chatId) {
+            const chat = allLiveChats.find(c => c.id === chatId);
+            if(!chat) return;
+            
+            document.getElementById('admin-active-chat-id').value = chatId;
+            document.getElementById('admin-chat-title').innerText = `Chat: ${chat.userInfo}`;
+            
+            const body = document.getElementById('admin-chat-body');
+            body.innerHTML = '';
+            
+            (chat.messages || []).forEach(msg => {
+                const isAdmin = msg.sender === 'admin';
+                body.innerHTML += `
+                    <div class="chat-msg ${isAdmin ? 'user' : 'admin'}" style="${isAdmin ? 'align-self:flex-end; background:var(--primary); color:white;' : 'align-self:flex-start;'}">
+                        ${msg.text}
+                        <span class="chat-time">${new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                `;
+            });
+            
+            setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
+            window.openModal('modal-admin-chat');
+        }
+
+        window.sendAdminChat = async function() {
+            const chatId = document.getElementById('admin-active-chat-id').value;
+            const input = document.getElementById('admin-chat-input');
+            const text = input.value.trim();
+            if(!text || !chatId) return;
+            
+            input.value = '';
+            const chatRef = doc(db, pathChats, chatId);
+            await updateDoc(chatRef, {
+                updatedAt: Date.now(),
+                messages: arrayUnion({ sender: 'admin', text: text, timestamp: Date.now() })
+            });
+        }
+
+        window.resolveChat = async function() {
+            const chatId = document.getElementById('admin-active-chat-id').value;
+            if(!chatId) return;
+            window.openCustomPrompt('Selesai', 'Hapus permanen chat ini dari database?', async (val) => {
+                if(val.toLowerCase() === 'yakin' || val.toLowerCase() === 'ya' || val) {
+                    await deleteDoc(doc(db, pathChats, chatId));
+                    window.closeModal('modal-admin-chat');
+                    window.customAlert('Dihapus', 'Sesi Live Chat dihapus.', 'info');
+                }
+            });
+        }
+
+        // ==========================================
+        // FUNGSI UMUM LAINNYA
+        // ==========================================
 
         window.toggleFaq = function(element) { element.classList.toggle('expanded'); }
 
@@ -1408,7 +1700,6 @@
             btn.innerText = 'Memproses...'; btn.disabled = true;
             try {
                 const cred = await createUserWithEmailAndPassword(auth, em, pw);
-                // Langsung simpan doc agar tercatat sebagai "Pernah Daftar" untuk proteksi Google Login
                 await setDoc(doc(db, pathUsers, cred.user.uid), { 
                     email: em, name: '', phone: '', createdAt: new Date().toISOString()
                 });
@@ -1461,7 +1752,6 @@
             } catch (e) { window.customAlert('Gagal', 'Terjadi kesalahan sistem.', 'error'); }
         }
 
-        // PROTEKSI LOGIN GOOGLE: Wajib daftar web dulu.
         window.googleLogin = async function() {
             const provider = new GoogleAuthProvider();
             try {
@@ -1554,14 +1844,12 @@
             document.getElementById('marquee-text-1').innerText = mText;
             document.getElementById('marquee-text-2').innerText = mText;
 
-            // IG & TikTok Sesuai Foto Footer
             const igBtn = document.getElementById('footer-ig-btn');
             if(siteSettings.igLink) { igBtn.href = siteSettings.igLink; igBtn.style.display = 'inline-flex'; } else { igBtn.style.display = 'none'; }
             
             const ttBtn = document.getElementById('footer-tt-btn');
             if(siteSettings.ttLink) { ttBtn.href = siteSettings.ttLink; ttBtn.style.display = 'inline-flex'; } else { ttBtn.style.display = 'none'; }
 
-            // Tombol WA Bawah Diperbaiki Tepat Sasaran
             let adminWaNum = siteSettings.adminWa || '085656321860';
             if (adminWaNum.startsWith('0')) adminWaNum = '62' + adminWaNum.substring(1);
             const waHref = `https://wa.me/${adminWaNum}?text=${encodeURIComponent('Halo Min')}`;
@@ -1570,14 +1858,12 @@
             window.renderBanners();
             window.renderTutorials();
             
-            // Panggil render admin dengan aman (window. prefix)
             if(isAdminLoggedIn) { 
                 window.populateAdminSettings(); 
                 window.renderAdminTutorials(); 
             }
         }
 
-        // BUG FIX BANNER: Dipastikan termuat ke dalam DOM dengan paksaan reveal
         window.renderBanners = function() {
             const container = document.getElementById('banner-container');
             const track = document.getElementById('banner-track');
@@ -1619,6 +1905,8 @@
             }, 5000);
         }
 
+        function extractDriveId(link) { const match = link.match(/(?:id=|d\/)([a-zA-Z0-9_-]+)/i); return match ? match[1] : link; }
+
         window.renderTutorials = function() {
             const grid = document.getElementById('public-tutorial-list');
             if(!grid) return;
@@ -1634,15 +1922,15 @@
             visibleList.forEach(tut => {
                 const driveId = extractDriveId(tut.url);
                 const iframeSrc = `https://drive.google.com/file/d/${driveId}/preview`;
+                // REMOVED .reveal class here to prevent IntersectionObserver bugs on hidden tab
                 grid.innerHTML += `
-                    <div class="tutorial-card reveal">
+                    <div class="tutorial-card">
                         <div class="video-container"><iframe src="${iframeSrc}" allow="autoplay" allowfullscreen></iframe></div>
                         <div class="tutorial-info">
                             <h3>${tut.title}</h3><p>${tut.desc.replace(/\n/g, '<br>')}</p>
                         </div>
                     </div>`;
             });
-            setTimeout(observeReveals, 100);
         }
 
         window.filterBrands = function(type, btnEl) {
@@ -2066,7 +2354,6 @@
             setTimeout(observeReveals, 100);
         };
 
-        // --- BUG FIX: Pastikan memanggil window. prefix agar tidak Error Reference ---
         window.toggleAdminDashboard = (show) => {
             if(show && !isAdminLoggedIn) { window.customAlert("Ditolak", "Anda bukan Admin.", "error"); return; }
             document.getElementById('store-view').style.display = show ? 'none' : 'block';
@@ -2077,6 +2364,7 @@
                 window.renderAdminProducts(); 
                 window.renderAdminTutorials(); 
                 window.renderAdminPromos(); 
+                window.renderAdminChatList();
             }
             if(!show) { observeReveals(); window.scrollTo({ top: 0, behavior: 'instant' }); } 
         };
@@ -2087,7 +2375,6 @@
             btnEl.classList.add('active'); document.getElementById(tabId).style.display = 'block';
         };
 
-        // FITUR PENCARIAN ID INVOICE ADMIN MATANG
         window.renderAdminOrders = function() {
             const tbody = document.getElementById('admin-order-list');
             if(!tbody) return;
@@ -2165,7 +2452,6 @@
             });
         };
 
-        // --- SISTEM GRUP PRODUK & TIPE INPUT ---
         window.renderAdminProducts = function() {
             const tbody = document.getElementById('admin-prod-list');
             if(!tbody) return;
@@ -2336,7 +2622,7 @@
                 document.getElementById('manage-prod-file-name').innerText = e.target.files[0].name;
                 resizeImageBase64(e.target.files[0], (b64) => {
                     document.getElementById('manage-prod-img-base64').value = b64;
-                    window.renderTempNominals();
+                    window.renderTempNominals(); 
                 }, 800, 800);
             }
         });
@@ -2347,7 +2633,10 @@
             const brand = document.getElementById('manage-prod-brand').value.trim();
             const imgBase64 = document.getElementById('manage-prod-img-base64').value;
             const oldBrand = document.getElementById('manage-prod-old-brand').value;
-            const inputType = document.querySelector('input[name="manage_input_type"]:checked').value;
+            
+            let inputType = 'id_zone';
+            const checkedType = document.querySelector('input[name="manage_input_type"]:checked');
+            if(checkedType) inputType = checkedType.value;
 
             if(!brand) { window.customAlert('Error', 'Nama Brand wajib diisi.', 'error'); return; }
             if(currentGroupNominals.length === 0) { window.customAlert('Error', 'Tambahkan minimal 1 nominal ke dalam grup ini.', 'error'); return; }
@@ -2399,7 +2688,6 @@
             });
         };
 
-        // --- MANAJEMEN PROMO ---
         window.renderAdminPromos = function() {
             const tbody = document.getElementById('admin-promo-list');
             if(!tbody) return;
@@ -2467,207 +2755,6 @@
                     window.customAlert('Sukses', 'Promo Dihapus.', 'success');
                 }
             });
-        };
-
-        // --- MANAJEMEN PANDUAN TUTORIAL ---
-        window.renderAdminTutorials = function() {
-            const listContainer = document.getElementById('admin-tut-list');
-            if(!listContainer) return;
-            listContainer.innerHTML = '';
-            const list = siteSettings.tutorialList || [];
-            if(list.length === 0) {
-                listContainer.innerHTML = '<p style="color:var(--text-muted); margin-top:1rem;">Belum ada video panduan.</p>';
-                return;
-            }
-
-            list.forEach((tut, index) => {
-                listContainer.innerHTML += `
-                <div style="background: #0f172a; padding: 1rem; border: 1px solid #1e293b; border-radius: 8px; display:flex; gap: 15px; margin-bottom: 1rem; align-items: stretch;">
-                    <div style="width: 150px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #000; position: relative;">
-                         <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; opacity:0.5;"><i class="fa-solid fa-play fa-2x"></i></div>
-                    </div>
-                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                        <div style="margin-bottom: 8px;">
-                            <span style="background: rgba(37,99,235,0.2); color: #3b82f6; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">${tut.title}</span>
-                            ${tut.isHidden ? '<span style="color:var(--warning); font-size:0.75rem; margin-left:8px;">(Disembunyikan)</span>' : ''}
-                        </div>
-                        <p style="font-size:0.85rem; color:#94a3b8; margin: 0;">${tut.desc}</p>
-                    </div>
-                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 8px;">
-                        <button class="btn btn-outline" style="padding:0.5rem; font-size:0.85rem; background: #1e293b; border:none; color: white;" onclick="window.openTutorialModal(${index})"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-danger" style="padding:0.5rem; font-size:0.85rem; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none;" onclick="window.deleteTutorial(${index})"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>`;
-            });
-        }
-
-        window.openTutorialModal = function(index = null) {
-            if(index !== null) {
-                const t = siteSettings.tutorialList[index];
-                document.getElementById('modal-tut-title').innerText = 'Edit Panduan';
-                document.getElementById('manage-tut-id').value = index;
-                document.getElementById('manage-tut-title').value = t.title;
-                document.getElementById('manage-tut-desc').value = t.desc;
-                document.getElementById('manage-tut-link').value = t.url;
-                document.getElementById('manage-tut-hidden').checked = t.isHidden || false;
-            } else {
-                document.getElementById('modal-tut-title').innerText = 'Tambah Panduan';
-                document.getElementById('manage-tut-id').value = '';
-                ['manage-tut-title','manage-tut-desc','manage-tut-link'].forEach(id => document.getElementById(id).value = '');
-                document.getElementById('manage-tut-hidden').checked = false;
-            }
-            window.openModal('modal-manage-tutorial');
-        };
-
-        window.saveTutorial = async function() {
-            if(!currentUser) return;
-            const idxStr = document.getElementById('manage-tut-id').value;
-            const tutData = {
-                title: document.getElementById('manage-tut-title').value,
-                desc: document.getElementById('manage-tut-desc').value,
-                url: document.getElementById('manage-tut-link').value,
-                isHidden: document.getElementById('manage-tut-hidden').checked
-            };
-            if(!tutData.title || !tutData.url) { window.customAlert('Error', 'Judul dan link wajib diisi.', 'error'); return; }
-
-            const newList = siteSettings.tutorialList ? [...siteSettings.tutorialList] : [];
-            if(idxStr !== '') newList[parseInt(idxStr)] = tutData; else newList.push(tutData);
-            
-            await updateDoc(doc(db, pathSettings, 'mainConfig'), { tutorialList: newList });
-            window.closeModal('modal-manage-tutorial'); window.customAlert('Sukses', 'Panduan tersimpan.', 'success');
-        };
-
-        window.deleteTutorial = async function(index) {
-            if(!currentUser) return;
-            window.openCustomPrompt("Hapus", "Ketik <b>YAKIN</b> untuk menghapus video ini.", async (val) => {
-                if(val === 'YAKIN') {
-                    const newList = [...siteSettings.tutorialList]; newList.splice(index, 1);
-                    await updateDoc(doc(db, pathSettings, 'mainConfig'), { tutorialList: newList });
-                }
-            });
-        };
-
-        // --- PENGATURAN ---
-        window.populateAdminSettings = function() {
-            if(!siteSettings) return;
-            
-            document.getElementById('set-logo-text').value = siteSettings.logoText || '';
-            document.getElementById('set-logo-accent').value = siteSettings.logoAccent || '';
-            document.getElementById('set-marquee').value = siteSettings.marquee || '';
-            document.getElementById('set-wa').value = siteSettings.adminWa || '';
-            document.getElementById('set-ig').value = siteSettings.igLink || '';
-            document.getElementById('set-tt').value = siteSettings.ttLink || '';
-            
-            if(siteSettings.logoImgBase64) {
-                document.getElementById('set-logo-preview').src = siteSettings.logoImgBase64;
-                document.getElementById('set-logo-preview').style.display = 'block';
-                document.getElementById('set-logo-base64').value = siteSettings.logoImgBase64;
-                document.getElementById('set-logo-file-name').innerText = 'Gambar Tersimpan';
-            } else {
-                document.getElementById('set-logo-preview').style.display = 'none';
-                document.getElementById('set-logo-file-name').innerText = 'Tidak ada file dipilih';
-            }
-
-            if(siteSettings.qrisImageBase64) {
-                document.getElementById('set-qris-preview').src = siteSettings.qrisImageBase64;
-                document.getElementById('set-qris-preview').style.display = 'block';
-                document.getElementById('set-qris-base64').value = siteSettings.qrisImageBase64;
-                document.getElementById('set-qris-file-name').innerText = 'QRIS Tersimpan';
-            } else {
-                document.getElementById('set-qris-preview').style.display = 'none';
-                document.getElementById('set-qris-file-name').innerText = 'Tidak ada file dipilih';
-            }
-            
-            window.renderAdminBannersList();
-        }
-
-        function resizeImageBase64(file, callback, maxWidth = 800, maxHeight = 800) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width; let height = img.height;
-                    if (width > height && width > maxWidth) { height *= maxWidth / width; width = maxWidth; } 
-                    else if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
-                    canvas.width = width; canvas.height = height;
-                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-                    callback(canvas.toDataURL('image/jpeg', 0.85));
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        document.getElementById('logo-upload').addEventListener('change', function(e) {
-            if (e.target.files[0]) {
-                document.getElementById('set-logo-file-name').innerText = e.target.files[0].name;
-                resizeImageBase64(e.target.files[0], (b64) => {
-                    document.getElementById('set-logo-preview').src = b64;
-                    document.getElementById('set-logo-preview').style.display = 'block';
-                    document.getElementById('set-logo-base64').value = b64;
-                });
-            }
-        });
-
-        document.getElementById('set-qris-upload').addEventListener('change', function(e) {
-            if (e.target.files[0]) {
-                document.getElementById('set-qris-file-name').innerText = e.target.files[0].name;
-                resizeImageBase64(e.target.files[0], (b64) => {
-                    document.getElementById('set-qris-preview').src = b64;
-                    document.getElementById('set-qris-preview').style.display = 'block';
-                    document.getElementById('set-qris-base64').value = b64;
-                }, 1000, 1000); 
-            }
-        });
-
-        let tempBanners = [];
-        window.renderAdminBannersList = function() { tempBanners = siteSettings.banners ? [...siteSettings.banners] : []; drawTempBanners(); }
-        
-        function drawTempBanners() {
-            const list = document.getElementById('admin-banner-list'); 
-            if(!list) return;
-            list.innerHTML = '';
-            for(let i=0; i<5; i++) {
-                if(tempBanners[i]) {
-                    list.innerHTML += `
-                    <div style="position:relative; aspect-ratio: 1; border-radius:12px; overflow:hidden; border:1px solid #1e293b;">
-                        <img src="${tempBanners[i]}" style="width:100%; height:100%; object-fit:cover;">
-                        <button onclick="window.removeTempBanner(${i})" style="position:absolute; top:6px; right:6px; background:rgba(239,68,68,0.9); color:white; border:none; border-radius:6px; width:28px; height:28px; font-size:12px; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
-                    </div>`;
-                } else {
-                    list.innerHTML += `
-                    <div onclick="document.getElementById('banner-upload').click()" style="aspect-ratio: 1; border-radius:12px; border: 1px dashed #334155; display:flex; justify-content:center; align-items:center; cursor:pointer; color: #3b82f6; font-size: 1.5rem; transition: 0.2s; background: transparent;">
-                        <i class="fa-solid fa-plus"></i>
-                    </div>`;
-                }
-            }
-        }
-        
-        window.removeTempBanner = function(idx) { tempBanners.splice(idx, 1); drawTempBanners(); };
-        
-        document.getElementById('banner-upload').addEventListener('change', function(e) {
-            if (e.target.files[0]) {
-                if(tempBanners.length >= 5) { window.customAlert('Penuh', 'Maksimal 5 Banner.', 'warning'); return; }
-                resizeImageBase64(e.target.files[0], (b64) => { tempBanners.push(b64); drawTempBanners(); e.target.value = ''; }, 3240, 1440);
-            }
-        });
-
-        window.saveSettings = async function() {
-            if(!currentUser) return;
-            const newSettings = {
-                logoText: document.getElementById('set-logo-text').value,
-                logoAccent: document.getElementById('set-logo-accent').value,
-                logoImgBase64: document.getElementById('set-logo-base64').value,
-                marquee: document.getElementById('set-marquee').value,
-                qrisImageBase64: document.getElementById('set-qris-base64').value,
-                adminWa: document.getElementById('set-wa').value,
-                igLink: document.getElementById('set-ig').value,
-                ttLink: document.getElementById('set-tt').value,
-                banners: tempBanners
-            };
-            await updateDoc(doc(db, pathSettings, 'mainConfig'), newSettings);
-            window.customAlert('Sukses', 'Pengaturan Web Disimpan.', 'success');
         };
 
         window.onload = initApp;
