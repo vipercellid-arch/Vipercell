@@ -46,14 +46,20 @@ let groupedBrands = [];
 let orders = [];
 let promos = [];
 let stocks = [];
+let allUsers = []; 
+
 let siteSettings = { 
     logoText: 'VIPER', logoAccent: 'CELL', logoImgBase64: '', marquee: 'Selamat Datang di Vipercell',
     qrisImageBase64: '', adminWa: '085656321860', igLink: '', ttLink: '',
     newsList: [], banners: [], isStoreOpen: true, waChannelLink: '',
-    popupBase64: '', isPopupActive: false,
-    botQrisActive: false
+    popupBase64: '', isPopupActive: false, botQrisActive: false,
+    membership: { 
+        silver: { price: 20000, disc: 2 }, 
+        gold: { price: 50000, disc: 5 }, 
+        diamond: { price: 100000, disc: 10 } 
+    }
 };
-let userProfile = { name: '', phone: '' };
+let userProfile = { name: '', phone: '', tier: 'bronze', tierExp: 0 };
 let isAdminLoggedIn = false;
 let currentUser = null;
 let currentCheckoutBrand = null;
@@ -65,7 +71,7 @@ let allLiveChats = [];
 let userChatMessages = [];
 let chatUnsubscribe = null;
 let adminChatUnsubscribe = null;
-let initialChatLoad = true;
+let adminUsersUnsubscribe = null;
 let initialOrderLoad = true;
 let popupShownSession = false;
 let isSettingsLoaded = false; 
@@ -96,8 +102,10 @@ window.customAlert = (title, message, type = 'info') => {
     const iconEl = document.getElementById('ca-icon');
     const extraEl = document.getElementById('ca-extra-action');
     const alertEl = document.getElementById('custom-alert');
+
     if(titleEl) titleEl.innerHTML = title;
     if(descEl) descEl.innerHTML = message;
+
     if(iconEl) {
         iconEl.className = `msg-icon ${type}`;
         if(type === 'success') iconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
@@ -110,6 +118,7 @@ window.customAlert = (title, message, type = 'info') => {
     if(alertEl) alertEl.classList.add('active');
     document.body.classList.add('no-scroll');
 }
+
 window.closeAlert = () => {
     const alertEl = document.getElementById('custom-alert');
     const extraEl = document.getElementById('ca-extra-action');
@@ -180,7 +189,7 @@ async function initApp() {
             if (user) {
                 if (user.isAnonymous) {
                     const savedAnonName = localStorage.getItem('vipercell_anon_name') || '';
-                    userProfile = { name: savedAnonName, phone: '' };
+                    userProfile = { name: savedAnonName, phone: '', tier: 'bronze', tierExp: 0 };
                     
                     document.getElementById('btn-login-user').style.display = 'inline-flex';
                     document.getElementById('nav-profil').style.display = 'none';
@@ -190,18 +199,20 @@ async function initApp() {
                     document.getElementById('btn-login-user').style.display = 'none';
                     const userDoc = await getDoc(doc(db, pathUsers, user.uid));
                     if(userDoc.exists()) {
-                        userProfile = userDoc.data();
+                        userProfile = { ...userProfile, ...userDoc.data() };
                         document.getElementById('prof-name').value = userProfile.name || '';
                         document.getElementById('prof-phone').value = userProfile.phone || '';
                     } else {
-                        userProfile = { name: '', phone: '' };
+                        userProfile = { name: '', phone: '', tier: 'bronze', tierExp: 0 };
                     }
                     
                     document.getElementById('prof-email').value = user.email || '';
                     document.getElementById('nav-profil').style.display = 'flex';
                     document.getElementById('nav-pesanan').style.display = 'flex';
                     document.getElementById('btn-cek-pesanan').style.display = 'none';
+                    
                     window.renderUserOrders(); 
+                    window.renderMembershipUI();
                     updateProfileStats();
                 }
                 
@@ -235,18 +246,17 @@ async function initApp() {
 }
 
 // ==========================================
-// PENGIRIMAN AKUN OTOMATIS (AUTO-DELIVERY) MATANG
+// PENGIRIMAN AKUN OTOMATIS (AUTO-DELIVERY)
 // ==========================================
 window.attemptClientAutoDelivery = async function(orderData) {
     if (orderData.items[0].type !== 'app' || orderData.items[0].processType === 'manual') return false;
-    
+
     try {
         const targetBrand = orderData.items[0].brandName;
         const exactItemName = orderData.items[0].exactItemName;
-        
-        // Pengecekan real-time yang lebih stabil untuk menghindari race conditions
-        const stockQuery = query(collection(db, pathStocks), where("brand", "==", targetBrand), where("itemName", "==", exactItemName), where("status", "==", "Ready"));
-        const stockSnap = await getDocs(stockQuery);
+
+        const stockQ = query(collection(db, pathStocks), where("brand", "==", targetBrand), where("itemName", "==", exactItemName), where("status", "==", "Ready"));
+        const stockSnap = await getDocs(stockQ);
         
         if (!stockSnap.empty) {
             const readyStock = stockSnap.docs[0];
@@ -257,14 +267,13 @@ window.attemptClientAutoDelivery = async function(orderData) {
             const notes = parts[2] || '-';
             
             const autoReply = `Detail Akun Premium Kamu:\nEmail/NoHP: ${em}\nPassword: ${pw}\nDetail Tambahan: ${notes}\n\nTerima kasih telah berbelanja!`;
-            
+
             await updateDoc(doc(db, pathStocks, readyStock.id), { status: 'Used', usedAt: Date.now(), orderId: orderData.id });
             await updateDoc(doc(db, pathOrders, orderData.dbId), { adminReply: autoReply, status: 'SUCCESS' });
             return true;
         }
         return false;
-    } catch (e) {
-        console.error("Auto Delivery Error:", e);
+    } catch(e) {
         return false;
     }
 }
@@ -276,10 +285,13 @@ let isListening = false;
 function listenData() {
     if(isListening) return;
     isListening = true;
-    
+
     onSnapshot(doc(db, pathSettings, 'mainConfig'), (docSnap) => {
         if (docSnap.exists()) {
             siteSettings = { ...siteSettings, ...docSnap.data() };
+            if(!siteSettings.membership) {
+                siteSettings.membership = { silver: { price: 20000, disc: 2 }, gold: { price: 50000, disc: 5 }, diamond: { price: 100000, disc: 10 } };
+            }
         } else {
             setDoc(doc(db, pathSettings, 'mainConfig'), siteSettings).catch(()=>{});
         }
@@ -287,6 +299,7 @@ function listenData() {
         
         window.applySettingsToUI();
         if(isAdminLoggedIn) window.populateAdminSettings();
+        if(currentUser && !currentUser.isAnonymous) window.renderMembershipUI();
     });
 
     onSnapshot(collection(db, pathProducts), (snapshot) => {
@@ -311,10 +324,11 @@ function listenData() {
                 });
             }
         });
-        
+
         let activeTabBtn = document.querySelector('.tab-btn.active');
         let curFilter = activeTabBtn ? (activeTabBtn.innerText.includes('Aplikasi') ? 'app' : activeTabBtn.innerText.includes('Game') ? 'game' : 'all') : 'all';
         window.renderBrands(curFilter);
+
         if(isAdminLoggedIn) {
             window.renderAdminProducts();
             window.renderAdminStocks();
@@ -350,13 +364,30 @@ function listenData() {
                 previousOrdersData[data.id] = data.status;
             }
 
-            // AUTO-DELIVERY LISTENER
+            // AUTO-DELIVERY LISTENER PENGIRIMAN AKUN
             if (data.status === 'SUCCESS' && !data.adminReply && data.items[0].type === 'app' && data.items[0].processType === 'auto') {
                 if ((currentUser && data.userEmail === currentUser.email) || isAdminLoggedIn) {
                     if (!window.processingOrders) window.processingOrders = {};
                     if (!window.processingOrders[data.id]) {
                         window.processingOrders[data.id] = true;
                         window.attemptClientAutoDelivery(data);
+                    }
+                }
+            }
+            
+            // AUTO-DELIVERY LISTENER MEMBERSHIP
+            if (data.status === 'SUCCESS' && data.items[0].type === 'membership' && !data.adminReply) {
+                if (currentUser && data.userEmail === currentUser.email && !window.processingOrders) {
+                    window.processingOrders = {};
+                    if (!window.processingOrders[data.id]) {
+                        window.processingOrders[data.id] = true;
+                        let newExp = userProfile.tierExp || Date.now();
+                        if(newExp < Date.now()) newExp = Date.now();
+                        newExp += (30 * 24 * 60 * 60 * 1000); 
+                        
+                        updateDoc(doc(db, pathUsers, currentUser.uid), { tier: data.items[0].exactItemName, tierExp: newExp }).then(()=>{
+                            updateDoc(doc(db, pathOrders, data.dbId), { adminReply: 'Membership 30 Hari berhasil diaktifkan. Selamat menikmati diskon otomatis Anda!'});
+                        });
                     }
                 }
             }
@@ -382,11 +413,25 @@ function listenData() {
         }
         
         updateOrderBadges();
+        
         if(currentUser && !currentUser.isAnonymous) {
             window.renderUserOrders();
+            window.renderMembershipUI();
             updateProfileStats();
         }
         initialOrderLoad = false;
+    });
+
+    // ADMIN USERS LISTENER
+    auth.onAuthStateChanged((user) => {
+        if (user && user.email === 'vipercell.id@gmail.com') {
+            if(adminUsersUnsubscribe) adminUsersUnsubscribe();
+            adminUsersUnsubscribe = onSnapshot(collection(db, pathUsers), (snapshot) => {
+                allUsers = [];
+                snapshot.forEach(docSnap => allUsers.push({uid: docSnap.id, ...docSnap.data()}));
+                window.renderAdminMembers();
+            });
+        }
     });
 }
 
@@ -395,7 +440,6 @@ function updateOrderBadges() {
         const hasPending = orders.some(o => o.status === 'PENDING' || o.status === 'UNPAID');
         const adminBadge = document.getElementById('admin-badge');
         if(adminBadge) adminBadge.style.display = hasPending ? 'block' : 'none';
-        
         const adminOrderTabBadge = document.getElementById('admin-tab-order-badge');
         if(adminOrderTabBadge) adminOrderTabBadge.style.display = hasPending ? 'inline-block' : 'none';
     }
@@ -403,6 +447,170 @@ function updateOrderBadges() {
         const hasActionNeeded = orders.some(o => o.userEmail === currentUser.email && (o.status === 'UNPAID' || o.status === 'PENDING'));
         const uBadge = document.getElementById('user-order-badge');
         if(uBadge) uBadge.style.display = hasActionNeeded ? 'block' : 'none';
+    }
+}
+
+// ==========================================
+// FITUR MEMBERSHIP USER (NEW)
+// ==========================================
+window.renderMembershipUI = async function() {
+    if(!currentUser || currentUser.isAnonymous) return;
+    
+    let tier = userProfile.tier || 'bronze';
+    let exp = userProfile.tierExp || 0;
+
+    // Downgrade jika expired
+    if (tier !== 'bronze' && exp > 0 && Date.now() > exp) {
+        tier = 'bronze';
+        exp = 0;
+        await updateDoc(doc(db, pathUsers, currentUser.uid), { tier, tierExp: exp });
+        userProfile.tier = tier;
+        userProfile.tierExp = exp;
+    }
+
+    const badges = {
+        'bronze': { name: 'Bronze', label: 'MEMBER BRONZE (BASIC)', color: 'rgba(0,0,0,0.3)' },
+        'silver': { name: 'Silver', label: 'MEMBER SILVER', color: '#94a3b8' },
+        'gold': { name: 'Gold', label: 'MEMBER GOLD', color: '#f59e0b' },
+        'diamond': { name: 'Diamond', label: 'MEMBER DIAMOND', color: '#06b6d4' }
+    };
+
+    const tInfo = badges[tier] || badges['bronze'];
+
+    const badgeEl = document.getElementById('user-tier-badge');
+    const nameEl = document.getElementById('user-tier-name');
+    const expEl = document.getElementById('user-tier-validity');
+
+    if(badgeEl) { badgeEl.innerText = tInfo.label; badgeEl.style.background = tInfo.color; }
+    if(nameEl) nameEl.innerText = tInfo.name;
+    
+    if(tier === 'bronze') {
+        if(expEl) expEl.innerText = 'Selamanya';
+    } else {
+        if(expEl) expEl.innerText = new Date(exp).toLocaleDateString('id-ID');
+    }
+
+    let totalSaved = 0;
+    orders.forEach(o => {
+        if(o.userEmail === currentUser.email && o.status === 'SUCCESS' && o.memberDiscountApplied) {
+            totalSaved += o.memberDiscountApplied;
+        }
+    });
+    
+    const savedEl = document.getElementById('user-tier-saved');
+    if(savedEl) savedEl.innerText = `Rp${totalSaved.toLocaleString('id-ID')}`;
+}
+
+let selectedUpgradeTier = null;
+let selectedUpgradePrice = 0;
+window.openUpgradeModal = function() {
+    const grid = document.getElementById('membership-pricing-grid');
+    if(!grid) return;
+
+    const memSettings = siteSettings.membership || { silver: {price:20000, disc:2}, gold: {price:50000, disc:5}, diamond: {price:100000, disc:10} };
+
+    grid.innerHTML = `
+        <div class="feature-card" style="border:1px solid #94a3b8; cursor:pointer; background:var(--bg);" onclick="window.selectMembershipTier('silver', ${memSettings.silver.price})">
+            <i class="fa-solid fa-medal" style="color:#94a3b8; font-size:2rem; margin-bottom:10px;"></i>
+            <h3 style="color:#94a3b8;">Silver</h3>
+            <p style="font-size:0.8rem; margin-bottom:5px;">Diskon ${memSettings.silver.disc}% / Transaksi</p>
+            <strong style="color:var(--text); font-size:1.1rem;">Rp${memSettings.silver.price.toLocaleString('id-ID')}/bln</strong>
+        </div>
+        <div class="feature-card" style="border:1px solid var(--warning); cursor:pointer; background:var(--bg);" onclick="window.selectMembershipTier('gold', ${memSettings.gold.price})">
+            <i class="fa-solid fa-crown" style="color:var(--warning); font-size:2rem; margin-bottom:10px;"></i>
+            <h3 style="color:var(--warning);">Gold</h3>
+            <p style="font-size:0.8rem; margin-bottom:5px;">Diskon ${memSettings.gold.disc}% / Transaksi</p>
+            <strong style="color:var(--text); font-size:1.1rem;">Rp${memSettings.gold.price.toLocaleString('id-ID')}/bln</strong>
+        </div>
+        <div class="feature-card" style="border:1px solid #06b6d4; cursor:pointer; background:var(--bg);" onclick="window.selectMembershipTier('diamond', ${memSettings.diamond.price})">
+            <i class="fa-regular fa-gem" style="color:#06b6d4; font-size:2rem; margin-bottom:10px;"></i>
+            <h3 style="color:#06b6d4;">Diamond</h3>
+            <p style="font-size:0.8rem; margin-bottom:5px;">Diskon ${memSettings.diamond.disc}% / Transaksi</p>
+            <strong style="color:var(--text); font-size:1.1rem;">Rp${memSettings.diamond.price.toLocaleString('id-ID')}/bln</strong>
+        </div>
+    `;
+    document.getElementById('membership-checkout-section').style.display = 'none';
+    selectedUpgradeTier = null;
+    window.openModal('modal-upgrade-member');
+}
+
+window.selectMembershipTier = function(tier, price) {
+    selectedUpgradeTier = tier;
+    selectedUpgradePrice = price;
+    
+    document.getElementById('membership-checkout-section').style.display = 'block';
+    document.getElementById('membership-checkout-desc').innerHTML = `Perpanjang / Upgrade Paket <b>${tier.toUpperCase()}</b> (Aktif 30 Hari).`;
+    
+    const defaultPayCard = document.querySelector('input[name="member_payment"][value="qris"]');
+    if(defaultPayCard) window.selectMembershipPayment('qris', defaultPayCard.parentElement);
+}
+
+window.selectMembershipPayment = function(val, el) {
+    document.querySelectorAll('input[name="member_payment"]').forEach(input => {
+        input.parentElement.classList.remove('active');
+    });
+    el.classList.add('active');
+    el.querySelector('input').checked = true;
+    
+    let finalPrice = selectedUpgradePrice;
+    if(val === 'qris') finalPrice += Math.floor(Math.random() * 300) + 1;
+    
+    document.getElementById('membership-checkout-total').innerText = `Rp${finalPrice.toLocaleString('id-ID')}`;
+    document.getElementById('membership-checkout-total').dataset.final = finalPrice;
+}
+
+window.processMembershipCheckout = async function() {
+    if(!selectedUpgradeTier) return;
+    
+    const paymentMethod = document.querySelector('input[name="member_payment"]:checked').value;
+    const finalTotal = parseInt(document.getElementById('membership-checkout-total').dataset.final);
+    const baseTotal = selectedUpgradePrice;
+    const uniqueCode = finalTotal - baseTotal;
+    
+    const invId = 'VP-MEM-' + Math.floor(100000 + Math.random() * 900000);
+    
+    const singleItem = { 
+        cartId: Date.now().toString(), 
+        productDbId: 'membership',
+        brandName: 'Membership',
+        exactItemName: selectedUpgradeTier,
+        name: `Upgrade Membership - ${selectedUpgradeTier.toUpperCase()} (30 Hari)`, 
+        priceNum: baseTotal, 
+        type: 'membership', 
+        processType: 'manual',
+        playerInfo: `Email: ${currentUser.email}`
+    };
+
+    const newOrder = {
+        id: invId,
+        userEmail: currentUser.email,
+        items: [singleItem],
+        customerWa: userProfile.phone || '-',
+        finalTotal: finalTotal,
+        baseTotal: baseTotal,
+        uniqueCode: uniqueCode,
+        promoCode: '',
+        promoDiscount: 0,
+        memberDiscountApplied: 0,
+        status: paymentMethod === 'cash' ? 'PENDING' : 'UNPAID',
+        paymentMethod: paymentMethod,
+        adminReply: '',
+        date: new Date().toISOString()
+    };
+
+    try {
+        const docRef = await addDoc(collection(db, pathOrders), newOrder);
+        currentCheckoutSession = { dbId: docRef.id, id: invId, finalTotal: finalTotal, method: paymentMethod };
+        
+        window.closeModal('modal-upgrade-member');
+        
+        if(paymentMethod === 'qris') {
+            window.openQRISModal();
+        } else {
+            window.finishCashOrder();
+        }
+    } catch(e) {
+        window.customAlert('Error', 'Gagal membuat pesanan', 'error');
     }
 }
 
@@ -489,6 +697,7 @@ window.renderUserChatMessages = function() {
         body.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin-top:30px;"> Belum ada obrolan. Tuliskan pertanyaan Anda untuk terhubung dengan Admin.</p>';
         return;
     }
+
     userChatMessages.forEach(msg => {
         const isUser = msg.sender === 'user';
         body.innerHTML += `
@@ -551,15 +760,16 @@ window.renderAdminChatList = function() {
     const list = document.getElementById('admin-chat-list');
     if(!list) return;
     list.innerHTML = '';
+
     if(allLiveChats.length === 0) {
         list.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 2rem;">Tidak ada pesan aktif.</p>';
         document.getElementById('admin-chat-empty').style.display = 'flex';
         document.getElementById('admin-chat-active').style.display = 'none';
         return;
     }
-    
+
     const activeId = document.getElementById('admin-active-chat-id-desk')?.value;
-    
+
     allLiveChats.forEach(chat => {
         const msgs = chat.messages || [];
         const lastMsg = msgs.length > 0 ? msgs[msgs.length-1] : null;
@@ -584,7 +794,6 @@ window.openAdminChatDetailDesk = function(chatId) {
     
     document.getElementById('admin-chat-empty').style.display = 'none';
     document.getElementById('admin-chat-active').style.display = 'flex';
-    
     document.getElementById('admin-active-chat-id-desk').value = chatId;
     document.getElementById('admin-chat-title-desk').innerText = chat.userInfo || 'User';
     
@@ -602,7 +811,7 @@ window.openAdminChatDetailDesk = function(chatId) {
     });
     
     setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
-    
+
     document.querySelectorAll('.admin-chat-card').forEach(el => el.classList.remove('active'));
     const activeCard = document.getElementById(`chat-card-${chatId}`);
     if(activeCard) activeCard.classList.add('active');
@@ -630,6 +839,7 @@ window.sendAdminChatDesk = async function() {
 window.resolveChatDesktop = async function() {
     const chatId = document.getElementById('admin-active-chat-id-desk').value;
     if(!chatId) return;
+
     window.openConfirm('Selesai', 'Hapus permanen sesi chat ini dari sistem?', async (confirmed) => {
         if(confirmed) {
             await deleteDoc(doc(db, pathChats, chatId));
@@ -647,10 +857,11 @@ window.resolveChatDesktop = async function() {
 window.toggleFaq = function(element) { element.classList.toggle('expanded'); };
 window.toggleNewsAccordion = function(element) { element.parentElement.classList.toggle('open'); };
 
+// FULLSCREEN AUTH MODIFICATION
 window.openAuthModal = function() {
     window.switchAuthTab('login');
-    window.openModal('modal-auth');
-}
+    window.switchMainTab('auth');
+};
 
 window.switchAuthTab = function(tab) {
     document.getElementById('form-login').style.display = tab==='login' ? 'block' : 'none';
@@ -658,17 +869,25 @@ window.switchAuthTab = function(tab) {
     document.getElementById('form-reset').style.display = tab==='reset' ? 'block' : 'none';
     
     document.getElementById('auth-divider').style.display = tab==='reset' ? 'none' : 'flex';
-    document.getElementById('auth-google-btn').style.display = tab==='reset' ? 'none' : 'inline-flex';
+    document.getElementById('auth-google-btn').style.display = tab==='reset' ? 'none' : 'flex';
     
-    document.getElementById('tab-login').style.color = tab==='login' ? 'var(--primary-light)' : 'var(--text-muted)';
-    document.getElementById('tab-login').style.borderBottomColor = tab==='login' ? 'var(--primary-light)' : 'transparent';
-    document.getElementById('tab-register').style.color = tab==='register' ? 'var(--primary-light)' : 'var(--text-muted)';
-    document.getElementById('tab-register').style.borderBottomColor = tab==='register' ? 'var(--primary-light)' : 'transparent';
+    // Toggle active class
+    const btnL = document.getElementById('tab-login');
+    const btnR = document.getElementById('tab-register');
+    if(btnL) btnL.className = tab==='login' ? 'active' : '';
+    if(btnR) btnR.className = tab==='register' ? 'active' : '';
     
-    if(tab==='reset') document.getElementById('auth-title').innerText = 'Lupa Password';
-    else document.getElementById('auth-title').innerText = tab==='login' ? 'Masuk Akun' : 'Daftar Baru';
-}
-
+    // Update texts dynamically
+    const title = document.getElementById('auth-title');
+    const subtitle = document.getElementById('auth-subtitle');
+    if(tab==='reset') {
+        title.innerText = 'Lupa Sandi';
+        subtitle.innerText = 'Tenang, mari kita pulihkan akunmu.';
+    } else {
+        title.innerText = tab==='login' ? 'Masuk Akun' : 'Daftar Baru';
+        subtitle.innerText = tab==='login' ? 'Masuk untuk transaksi & menikmati harga member.' : 'Buat akun sekarang, nikmati transaksi otomatis yang cepat.';
+    }
+};
 window.showResetPassword = () => window.switchAuthTab('reset');
 
 window.switchMainTab = function(tab) {
@@ -696,10 +915,10 @@ window.processLogin = async function() {
     
     const btn = document.getElementById('btn-do-login');
     btn.innerText = 'Memproses...'; btn.disabled = true;
-    
+
     try {
         await signInWithEmailAndPassword(auth, em, pw);
-        window.closeModal('modal-auth');
+        window.switchMainTab('katalog'); // Modification from closeModal
         if(em === 'vipercell.id@gmail.com') window.customAlert('Sukses', 'Selamat datang Admin Vipercell.', 'success');
         else window.customAlert('Sukses', 'Berhasil masuk.', 'success');
     } catch(e) { 
@@ -716,15 +935,14 @@ window.processRegister = async function() {
     
     const btn = document.getElementById('btn-do-register');
     btn.innerText = 'Memproses...'; btn.disabled = true;
-    
+
     try {
         const cred = await createUserWithEmailAndPassword(auth, em, pw);
         await setDoc(doc(db, pathUsers, cred.user.uid), { 
-            email: em, name: '', phone: '', createdAt: new Date().toISOString()
+            email: em, name: '', phone: '', tier: 'bronze', tierExp: 0, createdAt: new Date().toISOString()
         });
-        window.closeModal('modal-auth');
+        window.switchMainTab('profil'); // Modification from closeModal
         window.customAlert('Sukses', 'Akun berhasil didaftarkan.', 'success');
-        window.switchMainTab('profil');
     } catch(e) { 
         window.customAlert('Gagal', 'Email mungkin sudah terdaftar.', 'error'); 
     } finally {
@@ -751,7 +969,7 @@ window.processReset = async function() {
     if(!em) { window.customAlert('Error', 'Masukkan email terdaftar.', 'error'); return; }
     
     if(!checkResetCooldown()) return;
-    
+
     try {
         await sendPasswordResetEmail(auth, em);
         localStorage.setItem('vipercell_last_reset', Date.now());
@@ -776,18 +994,18 @@ window.googleLogin = async function() {
         const result = await signInWithPopup(auth, provider);
         
         if (result.user.email === 'vipercell.id@gmail.com') {
-            window.closeModal('modal-auth'); window.customAlert('Sukses', 'Selamat datang Admin.', 'success'); return;
+            window.switchMainTab('katalog'); // Modification from closeModal
+            window.customAlert('Sukses', 'Selamat datang Admin.', 'success'); return;
         }
-        
+
         const userDoc = await getDoc(doc(db, pathUsers, result.user.uid));
         if (!userDoc.exists()) {
             await signOut(auth);
             window.customAlert('Akses Ditolak', 'Kamu belum mendaftar. Silakan ke menu <b>Daftar Baru</b> di web ini terlebih dahulu sebelum bisa login menggunakan Google.', 'error');
             return;
         }
-        window.closeModal('modal-auth');
+        window.switchMainTab('pesanan'); // Modification from closeModal
         window.customAlert('Sukses', 'Berhasil masuk via Google.', 'success');
-        window.switchMainTab('pesanan');
     } catch (error) {}
 }
 
@@ -896,6 +1114,7 @@ window.renderBanners = function() {
     const dotsContainer = document.getElementById('banner-dots');
     
     if(!container || !track || !dotsContainer) return;
+
     track.innerHTML = ''; dotsContainer.innerHTML = '';
     
     const banners = siteSettings.banners || [];
@@ -911,6 +1130,7 @@ window.renderBanners = function() {
         track.innerHTML += `<img src="${b64}" class="banner-slide" alt="Promo" loading="lazy">`;
         dotsContainer.innerHTML += `<div class="banner-dot ${idx===0?'active':''}" onclick="window.goToBanner(${idx})"></div>`;
     });
+
     window.startBannerAuto();
 }
 
@@ -1020,6 +1240,7 @@ window.selectPaymentUI = function(val, el) {
 window.openDirectBuyModal = function(brandName) {
     const brandObj = groupedBrands.find(b => b.brandName === brandName);
     if(!brandObj) return;
+
     currentCheckoutBrand = brandObj;
     selectedProductForBuy = null;
     appliedPromo = null;
@@ -1040,14 +1261,36 @@ window.openDirectBuyModal = function(brandName) {
     const itemGrid = document.getElementById('buy-item-grid');
     itemGrid.innerHTML = '';
     
+    // Tentukan Tier dan Diskon untuk Display
+    const tier = (currentUser && !currentUser.isAnonymous && userProfile.tier) ? userProfile.tier : 'bronze';
+    let discPercent = 0;
+    if (tier !== 'bronze' && (userProfile.tierExp > Date.now() || userProfile.tierExp === 0)) {
+        const memSettings = siteSettings.membership || { silver: {disc:2}, gold: {disc:5}, diamond: {disc:10} };
+        discPercent = memSettings[tier] ? memSettings[tier].disc : 0;
+    }
+
     const sortedItems = [...brandObj.items].sort((a, b) => (a.priceNum||0) - (b.priceNum||0));
     
     sortedItems.forEach(item => {
-        const fmtPrice = 'Rp' + (item.priceNum || 0).toLocaleString('id-ID');
+        const normalPrice = item.priceNum || 0;
         const isSold = item.soldOut;
-        
-        let priceHtml = `<div class="price-wrapper"><span class="price-normal">${fmtPrice}</span></div>`;
         let badgeHtml = item.processType === 'manual' ? `<span class="discount-badge" style="background:var(--warning);">Manual</span>` : '';
+        let priceHtml = '';
+
+        // TAMPILAN MATANG UNTUK HARGA MEMBERSHIP
+        if (discPercent > 0 && !isSold) {
+            const discountAmt = Math.round(normalPrice * (discPercent / 100));
+            const finalPrice = normalPrice - discountAmt;
+            
+            priceHtml = `
+                <div class="price-wrapper" style="flex-direction: column; gap: 0;">
+                    <span style="font-size: 0.75rem; text-decoration: line-through; color: var(--text-muted);">Rp${normalPrice.toLocaleString('id-ID')}</span>
+                    <span class="price-normal" style="font-size: 1rem; color: var(--success);">Rp${finalPrice.toLocaleString('id-ID')}</span>
+                    <span style="font-size: 0.65rem; color: var(--warning); background: rgba(245, 158, 11, 0.1); padding: 2px 6px; border-radius: 4px; margin-top: 4px; font-weight:bold;">Harga ${tier.toUpperCase()}</span>
+                </div>`;
+        } else {
+            priceHtml = `<div class="price-wrapper"><span class="price-normal">Rp${normalPrice.toLocaleString('id-ID')}</span></div>`;
+        }
 
         itemGrid.innerHTML += `
             <div class="item-card ${isSold ? 'sold-out' : ''}" id="buy-card-${item.dbId}" onclick="${isSold ? '' : `window.selectItemToBuy('${item.dbId}')`}">
@@ -1060,7 +1303,9 @@ window.openDirectBuyModal = function(brandName) {
 
     const fields = document.getElementById('buy-detail-fields');
     let inpType = brandObj.items[0]?.inputType || 'id_zone';
-    let extraDesc = brandObj.desc ? `<p style="font-size:0.8rem; color:var(--primary-light); background:rgba(37,99,235,0.1); padding:8px; border-radius:8px; margin-bottom:10px;"><i class="fa-solid fa-circle-info"></i> ${brandObj.desc}</p>` : '';
+    
+    let fmtDesc = brandObj.desc ? brandObj.desc.replace(/\n/g, '<br>') : '';
+    let extraDesc = fmtDesc ? `<p style="font-size:0.8rem; color:var(--primary-light); background:rgba(37,99,235,0.1); padding:8px; border-radius:8px; margin-bottom:10px;"><i class="fa-solid fa-circle-info"></i> ${fmtDesc}</p>` : '';
     
     if(brandObj.type === 'game') {
         if(inpType === 'id_only') {
@@ -1122,7 +1367,6 @@ window.selectItemToBuy = function(dbId) {
     window.calculateDirectBuyTotal();
 }
 
-// FITUR PROMO DIPERBAIKI (CEK TARGET BRAND)
 window.applyPromoDirect = function() {
     const codeInput = document.getElementById('buy-promo-code').value.trim().toUpperCase();
     const msgEl = document.getElementById('buy-promo-msg');
@@ -1132,7 +1376,7 @@ window.applyPromoDirect = function() {
         window.calculateDirectBuyTotal();
         return;
     }
-    
+
     const p = promos.find(x => x.code === codeInput);
     if(!p || !p.active) {
         appliedPromo = null;
@@ -1142,12 +1386,27 @@ window.applyPromoDirect = function() {
         msgEl.innerHTML = `<span style="color:var(--danger)">Kode promo telah melampaui batas kuota.</span>`;
     } else if (p.targetBrand !== 'all' && p.targetBrand !== currentCheckoutBrand.brandName) {
         appliedPromo = null;
-        msgEl.innerHTML = `<span style="color:var(--danger)">Promo ini khusus untuk produk ${p.targetBrand}.</span>`;
+        msgEl.innerHTML = `<span style="color:var(--danger)">Promo khusus untuk produk ${p.targetBrand}.</span>`;
+    } else if (p.targetUser === 'reseller' && (!userProfile.tier || userProfile.tier === 'bronze')) {
+        appliedPromo = null;
+        msgEl.innerHTML = `<span style="color:var(--danger)">Promo khusus untuk Member Premium (Silver/Gold/Diamond).</span>`;
+    } else if (p.targetUser === 'new') {
+        const hasOrders = orders.some(o => o.userEmail === currentUser.email);
+        if (hasOrders) {
+            appliedPromo = null;
+            msgEl.innerHTML = `<span style="color:var(--danger)">Promo khusus untuk Transaksi Pertama.</span>`;
+        } else {
+            setValidPromo(p, msgEl);
+        }
     } else {
-        appliedPromo = { dbId: p.dbId, code: p.code, amount: p.amount, type: p.type || 'nominal' };
-        msgEl.innerHTML = `<span style="color:var(--success)"><i class="fa-solid fa-check"></i> Promo berhasil dipakai!</span>`;
+        setValidPromo(p, msgEl);
     }
     window.calculateDirectBuyTotal();
+}
+
+function setValidPromo(p, msgEl) {
+    appliedPromo = { dbId: p.dbId, code: p.code, amount: p.amount, type: p.type || 'nominal' };
+    msgEl.innerHTML = `<span style="color:var(--success)"><i class="fa-solid fa-check"></i> Promo berhasil dipakai!</span>`;
 }
 
 window.calculateDirectBuyTotal = function() {
@@ -1159,10 +1418,27 @@ window.calculateDirectBuyTotal = function() {
         btnProc.disabled = true;
         return;
     }
-    
+
     let baseTotal = selectedProductForBuy.priceNum;
-    let disc = 0;
+    let memberAppliedAmount = 0;
     
+    // Potongan Membership Tier
+    const tier = userProfile.tier || 'bronze';
+    if (tier !== 'bronze' && (userProfile.tierExp > Date.now() || userProfile.tierExp === 0)) {
+        const memSettings = siteSettings.membership || { silver: {disc:2}, gold: {disc:5}, diamond: {disc:10} };
+        const discPercent = memSettings[tier] ? memSettings[tier].disc : 0;
+        
+        if(discPercent > 0) {
+            memberAppliedAmount = Math.round(baseTotal * (discPercent / 100));
+            baseTotal -= memberAppliedAmount;
+            
+            if(document.getElementById('buy-promo-code').value === '') {
+                document.getElementById('buy-promo-msg').innerHTML = `<span style="color:var(--primary-light)"><i class="fa-solid fa-crown"></i> Diskon ${tier.toUpperCase()} Diterapkan</span>`;
+            }
+        }
+    }
+
+    let disc = 0;
     if(appliedPromo) {
         if(appliedPromo.type === 'percent') {
             disc = Math.round(baseTotal * (appliedPromo.amount / 100));
@@ -1171,7 +1447,7 @@ window.calculateDirectBuyTotal = function() {
         }
         if(disc > baseTotal) disc = baseTotal;
         baseTotal -= disc;
-    } else if (document.getElementById('buy-promo-code').value === '') {
+    } else if (document.getElementById('buy-promo-code').value === '' && tier === 'bronze') {
         document.getElementById('buy-promo-msg').innerHTML = '';
     }
 
@@ -1213,20 +1489,32 @@ window.processDirectCheckout = async function() {
     }
 
     let rawTotal = selectedProductForBuy.priceNum;
-    let discountApplied = 0;
+    let memberAppliedAmount = 0;
+    
+    const tier = userProfile.tier || 'bronze';
+    if (tier !== 'bronze' && (userProfile.tierExp > Date.now() || userProfile.tierExp === 0)) {
+        const memSettings = siteSettings.membership || { silver: {disc:2}, gold: {disc:5}, diamond: {disc:10} };
+        const discPercent = memSettings[tier] ? memSettings[tier].disc : 0;
+        if(discPercent > 0) {
+            memberAppliedAmount = Math.round(rawTotal * (discPercent / 100));
+            rawTotal -= memberAppliedAmount;
+        }
+    }
+
+    let discountPromo = 0;
     let promoUsedCode = '';
     
     if(appliedPromo) {
         if(appliedPromo.type === 'percent') {
-            discountApplied = Math.round(rawTotal * (appliedPromo.amount / 100));
+            discountPromo = Math.round(rawTotal * (appliedPromo.amount / 100));
         } else {
-            discountApplied = appliedPromo.amount;
+            discountPromo = appliedPromo.amount;
         }
-        if(discountApplied > rawTotal) discountApplied = rawTotal;
+        if(discountPromo > rawTotal) discountPromo = rawTotal;
         promoUsedCode = appliedPromo.code;
     }
     
-    let baseTotal = rawTotal - discountApplied;
+    let baseTotal = rawTotal - discountPromo;
     if(baseTotal < 0) baseTotal = 0;
 
     const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
@@ -1260,7 +1548,8 @@ window.processDirectCheckout = async function() {
         baseTotal: baseTotal,
         uniqueCode: uniqueCode,
         promoCode: promoUsedCode,
-        promoDiscount: discountApplied,
+        promoDiscount: discountPromo,
+        memberDiscountApplied: memberAppliedAmount,
         status: paymentMethod === 'cash' ? 'PENDING' : 'UNPAID',
         paymentMethod: paymentMethod,
         adminReply: '',
@@ -1295,17 +1584,23 @@ window.finishCashOrder = function() {
     const waText = `Halo Admin Vipercell, saya melakukan pesanan dengan metode CASH/Manual.\n\n*Invoice ID:* ${currentCheckoutSession.id}\n*Total Bayar:* Rp${currentCheckoutSession.finalTotal.toLocaleString('id-ID')}\n\nMohon dicek ya Min.`;
     const waUrl = `https://wa.me/${adminWaNum}?text=${encodeURIComponent(waText)}`;
     
-    const successMsg = `Pesanan Anda berhasil dibuat dengan metode Cash/Manual. ID Anda: <strong>${currentCheckoutSession.id}</strong>.<br><br>Sistem mengalihkan Anda ke WhatsApp Admin.`;
+    // Kata-kata instruksi matang
+    const successMsg = `ID Pesanan Anda: <strong style="color:var(--primary-light)">${currentCheckoutSession.id}</strong><br><br><span style="color:var(--warning); font-weight:bold;">PENTING:</span> Segera hubungi admin untuk melakukan pembayaran atau konfirmasi transfer. Pesanan/Akun akan langsung diproses dan masuk setelah pembayaran berhasil divalidasi.`;
     
-    document.getElementById('ca-extra-action').innerHTML = `<a href="${waUrl}" target="_blank" class="btn btn-primary" style="display:inline-block; width:100%; margin-top:10px;"><i class="fa-brands fa-whatsapp"></i> Buka WA Manual</a>`;
-    window.customAlert('Sukses', successMsg, 'success');
+    // Tombol WA diletakkan di dalam alert
+    document.getElementById('ca-extra-action').innerHTML = `
+        <a href="${waUrl}" target="_blank" class="btn btn-primary" style="display:flex; justify-content:center; width:100%; margin-top:15px; font-weight:bold; padding: 12px; font-size:1rem; box-shadow: 0 5px 15px rgba(37,99,235,0.4);">
+            <i class="fa-brands fa-whatsapp" style="font-size:1.2rem; margin-right:8px;"></i> Hubungi Admin Sekarang
+        </a>`;
+        
+    window.customAlert('Menunggu Pembayaran', successMsg, 'info');
     
-    setTimeout(() => {
-        window.open(waUrl, '_blank');
-        currentCheckoutSession = null;
-        if(!currentUser.isAnonymous) window.switchMainTab('pesanan');
-    }, 1500);
-}
+    // Hilangkan auto-redirect setTimeout, reset sesi dan arahkan tab
+    currentCheckoutSession = null;
+    if(currentUser && !currentUser.isAnonymous) {
+        window.switchMainTab('pesanan');
+    }
+};
 
 window.openQRISModal = function() {
     const qrImgDisplay = document.getElementById('qris-image-display');
@@ -1346,6 +1641,7 @@ window.copyNominal = function() {
 window.resumePayment = function(dbId) {
     const order = orders.find(o => o.dbId === dbId);
     if(!order) return;
+
     currentCheckoutSession = { dbId: order.dbId, id: order.id, finalTotal: order.finalTotal, method: order.paymentMethod };
     
     if(order.paymentMethod === 'cash') {
@@ -1386,6 +1682,7 @@ window.goToPesananFromPay = function() {
 // ==========================================
 function generateHelpButtons(invId, orderStatus, item) {
     if(orderStatus !== 'SUCCESS') return '';
+
     let adminWaNum = siteSettings.adminWa || '085656321860';
     if (adminWaNum.startsWith('0')) adminWaNum = '62' + adminWaNum.substring(1);
     
@@ -1414,7 +1711,7 @@ function generateHelpButtons(invId, orderStatus, item) {
 }
 
 // ==========================================
-// FITUR REFRESH PESANAN (PERBAIKAN BUG)
+// FITUR REFRESH PESANAN
 // ==========================================
 window.refreshOrderData = function() {
     if(currentUser && !currentUser.isAnonymous) {
@@ -1432,11 +1729,9 @@ window.refreshOrderData = function() {
         setTimeout(() => { btnRefresh.innerHTML = ogText; }, 1000);
     }
 }
-
-// Tombol refresh tidak lagi membuka popup
-window.forceRefreshOrder = function() {
-    window.refreshOrderData();
-    window.customAlert('Diperbarui', 'Data pesanan berhasil disinkronkan.', 'info');
+window.forceRefreshOrder = function(invId) {
+    document.getElementById('track-id').value = invId;
+    window.trackOrder();
 }
 
 // ==========================================
@@ -1445,6 +1740,7 @@ window.forceRefreshOrder = function() {
 window.trackOrder = function() {
     const invId = document.getElementById('track-id').value.trim().toUpperCase();
     if(!invId) return;
+
     const order = orders.find(o => o.id === invId);
     const resBox = document.getElementById('track-result');
     
@@ -1508,7 +1804,7 @@ window.trackOrder = function() {
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
                 <span class="status-badge ${sBadge}">${sName}</span>
-                <button class="btn btn-outline" style="padding:4px 8px; border-radius:50%; font-size:0.8rem;" onclick="event.stopPropagation(); window.forceRefreshOrder();" title="Refresh Data"><i class="fa-solid fa-rotate-right"></i></button>
+                <button class="btn btn-outline" style="padding:4px 8px; border-radius:50%; font-size:0.8rem;" onclick="window.forceRefreshOrder('${order.id}')" title="Refresh"><i class="fa-solid fa-rotate-right"></i></button>
             </div>
         </div>
         <div class="receipt-body">
@@ -1526,8 +1822,13 @@ window.trackOrder = function() {
         <div class="receipt-footer">
             <div class="receipt-row">
                 <span style="color:var(--text-muted);">Harga Normal</span>
-                <span>Rp${(order.baseTotal + order.promoDiscount).toLocaleString('id-ID')}</span>
+                <span>Rp${(order.baseTotal + order.promoDiscount + (order.memberDiscountApplied || 0)).toLocaleString('id-ID')}</span>
             </div>
+            ${order.memberDiscountApplied > 0 ? `
+            <div class="receipt-row">
+                <span style="color:var(--primary-light);"><i class="fa-solid fa-tags"></i> Potongan Member</span>
+                <span style="color:var(--primary-light);">-Rp${order.memberDiscountApplied.toLocaleString('id-ID')}</span>
+            </div>` : ''}
             ${order.promoDiscount > 0 ? `
             <div class="receipt-row">
                 <span style="color:var(--success);">Promo (${order.promoCode})</span>
@@ -1553,6 +1854,7 @@ window.renderUserOrders = function() {
     grid.innerHTML = '';
     
     if(!currentUser || currentUser.isAnonymous) return;
+
     const userOrders = orders.filter(o => o.userEmail === currentUser.email);
     
     if(userOrders.length === 0) {
@@ -1604,7 +1906,7 @@ window.renderUserOrders = function() {
                     </div>
                     <div style="display:flex; align-items:center; gap:10px;">
                         <span class="status-badge ${sBadge}">${sName}</span>
-                        <button class="btn btn-outline" style="padding:4px 8px; border-radius:50%; font-size:0.8rem;" onclick="event.stopPropagation(); window.forceRefreshOrder();" title="Refresh"><i class="fa-solid fa-rotate-right"></i></button>
+                        <button class="btn btn-outline" style="padding:4px 8px; border-radius:50%; font-size:0.8rem;" onclick="window.refreshOrderData()" title="Refresh"><i class="fa-solid fa-rotate-right"></i></button>
                     </div>
                 </div>
                 <div class="receipt-body">
@@ -1622,8 +1924,13 @@ window.renderUserOrders = function() {
                 <div class="receipt-footer">
                     <div class="receipt-row">
                         <span style="color:var(--text-muted);">Harga Normal</span>
-                        <span>Rp${(o.baseTotal + o.promoDiscount).toLocaleString('id-ID')}</span>
+                        <span>Rp${(o.baseTotal + o.promoDiscount + (o.memberDiscountApplied || 0)).toLocaleString('id-ID')}</span>
                     </div>
+                    ${o.memberDiscountApplied > 0 ? `
+                    <div class="receipt-row">
+                        <span style="color:var(--primary-light);"><i class="fa-solid fa-tags"></i> Potongan Member</span>
+                        <span style="color:var(--primary-light);">-Rp${o.memberDiscountApplied.toLocaleString('id-ID')}</span>
+                    </div>` : ''}
                     ${o.promoDiscount > 0 ? `
                     <div class="receipt-row">
                         <span style="color:var(--success);">Promo (${o.promoCode})</span>
@@ -1639,7 +1946,6 @@ window.renderUserOrders = function() {
                     </div>
                     ${actionHtml}
                     ${helpHtml}
-                    <button class="btn btn-outline" style="width:100%; margin-top:10px; border-color:var(--primary-light); color:var(--primary-light);" onclick="document.getElementById('track-id').value='${o.id}'; window.trackOrder(); window.openModal('modal-cek-pesanan');"><i class="fa-solid fa-magnifying-glass"></i> Lacak / Detail Akun</button>
                 </div>
             </div>`;
     });
@@ -1663,6 +1969,7 @@ window.toggleAdminDashboard = (show) => {
         window.renderAdminPromos();
         window.renderAdminChatList();
         window.renderAdminStocks();
+        window.renderAdminMembers();
         window.generateAdminReports();
     }
     if(!show) { observeReveals(); window.scrollTo({ top: 0, behavior: 'instant' }); } 
@@ -1701,7 +2008,7 @@ window.renderAdminStocks = function() {
     appBrands.forEach(b => {
         sel.innerHTML += `<option value="${b.brandName}">${b.brandName}</option>`;
     });
-    sel.value = curVal;
+    sel.value = curVal; 
         
     tb.innerHTML = '';
     if(stocks.length === 0) {
@@ -1738,6 +2045,7 @@ window.addStockMassal = async function() {
         window.customAlert('Error', 'Pilih produk, varian item, dan masukkan data secara lengkap.', 'error');
         return;
     }
+
     const lines = rawData.split('\n').filter(l => l.trim() !== '');
     let count = 0;
     for(const line of lines) {
@@ -1774,6 +2082,7 @@ window.renderAdminOrders = function() {
     const searchInput = document.getElementById('admin-search-order');
     let queryText = '';
     if(searchInput) queryText = searchInput.value.trim().toUpperCase();
+
     let filteredOrders = orders;
     if (queryText !== '') {
         filteredOrders = orders.filter(o => o.id.includes(queryText));
@@ -1787,13 +2096,17 @@ window.renderAdminOrders = function() {
     filteredOrders.forEach(o => {
         const sBadge = o.status === 'UNPAID' ? `<span class="status-badge status-unpaid">UNPAID</span>` : o.status === 'PENDING' ? `<span class="status-badge status-pending">PENDING / ANTREAN</span>` : o.status === 'FAILED' ? `<span class="status-badge status-failed">FAILED</span>` : `<span class="status-badge status-success">SUCCESS</span>`;
         let itemsDesc = o.items.map(i => `${i.name} <br><span style="color:var(--text-muted);font-size:0.75rem">${i.playerInfo}</span>`).join('<br>');
-        let promoDesc = o.promoCode ? `<br><small style="color:var(--success);">Promo: ${o.promoCode} (-Rp${o.promoDiscount})</small>` : '';
+        
+        let promoDesc = '';
+        if (o.memberDiscountApplied) promoDesc += `<br><small style="color:var(--primary-light);">Potongan Member (-Rp${o.memberDiscountApplied})</small>`;
+        if (o.promoCode) promoDesc += `<br><small style="color:var(--success);">Promo: ${o.promoCode} (-Rp${o.promoDiscount})</small>`;
+        
         let paymentMethodStr = o.paymentMethod === 'cash' ? 'Cash/Manual' : 'QRIS';
         
         let actionBtn = '';
         if(o.status === 'PENDING' || o.status === 'UNPAID' || (o.status === 'SUCCESS' && !o.adminReply)) {
             let autoBtn = '';
-            if (o.items[0]?.processType !== 'manual') {
+            if (o.items[0]?.processType !== 'manual' && o.items[0]?.type !== 'membership') {
                 autoBtn = `<button aria-label="ACC Auto" class="btn btn-success" style="padding:0.4rem 0.8rem; font-size:0.75rem; margin-right:4px;" onclick="window.adminAutoProcessOrder('${o.dbId}')" title="Terima & Kirim Otomatis"><i class="fa-solid fa-check"></i> ACC Auto</button>`;
             }
             actionBtn = `
@@ -1817,11 +2130,10 @@ window.renderAdminOrders = function() {
     });
 }
 
-// PROSES OTOMATIS ADMIN MATANG
 window.adminAutoProcessOrder = async function(dbId) {
     const order = orders.find(o => o.dbId === dbId);
     if(!order) return;
-    
+
     window.openConfirm('ACC Otomatis', `Yakin verifikasi pembayaran dan langsung kirim stok otomatis (jika ada) untuk pesanan <b>${order.id}</b>?`, async (confirmed) => {
         if(!confirmed) return;
         
@@ -1831,8 +2143,8 @@ window.adminAutoProcessOrder = async function(dbId) {
                 const targetBrand = order.items[0].brandName;
                 const exactItemName = order.items[0].exactItemName;
                 
-                const stockQuery = query(collection(db, pathStocks), where("brand", "==", targetBrand), where("itemName", "==", exactItemName), where("status", "==", "Ready"));
-                const stockSnap = await getDocs(stockQuery);
+                const stockQ = query(collection(db, pathStocks), where("brand", "==", targetBrand), where("itemName", "==", exactItemName), where("status", "==", "Ready"));
+                const stockSnap = await getDocs(stockQ);
                 
                 if (!stockSnap.empty) {
                     const readyStock = stockSnap.docs[0];
@@ -1851,11 +2163,12 @@ window.adminAutoProcessOrder = async function(dbId) {
             } else {
                 reply = 'Pesanan Top Up Game Anda telah berhasil diproses dan dikirim ke ID tujuan secara otomatis. Terima kasih!';
             }
+
             await updateDoc(doc(db, pathOrders, dbId), { status: 'SUCCESS', adminReply: reply });
             window.customAlert('Berhasil', 'Pesanan telah diverifikasi dan dikirim otomatis ke pelanggan.', 'success');
         } catch (error) {
-            console.error("Proses Otomatis Error:", error);
-            window.customAlert('Error Koneksi', 'Terjadi masalah pada server. Proses otomatis gagal dieksekusi.', 'error');
+            console.error(error);
+            window.customAlert('Error', 'Terjadi masalah jaringan.', 'error');
         }
     });
 }
@@ -1866,7 +2179,12 @@ window.promptProcessOrder = function(dbId) {
     
     document.getElementById('proc-inv').innerText = order.id;
     document.getElementById('proc-order-id').value = dbId;
-    document.getElementById('proc-reply').value = '';
+    
+    let defaultReply = '';
+    if(order.items[0].type === 'membership') {
+        defaultReply = `Membership ${order.items[0].exactItemName.toUpperCase()} 30 Hari berhasil diaktifkan. Terima kasih!`;
+    }
+    document.getElementById('proc-reply').value = defaultReply;
     
     const list = document.getElementById('proc-items-list');
     list.innerHTML = '<strong>Detail Item:</strong><ul style="margin-left:20px; font-size:0.85rem; color:var(--text);">' + order.items.map(i => `<li>${i.name} (${i.processType || 'auto'})<br><small style="color:var(--text-muted);">${i.playerInfo}</small></li>`).join('') + '</ul>';
@@ -1882,7 +2200,7 @@ window.promptProcessOrder = function(dbId) {
         const appItem = order.items.find(i => i.type === 'app');
         const targetBrand = appItem.brandName || appItem.name.split(' - ')[0];
         const exactItemName = appItem.exactItemName || appItem.name;
-        
+
         const readyStocks = stocks.filter(s => s.brand === targetBrand && s.itemName === exactItemName && s.status === 'Ready');
         
         if(readyStocks.length === 0) {
@@ -1903,10 +2221,12 @@ window.promptProcessOrder = function(dbId) {
                 document.getElementById('proc-reply').value = `Detail Akun Premium Kamu:\nEmail/NoHP: ${parts[0] || '-'}\nPassword: ${parts[1] || '-'}\nDetail Tambahan: ${parts[2] || '-'}`;
             }
         };
+
         if (readyStocks.length > 0) {
             stockSel.value = readyStocks[0].dbId;
             stockSel.onchange(); 
         }
+
     } else {
         stockSec.style.display = 'none';
     }
@@ -1921,15 +2241,32 @@ window.markOrderComplete = async function(statusType) {
     
     const order = orders.find(o => o.dbId === dbId);
     
-    if(statusType === 'SUCCESS' && order.items.some(i => i.type === 'app')) {
-        const stockSel = document.getElementById('proc-stock-select');
-        if(stockSel && stockSel.value) {
-            const isExist = stocks.find(x => x.dbId === stockSel.value);
-            if(isExist) {
-                await updateDoc(doc(db, pathStocks, stockSel.value), { status: 'Used', usedAt: Date.now(), orderId: order.id });
+    if(statusType === 'SUCCESS') {
+        if(order.items.some(i => i.type === 'app')) {
+            const stockSel = document.getElementById('proc-stock-select');
+            if(stockSel && stockSel.value) {
+                const isExist = stocks.find(x => x.dbId === stockSel.value);
+                if(isExist) {
+                    await updateDoc(doc(db, pathStocks, stockSel.value), { status: 'Used', usedAt: Date.now(), orderId: order.id });
+                }
+            }
+        }
+        
+        // Logika Aktivasi Member via ACC Manual Admin
+        if(order.items[0].type === 'membership') {
+            const userQ = query(collection(db, pathUsers), where("email", "==", order.userEmail));
+            const userSnap = await getDocs(userQ);
+            if(!userSnap.empty) {
+                const uDoc = userSnap.docs[0];
+                const curData = uDoc.data();
+                let newExp = curData.tierExp || Date.now();
+                if(newExp < Date.now()) newExp = Date.now();
+                newExp += (30 * 24 * 60 * 60 * 1000);
+                await updateDoc(doc(db, pathUsers, uDoc.id), { tier: order.items[0].exactItemName, tierExp: newExp });
             }
         }
     }
+
     await updateDoc(doc(db, pathOrders, dbId), { status: statusType, adminReply: reply });
     window.closeModal('modal-process-order');
     
@@ -1955,10 +2292,10 @@ window.generateAdminReports = function() {
     let totalSales = successOrders.length;
     let totalDiscount = 0;
     let productCountMap = {};
-    
+
     successOrders.forEach(o => {
         totalRevenue += o.finalTotal;
-        totalDiscount += (o.promoDiscount || 0);
+        totalDiscount += (o.promoDiscount || 0) + (o.memberDiscountApplied || 0);
         
         o.items.forEach(item => {
             if (!productCountMap[item.name]) {
@@ -1968,15 +2305,15 @@ window.generateAdminReports = function() {
             productCountMap[item.name].revenue += item.priceNum;
         });
     });
-    
+
     document.getElementById('report-revenue').innerText = `Rp${totalRevenue.toLocaleString('id-ID')}`;
     document.getElementById('report-sales').innerText = totalSales;
     document.getElementById('report-discount').innerText = `Rp${totalDiscount.toLocaleString('id-ID')}`;
-    
+
     const sortedProducts = Object.entries(productCountMap).sort((a, b) => b[1].qty - a[1].qty).slice(0, 5);
     const topTbody = document.getElementById('report-top-products');
     topTbody.innerHTML = '';
-    
+
     if (sortedProducts.length === 0) {
         topTbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Belum ada penjualan.</td></tr>';
     } else {
@@ -1995,6 +2332,7 @@ window.renderAdminProducts = function() {
     const tbody = document.getElementById('admin-prod-list');
     if(!tbody) return;
     tbody.innerHTML = '';
+
     if(groupedBrands.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Katalog kosong</td></tr>`; return; }
     
     groupedBrands.forEach(b => {
@@ -2096,13 +2434,32 @@ window.openProductGroupModal = function(brandName = null) {
     window.openModal('modal-manage-product');
 }
 
+// --- LOGIKA EDIT ITEM TANPA HAPUS ---
 window.clearTempNominalInput = function() {
     document.getElementById('temp-nom-name').value = '';
     document.getElementById('temp-nom-price').value = '';
     document.getElementById('temp-nom-status').value = 'auto';
+    document.getElementById('temp-nom-index').value = '-1';
+    
+    document.getElementById('btn-add-item').innerHTML = '<i class="fa-solid fa-plus"></i> Tambah ke Daftar';
+    document.getElementById('btn-cancel-edit-item').style.display = 'none';
 }
 
-window.addTempNominal = function() {
+window.editTempNominal = function(idx) {
+    const item = currentGroupNominals[idx];
+    if(!item) return;
+
+    document.getElementById('temp-nom-name').value = item.name;
+    document.getElementById('temp-nom-price').value = item.priceNum;
+    document.getElementById('temp-nom-status').value = item.processType;
+    document.getElementById('temp-nom-index').value = idx;
+    
+    document.getElementById('btn-add-item').innerHTML = '<i class="fa-solid fa-check"></i> Update Item';
+    document.getElementById('btn-cancel-edit-item').style.display = 'block';
+}
+
+window.addOrUpdateTempNominal = function() {
+    const idx = parseInt(document.getElementById('temp-nom-index').value);
     const name = document.getElementById('temp-nom-name').value.trim();
     const priceNum = parseInt(document.getElementById('temp-nom-price').value) || 0;
     const processType = document.getElementById('temp-nom-status').value || 'auto';
@@ -2111,9 +2468,16 @@ window.addTempNominal = function() {
         window.customAlert('Error', 'Nama Item dan Harga Jual wajib diisi dan valid.', 'error');
         return;
     }
-    currentGroupNominals.push({ dbId: null, name, priceNum, processType, soldOut: false });
-    window.clearTempNominalInput();
     
+    if (idx >= 0) {
+        currentGroupNominals[idx].name = name;
+        currentGroupNominals[idx].priceNum = priceNum;
+        currentGroupNominals[idx].processType = processType;
+    } else {
+        currentGroupNominals.push({ dbId: null, name, priceNum, processType, soldOut: false });
+    }
+    
+    window.clearTempNominalInput();
     document.getElementById('manage-prod-soldout').checked = false; 
     window.renderTempNominals();
 }
@@ -2161,8 +2525,9 @@ window.renderTempNominals = function() {
                     <div style="font-size: 0.75rem; color: #94a3b8;">Rp${nom.priceNum.toLocaleString('id-ID')}</div>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
                 <input type="checkbox" style="width:18px; height:18px; cursor:pointer; accent-color: var(--danger);" title="Tandai Habis Individual" onchange="window.toggleIndividualSoldOut(${index}, this.checked)" ${isSold}>
+                <button aria-label="Edit Item" class="btn btn-outline" style="border: none; color: var(--primary-light); padding: 5px; font-size:1rem;" onclick="window.editTempNominal(${index})" title="Edit"><i class="fa-solid fa-pen"></i></button>
                 <button aria-label="Hapus Item" class="btn btn-outline" style="border: none; color: #ef4444; padding: 5px; font-size:1rem;" onclick="window.removeTempNominal(${index})" title="Hapus"><i class="fa-solid fa-trash"></i></button>
             </div>
         </div>`;
@@ -2206,6 +2571,7 @@ window.saveProductGroup = async function() {
             soldOut: nom.soldOut,
             inputType: type === 'game' ? inputType : null
         };
+
         if(nom.dbId) {
             await updateDoc(doc(db, pathProducts, nom.dbId), prodData);
         } else {
@@ -2232,24 +2598,30 @@ window.deleteProductGroup = function(brandName) {
     });
 }
 
-// --- PROMOS MANAGEMENT (DIPERBAIKI) ---
+// --- PROMOS MANAGEMENT ---
 window.renderAdminPromos = function() {
     const tbody = document.getElementById('admin-promo-list');
     if(!tbody) return;
     tbody.innerHTML = '';
     
     if(promos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Belum ada kode promo</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">Belum ada kode promo</td></tr>';
         return;
     }
+
     promos.forEach(p => {
         const typeStr = p.type === 'percent' ? `${p.amount}%` : `Rp${p.amount.toLocaleString('id-ID')}`;
         const targetStr = p.targetBrand === 'all' ? 'Semua Produk' : (p.targetBrand || 'Semua');
         
+        let userTgt = 'Semua';
+        if(p.targetUser === 'reseller') userTgt = 'Member Premium';
+        if(p.targetUser === 'new') userTgt = 'User Baru';
+
         tbody.innerHTML += `<tr>
             <td><strong>${p.code}</strong></td>
             <td><span class="status-badge status-success">${typeStr}</span></td>
             <td>${targetStr}</td>
+            <td><span style="color:var(--warning); font-size:0.8rem;">${userTgt}</span></td>
             <td>${p.usedCount || 0} / ${p.maxUses}</td>
             <td>${p.active ? '<span class="status-badge status-success">Aktif</span>' : '<span class="status-badge status-failed">Mati</span>'}</td>
             <td style="white-space:nowrap;">
@@ -2261,7 +2633,6 @@ window.renderAdminPromos = function() {
 }
 
 window.openPromoModal = function(dbId = null) {
-    // Populate dynamic target brand dropdown
     const targetSelect = document.getElementById('manage-promo-target');
     if (targetSelect) {
         targetSelect.innerHTML = '<option value="all">Semua Produk (Bebas)</option>';
@@ -2279,6 +2650,7 @@ window.openPromoModal = function(dbId = null) {
         document.getElementById('manage-promo-amount').value = p.amount;
         document.getElementById('manage-promo-max').value = p.maxUses;
         if(targetSelect) document.getElementById('manage-promo-target').value = p.targetBrand || 'all';
+        if(document.getElementById('manage-promo-user')) document.getElementById('manage-promo-user').value = p.targetUser || 'all';
         document.getElementById('manage-promo-active').checked = p.active;
     } else {
         document.getElementById('modal-promo-title').innerText = 'Buat Promo Baru';
@@ -2288,6 +2660,7 @@ window.openPromoModal = function(dbId = null) {
         document.getElementById('manage-promo-amount').value = '';
         document.getElementById('manage-promo-max').value = '';
         if(targetSelect) document.getElementById('manage-promo-target').value = 'all';
+        if(document.getElementById('manage-promo-user')) document.getElementById('manage-promo-user').value = 'all';
         document.getElementById('manage-promo-active').checked = true;
     }
     window.openModal('modal-manage-promo');
@@ -2301,7 +2674,8 @@ window.savePromo = async function() {
         code: document.getElementById('manage-promo-code').value.trim().toUpperCase(),
         type: document.getElementById('manage-promo-type').value,
         amount: parseInt(document.getElementById('manage-promo-amount').value) || 0,
-        targetBrand: document.getElementById('manage-promo-target').value,
+        targetBrand: document.getElementById('manage-promo-target') ? document.getElementById('manage-promo-target').value : 'all',
+        targetUser: document.getElementById('manage-promo-user') ? document.getElementById('manage-promo-user').value : 'all',
         maxUses: parseInt(document.getElementById('manage-promo-max').value) || 0,
         active: document.getElementById('manage-promo-active').checked,
         usedCount: 0 
@@ -2335,6 +2709,7 @@ window.saveSettingsManual = async function() {
     if(!isSettingsLoaded) return;
     
     const botQrisEl = document.getElementById('set-bot-qris');
+
     const newSettings = {
         ...siteSettings,
         logoText: document.getElementById('set-logo-text').value.trim(),
@@ -2349,10 +2724,30 @@ window.saveSettingsManual = async function() {
         isStoreOpen: document.getElementById('set-store-status') ? document.getElementById('set-store-status').checked : true,
         isPopupActive: document.getElementById('set-popup-active') ? document.getElementById('set-popup-active').checked : false,
         popupBase64: document.getElementById('set-popup-base64') ? document.getElementById('set-popup-base64').value : '',
-        
         botQrisActive: botQrisEl ? botQrisEl.checked : siteSettings.botQrisActive
     };
+
     await updateDoc(doc(db, pathSettings, 'mainConfig'), newSettings);
+}
+
+window.saveMemberSettings = async function() {
+    const memSettings = {
+        silver: {
+            price: parseInt(document.getElementById('set-silver-price').value) || 20000,
+            disc: parseFloat(document.getElementById('set-silver-disc').value) || 2
+        },
+        gold: {
+            price: parseInt(document.getElementById('set-gold-price').value) || 50000,
+            disc: parseFloat(document.getElementById('set-gold-disc').value) || 5
+        },
+        diamond: {
+            price: parseInt(document.getElementById('set-diamond-price').value) || 100000,
+            disc: parseFloat(document.getElementById('set-diamond-disc').value) || 10
+        }
+    };
+
+    await updateDoc(doc(db, pathSettings, 'mainConfig'), { membership: memSettings });
+    window.customAlert('Sukses', 'Pengaturan harga & diskon paket Member berhasil disimpan.', 'success');
 }
 
 window.populateAdminSettings = function() {
@@ -2367,6 +2762,7 @@ window.populateAdminSettings = function() {
     document.getElementById('set-qris-base64').value = siteSettings.qrisImageBase64 || '';
     
     if(document.getElementById('set-wa-channel')) document.getElementById('set-wa-channel').value = siteSettings.waChannelLink || '';
+
     const storeStatusEl = document.getElementById('set-store-status');
     if(storeStatusEl) storeStatusEl.checked = siteSettings.isStoreOpen !== false;
     
@@ -2376,17 +2772,36 @@ window.populateAdminSettings = function() {
 
     const botQrisEl = document.getElementById('set-bot-qris');
     if(botQrisEl) botQrisEl.checked = siteSettings.botQrisActive || false;
+    
+    const memSettings = siteSettings.membership || { silver: { price: 20000, disc: 2 }, gold: { price: 50000, disc: 5 }, diamond: { price: 100000, disc: 10 } };
+    
+    const svPrice = document.getElementById('set-silver-price');
+    if(svPrice) svPrice.value = memSettings.silver.price;
+    const svDisc = document.getElementById('set-silver-disc');
+    if(svDisc) svDisc.value = memSettings.silver.disc;
+
+    const glPrice = document.getElementById('set-gold-price');
+    if(glPrice) glPrice.value = memSettings.gold.price;
+    const glDisc = document.getElementById('set-gold-disc');
+    if(glDisc) glDisc.value = memSettings.gold.disc;
+
+    const dmPrice = document.getElementById('set-diamond-price');
+    if(dmPrice) dmPrice.value = memSettings.diamond.price;
+    const dmDisc = document.getElementById('set-diamond-disc');
+    if(dmDisc) dmDisc.value = memSettings.diamond.disc;
 
     if(siteSettings.logoImgBase64) {
         const p = document.getElementById('set-logo-preview');
         p.src = siteSettings.logoImgBase64; p.style.display = 'block';
         document.getElementById('set-logo-file-name').innerText = "Gambar Dimuat";
     }
+
     if(siteSettings.qrisImageBase64) {
         const p = document.getElementById('set-qris-preview');
         p.src = siteSettings.qrisImageBase64; p.style.display = 'block';
         document.getElementById('set-qris-file-name').innerText = "QRIS Dimuat";
     }
+
     if(siteSettings.popupBase64) {
         const p = document.getElementById('set-popup-preview');
         p.src = siteSettings.popupBase64; p.style.display = 'block';
@@ -2507,7 +2922,65 @@ window.deleteBanner = async function(idx) {
 }
 
 // ==========================================
-// NEWS / BERITA (FITUR DIPERBAIKI)
+// KELOLA DAFTAR MEMBER (ADMIN)
+// ==========================================
+window.renderAdminMembers = function() {
+    const tbody = document.getElementById('admin-member-list');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    if(allUsers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Belum ada member.</td></tr>';
+        return;
+    }
+
+    allUsers.forEach(u => {
+        const tier = u.tier || 'bronze';
+        const exp = u.tierExp || 0;
+        
+        let color = tier==='bronze'?'#94a3b8':tier==='silver'?'#cbd5e1':tier==='gold'?'#f59e0b':'#06b6d4';
+        const badge = `<span style="background:rgba(0,0,0,0.2); border:1px solid ${color}; color:${color}; padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; text-transform:uppercase;">${tier}</span>`;
+        
+        let expStr = tier === 'bronze' ? '-' : (exp > Date.now() ? new Date(exp).toLocaleDateString() : '<span style="color:var(--danger)">Expired</span>');
+        let trxCount = orders.filter(o => o.userEmail === u.email && o.status === 'SUCCESS').length;
+
+        const actBtn = `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem; border-color:var(--primary-light); color:var(--primary-light);" onclick="window.adminEditUserTier('${u.uid}', '${tier}')"><i class="fa-solid fa-pen"></i> Edit Tier</button>`;
+
+        tbody.innerHTML += `
+        <tr>
+            <td><strong>${u.name || 'User'}</strong><br><small style="color:var(--text-muted)">${u.email}</small></td>
+            <td>${badge}</td>
+            <td><small>${expStr}</small></td>
+            <td>${trxCount}</td>
+            <td style="white-space:nowrap;">${actBtn}</td>
+        </tr>`;
+    });
+}
+
+window.adminEditUserTier = function(uid, currentTier) {
+    let u = allUsers.find(x => x.uid === uid);
+    if(!u) return;
+    
+    window.openConfirm('Edit Tier Member', `Pilih status paket untuk <b>${u.email}</b>:<br><br>
+        <button class="btn btn-primary" style="width:100%; margin-bottom:8px; background:#94a3b8; color:black; border:none;" onclick="window.forceSetTier('${uid}', 'silver')">Set SILVER (Aktif 30 Hari)</button>
+        <button class="btn btn-primary" style="width:100%; margin-bottom:8px; background:var(--warning); color:black; border:none;" onclick="window.forceSetTier('${uid}', 'gold')">Set GOLD (Aktif 30 Hari)</button>
+        <button class="btn btn-primary" style="width:100%; margin-bottom:8px; background:#06b6d4; border:none;" onclick="window.forceSetTier('${uid}', 'diamond')">Set DIAMOND (Aktif 30 Hari)</button>
+        <button class="btn btn-outline" style="width:100%; color:var(--danger); border-color:var(--danger);" onclick="window.forceSetTier('${uid}', 'bronze')">Reset ke BRONZE (Basic)</button>
+    `, (res) => {});
+}
+
+window.forceSetTier = async function(uid, tier) {
+    let exp = 0;
+    if(tier !== 'bronze') {
+        exp = Date.now() + (30 * 24 * 60 * 60 * 1000); 
+    }
+    await updateDoc(doc(db, pathUsers, uid), { tier: tier, tierExp: exp });
+    window.closeModal('modal-confirm');
+    window.customAlert('Sukses', `Tier berhasil diubah menjadi ${tier.toUpperCase()}`, 'success');
+}
+
+// ==========================================
+// NEWS / BERITA 
 // ==========================================
 window.renderAdminNews = function() {
     const list = document.getElementById('admin-news-list');
@@ -2543,8 +3016,7 @@ window.openNewsModal = function(index = -1) {
         document.getElementById('manage-news-desc').value = '';
         document.getElementById('modal-news-title').innerText = "Tambah Berita / Info";
     }
-    
-    // Injeksi tombol upload dari HP jika belum ada
+
     const imgInput = document.getElementById('manage-news-image');
     if (imgInput && !document.getElementById('manage-news-file')) {
         imgInput.insertAdjacentHTML('afterend', `
@@ -2558,15 +3030,15 @@ window.openNewsModal = function(index = -1) {
     window.openModal('modal-manage-news');
 }
 
-// Fungsi Konverter Gambar HP ke Base64
 window.handleNewsUpload = function(event) {
     const file = event.target.files[0];
     if(!file) return;
+
     window.resizeImageBase64(file, (b64) => {
         document.getElementById('manage-news-image').value = b64;
         window.customAlert('Berhasil', 'Gambar berhasil dimuat dari perangkat HP Anda.', 'success');
     }, 800, 600);
-};
+}
 
 window.saveNews = async function() {
     const idx = parseInt(document.getElementById('manage-news-index').value);
