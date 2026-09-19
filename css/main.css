@@ -1,5 +1,7 @@
 /* ========================================================
-   VIPERCELL V16.2 - ULTIMATE FRONTEND CSS (USER)
+   VIPERCELL V18.7 - ULTIMATE FRONTEND CSS (USER)
+   * Updated: Fixed Marquee Edge-to-Edge, Smooth Success Overlay,
+   * Cleaned: Native Tabs, Smart Checkout, Chat WA Style Embed
    ======================================================== */
 
 /* ========================================================
@@ -81,6 +83,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     outline-offset: 2px;
 }
 
+/* KHUSUS: Sembunyikan Panah (Spinner) Bawaan Browser pada Input Number */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
 /* Custom Scrollbar Minimalis */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -116,9 +128,19 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     box-shadow: none !important;
 }
 
-/* Animasi Loading Spinner */
+/* Animasi Bawaan & Spinner */
 .fa-spinner { animation: spin 1s linear infinite; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes slideUp { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+@keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
+@keyframes bounceIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+/* Animasi Baru yang Halus untuk Icon Centang Sukses */
+@keyframes scaleInBounce { 
+    0% { transform: scale(0); opacity: 0; } 
+    70% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; } 
+}
 
 .btn-primary { background: var(--primary-gradient); color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2); }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4); }
@@ -135,17 +157,22 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
 .btn-outline:hover:not(:disabled) { background: var(--surface-hover); }
 
+.btn-sm { padding: 0.5rem 1rem; font-size: 0.8rem; min-height: 36px; }
+
 .btn-icon-only {
     padding: 0; width: 40px; height: 40px; border-radius: 50%; font-size: 1.1rem;
     background: var(--surface-hover); color: var(--text); border: 1px solid var(--border);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
 }
+.btn-icon-only:hover:not(:disabled) { background: var(--primary-light); color: white; border-color: var(--primary-light); }
 
 .notif-dot {
     position: absolute; width: 10px; height: 10px; background-color: var(--danger);
     border-radius: 50%; display: none; box-shadow: 0 0 5px rgba(239, 68, 68, 0.8);
 }
 
-.status-badge { padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; display: inline-block; white-space: nowrap;}
+.status-badge { padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;}
 .status-unpaid { background: rgba(148, 163, 184, 0.1); color: var(--text-muted); border: 1px solid rgba(148, 163, 184, 0.3);}
 .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2);}
 .status-success { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2);}
@@ -178,7 +205,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
    ======================================================== */
 header {
     position: sticky; top: 0; z-index: 1000;
-    background: rgba(var(--surface-rgb, 15, 23, 42), 0.85); /* Fallback */
+    background: rgba(var(--surface-rgb, 15, 23, 42), 0.85); 
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border); padding: 15px 0;
 }
@@ -208,7 +235,7 @@ header {
 
 .header-actions { display: flex; gap: 10px; align-items: center; }
 
-.main-tab-content { display: none; padding-top: 2rem; padding-bottom: 4rem; animation: fadeIn 0.3s ease; }
+.main-tab-content { display: none; padding-top: 2rem; padding-bottom: 4rem; animation: fadeIn 0.3s ease; min-height: calc(100vh - 200px); }
 .main-tab-content.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -224,13 +251,24 @@ header {
 .tw-cursor { display: inline-block; width: 3px; height: 1.2em; background: var(--primary-light); margin-left: 2px; animation: blink 1s step-end infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
+/* PERBAIKAN: Teks Berjalan Mulai dari Ujung Kanan */
 .marquee-container {
     background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.2);
-    border-radius: 12px; padding: 12px; margin: 1rem 0 2.5rem; overflow: hidden; white-space: nowrap; position: relative;
+    border-radius: 12px; padding: 12px; margin: 1rem 0 2.5rem; overflow: hidden; position: relative; width: 100%;
 }
-.marquee-content { display: inline-block; animation: marquee 20s linear infinite; }
+.marquee-wrapper {
+    display: flex; /* Flex membantu menghindari wrap yang tidak disengaja */
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+}
+.marquee-content { 
+    display: inline-block; 
+    padding-left: 100%; /* Memaksa teks mulai dari luar layar sebelah kanan */
+    animation: marquee 25s linear infinite; 
+}
 .marquee-text { font-size: 0.9rem; font-weight: 600; color: var(--primary-light); padding-right: 50px; }
-@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
 .banner-slider-container {
     width: 100%; border-radius: 16px; overflow: hidden; position: relative;
@@ -245,6 +283,7 @@ header {
 .section-header { margin-bottom: 2rem; text-align: left; }
 .section-header h2 { font-size: 1.6rem; font-weight: 800; color: var(--text); margin-bottom: 5px; }
 .section-header p { color: var(--text-muted); font-size: 0.9rem; }
+.section-header.text-center { text-align: center; }
 
 .tabs { display: flex; gap: 10px; margin-bottom: 2rem; overflow-x: auto; padding-bottom: 5px; }
 .tab-btn {
@@ -300,7 +339,7 @@ header {
    ======================================================== */
 .modal-overlay, .msg-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
     z-index: 99999; display: flex; justify-content: center; align-items: center;
     opacity: 0; visibility: hidden; pointer-events: none;
     transition: opacity 0.3s ease, visibility 0.3s ease; padding: 1rem;
@@ -314,9 +353,6 @@ header {
     box-shadow: 0 25px 50px rgba(0,0,0,0.5); position: relative;
 }
 .modal-overlay.active .modal-content, .msg-overlay.active .msg-box { transform: translateY(0) scale(1); }
-
-.modal-content.large { max-width: 800px; }
-.modal-content.wide { max-width: 650px; }
 
 .modal-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -345,7 +381,7 @@ header {
 /* ========================================================
    7. FORM, INPUT & ITEM GRID CHECKOUT
    ======================================================== */
-.form-group { margin-bottom: 1.2rem; text-align: left; }
+.form-group { margin-bottom: 1.2rem; text-align: left; width: 100%; }
 .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600; }
 .form-control {
     width: 100%; padding: 0.8rem 1.2rem; border-radius: 10px; border: 1px solid var(--border);
@@ -373,10 +409,6 @@ header {
     content: 'HABIS'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg);
     background: var(--danger); color: white; font-size: 0.7rem; font-weight: 900; padding: 2px 8px; border-radius: 4px; border: 1px solid white;
 }
-.discount-badge {
-    position: absolute; top: -8px; right: -8px; background: var(--success); color: white;
-    font-size: 0.65rem; font-weight: bold; padding: 2px 6px; border-radius: 6px; z-index: 2; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
 
 /* Metode Pembayaran / Tipe Pilihan */
 .type-grid { display: grid; gap: 10px; }
@@ -392,16 +424,25 @@ header {
 .type-card.active { border-color: var(--primary-light); background: rgba(37,99,235,0.08); }
 .type-card.active i { color: var(--primary-light); }
 
-.promo-box { display: flex; gap: 8px; }
+.promo-box { display: flex; gap: 8px; width: 100%; }
 .promo-box input { flex: 1; text-transform: uppercase; }
 .promo-msg { font-size: 0.8rem; margin-top: 5px; font-weight: 600; }
 
 .cart-total-box {
     display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;
-    padding-top: 1.5rem; border-top: 1px dashed var(--border);
+    padding-top: 1.5rem; border-top: 1px dashed var(--border); width: 100%;
 }
 .cart-total-box span { font-weight: bold; color: var(--text); font-size: 1.1rem; }
 .unique-code-info { font-size: 0.7rem; color: var(--warning); text-align: right; margin-top: 2px; }
+
+/* Bintang Ulasan Interaktif */
+.star-rating i {
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s;
+}
+.star-rating i:hover {
+    transform: scale(1.3);
+    color: var(--warning) !important;
+}
 
 /* ========================================================
    8. KARTU INVOICE / PESANAN
@@ -410,8 +451,7 @@ header {
     background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
     overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
-.receipt-anim { opacity: 0; transform: translateY(20px); animation: slideUp 0.5s ease forwards; }
-@keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+.receipt-anim { opacity: 0; transform: translateY(20px); animation: slideUpFade 0.5s ease forwards; }
 
 .receipt-header {
     background: var(--surface-hover); padding: 15px 20px; border-bottom: 1px solid var(--border);
@@ -421,18 +461,14 @@ header {
 .receipt-footer { padding: 20px; background: var(--bg); border-top: 1px dashed var(--border); }
 
 .receipt-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
-.auto-delivery-box { background: rgba(16, 185, 129, 0.08); border: 1px solid var(--success); border-radius: 8px; padding: 15px; margin-top: 15px; }
-.auto-delivery-title { font-weight: 800; color: var(--success); font-size: 0.9rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-.auto-delivery-data { font-family: monospace; font-size: 0.9rem; color: var(--text); background: var(--bg); padding: 10px; border-radius: 6px; border: 1px solid var(--border); white-space: pre-wrap; word-break: break-all; }
 
-/* Animasi Sukses Cek Pesanan */
-.payment-success-anim { text-align: center; margin-bottom: 2rem; animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.checkmark-circle {
-    width: 60px; height: 60px; border-radius: 50%; background: rgba(16, 185, 129, 0.1);
+/* Animasi Sukses Cek Pesanan Layar Penuh */
+.checkmark-circle-large {
+    width: 80px; height: 80px; border-radius: 50%; background: rgba(16, 185, 129, 0.1);
     color: var(--success); display: flex; justify-content: center; align-items: center;
-    font-size: 2rem; margin: 0 auto 10px; border: 2px solid var(--success);
+    font-size: 3.5rem; border: 4px solid var(--success);
+    animation: scaleInBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-@keyframes bounceIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
 /* ========================================================
    9. AUTHENTICATION & PROFIL
@@ -471,41 +507,15 @@ header {
 .tut-accordion-card.open .tut-accordion-body { max-height: 1000px; border-top: 1px solid var(--border); }
 
 /* ========================================================
-   10. LIVE CHAT USER (RESOLUSI OVERLAPPING BUG MOBILE)
+   10. CHAT BANTUAN (FULL TAB & WA STYLE)
    ======================================================== */
-.chat-fab {
-    position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
-    background: var(--primary-gradient); border-radius: 50%; color: white;
-    display: flex; justify-content: center; align-items: center; font-size: 1.8rem;
-    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.5); cursor: pointer; z-index: 9900;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.chat-fab:hover { transform: scale(1.1) rotate(10deg); }
-.chat-fab .notif-badge {
-    position: absolute; top: 0; right: 0; width: 15px; height: 15px;
-    background: var(--danger); border-radius: 50%; border: 2px solid var(--bg); display: none;
-}
-
-/* Memastikan Jendela Chat Aman di Layar Kecil */
-.chat-window {
-    position: fixed; bottom: 100px; right: 30px; width: 360px; height: 500px; max-height: 75vh;
-    background: var(--surface); border-radius: 16px; border: 1px solid var(--border);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.4); display: flex; flex-direction: column; z-index: 9999;
-    overflow: hidden; transform: translateY(20px) scale(0.95); opacity: 0; pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.chat-window.active { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
-
-.chat-header { background: var(--surface-hover); padding: 15px; font-weight: 700; color: var(--text); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-.chat-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+.chat-body { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
 .chat-footer { padding: 15px; background: var(--surface); border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
-.chat-footer input { flex: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none; }
-.chat-footer button { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; justify-content: center; align-items: center; }
 
-.chat-msg { max-width: 85%; padding: 10px 15px; border-radius: 16px; font-size: 0.9rem; line-height: 1.4; position: relative; word-wrap: break-word;}
+.chat-msg { max-width: 85%; padding: 10px 15px; border-radius: 16px; font-size: 0.95rem; line-height: 1.4; position: relative; word-wrap: break-word;}
 .chat-msg.admin { background: var(--surface-hover); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
 .chat-msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-.chat-time { font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 5px; text-align: right; opacity: 0.8; }
+.chat-time { font-size: 0.65rem; display: block; margin-top: 5px; text-align: right; opacity: 0.7; }
 
 /* ========================================================
    11. FOOTER & BOTTOM NAVIGATION (MOBILE)
@@ -569,14 +579,6 @@ header {
     
     .modal-content, .msg-box { padding: 1.2rem; }
     .footer-new { flex-direction: column; text-align: center; align-items: center; padding-bottom: 2rem; }
-    
-    /* Penyesuaian Chat agar tidak tertutup Keyboard & Bottom Nav */
-    .chat-fab { bottom: 85px; right: 20px; width: 55px; height: 55px; font-size: 1.5rem; }
-    .chat-window { 
-        bottom: 80px; right: 10px; width: calc(100% - 20px); 
-        height: 60vh; /* Menggunakan VH agar aman saat keyboard muncul */
-        z-index: 10001; 
-    }
 }
 
 @media (max-width: 480px) {
