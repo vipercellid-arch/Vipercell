@@ -1,649 +1,1212 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="dark">
+<html lang="id" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     
     <!-- SEO & Metadata -->
-    <meta name="description" content="Vipercell adalah platform penyedia layanan top up game dan akun aplikasi premium otomatis, cepat, murah, dan bergaransi.">
-    <meta name="keywords" content="top up game, aplikasi premium, netflix murah, spotify premium, diamond ml, qris otomatis">
+    <meta name="description" content="Vipercell adalah platform penyedia layanan top up game, aplikasi premium, dan tools digital otomatis, cepat, murah, dan bergaransi.">
+    <meta name="keywords" content="top up game, aplikasi premium, tools digital, netflix murah, diamond ml, qris otomatis">
     <meta name="author" content="Vipercell">
     
-    <!-- Optimisasi PWA / Mobile-Web-App -->
+    <!-- Optimisasi PWA & Rotasi Layar Penuh -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#020617" id="meta-theme-color">
-    <title>Vipercell - Premium App & Game Top Up</title>
+    <meta name="theme-color" content="#ffffff" id="meta-theme-color">
+    <title>Vipercell - Premium App, Game & Tools Store</title>
     
-    <!-- PWA Manifest & Dynamic Favicon -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" id="favicon" href="data:image/x-icon;base64,">
+    <!-- PWA Manifest & Dynamic Custom Icons -->
+    <link rel="manifest" href="manifest.json" id="pwa-manifest-link">
+    <link rel="icon" id="favicon" href="icon-192.png" onerror="this.href='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 512 512\'%3E%3Crect width=\'512\' height=\'512\' rx=\'110\' fill=\'%232563eb\'/%3E%3Cpath d=\'M298 96L144 288h112l-42 128 154-192H256l42-128z\' fill=\'%23ffffff\'/%3E%3C/svg%3E'">
+    <link rel="apple-touch-icon" id="apple-touch-icon" href="icon-192.png">
     
-    <!-- Preconnect untuk Performa Cepat -->
+    <!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
     
-    <!-- OPTIMASI PAGESPEED: Asynchronous FontAwesome -->
+    <!-- FontAwesome -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     
-    <!-- CSS Modular -->
+    <!-- CSS Utama V24.5 -->
     <link rel="stylesheet" href="css/main.css">
     
-    <!-- QR Code Generator & Html2Canvas (Untuk Unduh QR) -->
+    <!-- QR Code Generator, JsBarcode & Html2Canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
-        const savedTheme = localStorage.getItem('vipercell_theme') || 'dark';
+        // Setel tema awal (Default: Light / Putih Bersih)
+        const savedTheme = localStorage.getItem('vipercell_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        if(savedTheme === 'light') document.getElementById('meta-theme-color').setAttribute('content', '#ffffff');
+        document.getElementById('meta-theme-color').setAttribute('content', savedTheme === 'dark' ? '#090d16' : '#ffffff');
     </script>
 </head>
-<body>
-    <!-- OVERLAY ANIMASI PEMBAYARAN SUKSES (FULL SCREEN) -->
-    <div id="payment-success-overlay" class="modal-overlay" style="z-index: 9999999; background: var(--bg); display: none; flex-direction: column; justify-content: center; align-items: center;">
-        <div class="checkmark-circle-large" style="margin-bottom: 20px;">
-            <i class="fa-solid fa-check"></i>
+<body class="no-scroll auth-locked">
+    <!-- PRE-LOADER BULAT BERPUTAR SEDERHANA & BERSIH -->
+    <div id="app-preloader-overlay" class="preloader-overlay">
+        <div class="preloader-simple-box">
+            <div class="preloader-circle-spinner"></div>
+            <p id="preloader-status-text" class="preloader-simple-text">Sedang memuat data...</p>
         </div>
-        <h2 style="color: var(--success); font-weight: 900; font-size: 2rem; margin-bottom: 10px;">Pembayaran Berhasil!</h2>
-        <p style="color: var(--text-muted); font-size: 1rem; text-align: center; padding: 0 20px;">Pesanan kamu telah selesai diproses oleh sistem.</p>
+    </div>
+
+    <!-- OVERLAY ANIMASI PEMBAYARAN SUKSES -->
+    <div id="payment-success-overlay" class="modal-overlay" style="z-index: 9999999; display: none; flex-direction: column; justify-content: center; align-items: center; overflow: hidden;">
+        <div id="confetti-container" class="confetti-wrapper"></div>
+        <div class="brutal-success-card">
+            <div class="brutal-success-badge"><i class="fa-solid fa-bolt"></i> TRANSAKSI LUNAS</div>
+            <div class="checkmark-circle-large">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h2 class="brutal-success-title">Pembayaran Berhasil!</h2>
+            <p class="brutal-success-desc">Pesanan kamu telah diverifikasi dan langsung dikirim oleh sistem otomatis Vipercell.</p>
+            <div class="brutal-success-loader">
+                <i class="fa-solid fa-spinner fa-spin"></i> Membuka rincian struk pesanan...
+            </div>
+        </div>
     </div>
 
     <!-- CUSTOM PWA INSTALL PROMPT -->
-    <div id="pwa-install-prompt" style="display:none; position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:var(--surface); border:1px solid var(--primary-light); padding:12px 20px; border-radius:30px; z-index:9999; box-shadow:0 10px 25px rgba(0,0,0,0.5); align-items:center; gap:15px; width:90%; max-width:400px; animation: slideUp 0.5s ease forwards;">
-        <div style="background:var(--primary-gradient); width:40px; height:40px; border-radius:50%; display:flex; justify-content:center; align-items:center; color:white; font-size:1.2rem;">
-            <i class="fa-solid fa-download"></i>
+    <div id="pwa-install-prompt" class="pwa-brutal-prompt" style="display:none;">
+        <img id="pwa-prompt-logo" src="" alt="Icon" class="pwa-custom-img" style="display:none;">
+        <div id="pwa-prompt-fallback" class="pwa-icon-box">
+            <i class="fa-solid fa-bolt"></i>
         </div>
         <div style="flex-grow:1;">
-            <h4 style="margin:0; font-size:0.95rem; color:var(--text);">Instal Aplikasi Vipercell</h4>
-            <p style="margin:0; font-size:0.75rem; color:var(--text-muted);">Lebih cepat dan ringan!</p>
+            <h4 style="margin:0; font-size:0.9rem; font-weight:800; color:var(--text);">Pasang Aplikasi Vipercell</h4>
+            <p style="margin:0; font-size:0.74rem; color:var(--text-muted); font-weight:600;">Mendukung rotasi penuh, ringan & akses 1 klik!</p>
         </div>
-        <button id="btn-install-pwa" class="btn btn-primary" style="padding:6px 15px; font-size:0.8rem; border-radius:20px;">Instal</button>
-        <button id="btn-close-pwa" style="background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+        <button id="btn-install-pwa" class="btn btn-primary btn-sm">Instal</button>
+        <button id="btn-close-pwa" class="close-btn" style="width:30px; height:30px;"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
-    <!-- WADAH NOTIFIKASI TOAST MELAYANG -->
+    <!-- WADAH NOTIFIKASI TOAST (TENGAH ATAS + SWIPE TO DISMISS) -->
     <div id="toast-container" class="toast-container"></div>
 
     <div id="store-view">
         <header>
             <div class="container nav-container">
                 <div class="logo-area" onclick="window.handleLogoClick()" role="button" aria-label="Ke Beranda">
-                    <img id="site-logo-img" src="" alt="Logo Vipercell" class="logo-img" width="32" height="32">
+                    <img id="site-logo-img" src="" alt="Logo Vipercell" class="logo-img" width="38" height="38" style="display:none;">
                     <span id="site-logo-text" class="logo-text">VIPER<span>CELL</span></span>
                     <span id="store-status-badge" class="store-closed-badge">TUTUP</span>
                 </div>
                 
-                <!-- Navigasi Desktop -->
-                <div class="nav-right hide-mobile-nav">
+                <!-- Navigasi Desktop (Otomatis Tersembunyi Saat Belum Login / auth-locked) -->
+                <div class="nav-right hide-mobile-nav" id="desktop-nav-wrapper">
                     <nav aria-label="Navigasi Utama">
-                        <a onclick="window.switchMainTab('katalog')" id="nav-katalog" class="active" title="Katalog" role="button" tabindex="0">
-                            <i class="fa-solid fa-shop"></i> <span class="hide-mobile">Katalog</span>
+                        <a onclick="window.switchMainTab('katalog')" id="nav-katalog" class="active" role="button" tabindex="0">
+                            <i class="fa-solid fa-store"></i> <span>Katalog</span>
                         </a>
-                        <a onclick="window.switchMainTab('pesanan')" id="nav-pesanan" title="Pesanan & Lacak" role="button" tabindex="0">
-                            <i class="fa-solid fa-receipt"></i> <span class="hide-mobile" id="nav-text-pesanan-desk">Lacak</span>
-                            <span id="user-order-badge-desktop" class="notif-dot" style="top:5px; right:5px;"></span>
+                        <a onclick="window.switchMainTab('pesanan')" id="nav-pesanan" role="button" tabindex="0">
+                            <i class="fa-solid fa-receipt"></i> <span id="nav-text-pesanan-desk">Pesanan</span>
+                            <span id="user-order-badge-desktop" class="notif-dot" style="top:-3px; right:-3px;"></span>
                         </a>
-                        <a onclick="window.switchMainTab('berita')" id="nav-berita" title="Komunitas & Berita" role="button" tabindex="0">
-                            <i class="fa-solid fa-newspaper"></i> <span class="hide-mobile">Komunitas</span>
+                        <a onclick="window.switchMainTab('berita')" id="nav-berita" role="button" tabindex="0">
+                            <i class="fa-solid fa-newspaper"></i> <span>Berita & Promo</span>
                         </a>
-                        <a onclick="window.switchMainTab('bantuan')" id="nav-bantuan" title="Pusat Bantuan" role="button" tabindex="0">
-                            <i class="fa-solid fa-headset"></i> <span class="hide-mobile">Bantuan</span>
+                        <a onclick="window.switchMainTab('bantuan')" id="nav-bantuan" role="button" tabindex="0">
+                            <i class="fa-solid fa-headset"></i> <span>Bantuan CS</span>
+                            <span id="user-chat-badge-desktop" class="notif-dot" style="top:-3px; right:-3px;"></span>
                         </a>
-                        <a onclick="window.switchMainTab('profil')" id="nav-profil" style="display:none;" title="Profil Akun" role="button" tabindex="0">
-                            <i class="fa-solid fa-circle-user"></i> <span class="hide-mobile">Profil</span>
+                        <a onclick="window.switchMainTab('profil')" id="nav-profil" role="button" tabindex="0">
+                            <i class="fa-solid fa-circle-user"></i> <span id="nav-text-profil-desk">Profil Saya</span>
                         </a>
                     </nav>
                 </div>
+
                 <div class="header-actions">
-                    <button id="btn-theme-toggle" class="btn btn-icon-only" aria-label="Ganti Tema" onclick="window.toggleTheme()" title="Ganti Tema">
-                        <i class="fa-solid fa-moon" id="theme-icon"></i>
+                    <button id="btn-theme-toggle" class="btn-icon-only" aria-label="Ganti Tema" onclick="window.toggleTheme()" title="Mode Terang / Gelap">
+                        <i class="fa-solid fa-sun" id="theme-icon"></i>
                     </button>
-                    <button id="btn-login-user" class="btn btn-primary hide-mobile" aria-label="Login Akun" onclick="window.openAuthModal()" style="display:none;" title="Login">
-                        <i class="fa-solid fa-right-to-bracket"></i> <span>Login</span>
+                    <!-- Tombol Pintas Upgrade Member di Header (Hanya muncul saat login sebagai Anonim) -->
+                    <button id="btn-upgrade-guest-header" class="btn btn-warning btn-sm hide-mobile" onclick="window.openUpgradeMemberModal()" style="display:none;">
+                        <i class="fa-solid fa-user-shield"></i> <span>Jadi Member</span>
                     </button>
                 </div>
             </div>
         </header>
 
-        <!-- TAB: KATALOG -->
-        <div id="tab-katalog" class="main-tab-content active container" style="padding-top:0;">
-            <section class="hero reveal">
-                <h1 style="margin-bottom: 0.5rem; min-height: 2.5em; display: flex; flex-direction: column; justify-content: center;">
-                    <div class="tw-container">
-                        <span id="tw-text"></span><span class="tw-cursor"></span>
+        <!-- TAB 1: KATALOG -->
+        <div id="tab-katalog" class="main-tab-content container" style="padding-top:1.5rem;">
+            <section class="hero-split-box reveal">
+                <div class="hero-left-col">
+                    <div class="hero-badge"><i class="fa-solid fa-bolt"></i> OTOMATIS 24/7 &bull; DETIK ITU JUGA</div>
+                    <h1>
+                        <div class="tw-container">
+                            <span id="tw-text">Aplikasi Premium & Top Up Game</span><span class="tw-cursor"></span>
+                        </div>
+                        <div class="hero-main-title">PUSAT LAYANAN <span>DIGITAL TERLENGKAP</span></div>
+                    </h1>
+                    <p>Beli akun aplikasi premium, top up game favorit, hingga tools produktivitas kerja dengan pengiriman instan detik itu juga dan harga pelajar!</p>
+                    <div class="hero-cta-row hide-mobile">
+                        <button class="btn btn-primary" onclick="document.getElementById('catalog-search-input').focus()">
+                            <i class="fa-solid fa-magnifying-glass"></i> Cari Layanan
+                        </button>
+                        <button class="btn btn-outline" onclick="window.switchMainTab('pesanan')">
+                            <i class="fa-solid fa-receipt"></i> Cek Pesanan
+                        </button>
                     </div>
-                    <div style="line-height: 1.2;">Platform <br><span>Layanan Premium</span></div>
-                </h1>
-                <p>Penyedia akun premium dan top-up instan. Terhubung langsung dengan sistem untuk pengiriman detik itu juga.</p>
+                </div>
+                <div class="hero-right-col hide-mobile">
+                    <div class="hero-Showcase-card">
+                        <div class="showcase-stat-item">
+                            <div class="showcase-icon bg-accent-blue"><i class="fa-solid fa-bolt"></i></div>
+                            <div>
+                                <strong>Pengiriman Otomatis</strong>
+                                <span>Detik itu juga setelah pembayaran lunas</span>
+                            </div>
+                        </div>
+                        <div class="showcase-stat-item">
+                            <div class="showcase-icon bg-accent-amber"><i class="fa-solid fa-barcode"></i></div>
+                            <div>
+                                <strong>Metode QRIS & Barcode Kasir</strong>
+                                <span>Dukung scan QRIS semua bank & tunai kasir</span>
+                            </div>
+                        </div>
+                        <div class="showcase-stat-item">
+                            <div class="showcase-icon bg-accent-emerald"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div>
+                                <strong id="hero-live-catalog-count">100% Legal & Bergaransi</strong>
+                                <span>App Premium, Game & Tools Digital</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
             
+            <!-- MARQUEE PENGUMUMAN -->
             <div class="marquee-container reveal">
+                <div class="marquee-label"><i class="fa-solid fa-bullhorn"></i> INFO</div>
                 <div class="marquee-wrapper">
                     <div class="marquee-content" id="marquee-content">
-                        <span class="marquee-text" id="marquee-text-1">Memuat promo terbaru...</span>
-                        <span class="marquee-text" id="marquee-text-2">Memuat promo terbaru...</span>
+                        <span class="marquee-text" id="marquee-text-1">Selamat Datang di Vipercell!</span>
+                        <span class="marquee-text" id="marquee-text-2">Selamat Datang di Vipercell!</span>
                     </div>
                 </div>
             </div>
             
+            <!-- BANNER SLIDER -->
             <div class="banner-slider-container reveal" id="banner-container">
                 <div class="banner-track" id="banner-track"></div>
                 <div class="banner-dots" id="banner-dots"></div>
             </div>
             
-            <div class="section-header reveal">
-                <h2>Katalog Produk</h2>
-                <p>Pilih Game atau Aplikasi Premium yang kamu inginkan.</p>
+            <!-- TOOLBAR KATALOG: KATEGORI + LIVE SEARCH + SORTIR -->
+            <div class="catalog-control-panel reveal">
+                <div class="catalog-top-row">
+                    <div class="section-header" style="margin-bottom:0;">
+                        <h2><i class="fa-solid fa-layer-group text-primary"></i> Katalog Produk</h2>
+                        <p>Pilih kategori atau cari layanan digital yang kamu butuhkan.</p>
+                    </div>
+                    <div class="catalog-filter-controls">
+                        <div class="search-input-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="catalog-search-input" class="form-control" placeholder="Cari Netflix, MLBB, Canva, Tools..." oninput="window.handleCatalogSearch()">
+                            <button id="btn-clear-search" class="clear-search-btn" style="display:none;" onclick="window.clearCatalogSearch()">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <select id="catalog-sort-select" class="form-control sort-select" onchange="window.renderBrands()">
+                            <option value="popular">🔥 Terpopuler</option>
+                            <option value="price_asc">💰 Harga Termurah</option>
+                            <option value="name_asc">🔤 Nama (A - Z)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="tabs" style="margin-bottom:0; margin-top: 1.1rem;">
+                    <button aria-label="Filter Semua" class="tab-btn active" data-filter="all" onclick="window.filterBrands('all', this)">
+                        <i class="fa-solid fa-border-all"></i> Semua
+                    </button>
+                    <button aria-label="Filter Aplikasi" class="tab-btn" data-filter="app" onclick="window.filterBrands('app', this)">
+                        <i class="fa-solid fa-mobile-screen"></i> Aplikasi Premium
+                    </button>
+                    <button aria-label="Filter Game" class="tab-btn" data-filter="game" onclick="window.filterBrands('game', this)">
+                        <i class="fa-solid fa-gamepad"></i> Top Up Game
+                    </button>
+                    <button aria-label="Filter Tools" class="tab-btn" data-filter="tools" onclick="window.filterBrands('tools', this)">
+                        <i class="fa-solid fa-screwdriver-wrench"></i> Tools Digital
+                    </button>
+                </div>
             </div>
             
-            <div class="tabs reveal">
-                <button aria-label="Filter Semua" class="tab-btn active" onclick="window.filterBrands('all', this)">Semua</button>
-                <button aria-label="Filter Aplikasi" class="tab-btn" onclick="window.filterBrands('app', this)"><i class="fa-solid fa-mobile-screen"></i> Aplikasi Premium</button>
-                <button aria-label="Filter Game" class="tab-btn" onclick="window.filterBrands('game', this)"><i class="fa-solid fa-gamepad"></i> Top Up Game</button>
-            </div>
-            
+            <!-- GRID PRODUK -->
             <div class="grid" id="brand-grid">
-                <div style="text-align:center; grid-column: 1/-1; padding: 2rem; color:var(--text-muted);">Memuat katalog...</div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
             </div>
             
+            <!-- KEUNGGULAN KAMI -->
             <div class="info-section reveal" style="margin-top: 4rem;">
-                <div class="section-header">
-                    <h2>Kenapa Memilih Kami?</h2>
-                    <p>Keunggulan layanan yang membuat kami dipercaya oleh pelanggan.</p>
+                <div class="section-header text-center">
+                    <h2>Kenapa Belanja di Vipercell?</h2>
+                    <p>Pengalaman belanja produk digital paling praktis, cepat, dan aman.</p>
                 </div>
                 <div class="feature-grid">
                     <div class="feature-card">
-                        <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
-                        <h4>Proses Instan</h4>
-                        <p>Sistem memproses pesananmu hitungan detik setelah dibayar dan dikonfirmasi.</p>
+                        <div class="feature-icon bg-accent-amber"><i class="fa-solid fa-bolt"></i></div>
+                        <h4>Pengiriman Detik Itu Juga</h4>
+                        <p>Sistem gudang stok otomatis langsung mengirimkan detail akun atau link tools begitu pembayaran selesai.</p>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon"><i class="fa-solid fa-tags"></i></div>
-                        <h4>Harga Pelajar</h4>
-                        <p>Berkomitmen memberikan harga terbaik dan ramah kantong untuk semua orang.</p>
+                        <div class="feature-icon bg-accent-blue"><i class="fa-solid fa-barcode"></i></div>
+                        <h4>QRIS & Barcode Kasir</h4>
+                        <p>Bayar otomatis via QRIS semua bank, atau bayar tunai secara cepat menggunakan kode Barcode kasir.</p>
                     </div>
                     <div class="feature-card">
-                        <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                        <h4>Aman & Legal</h4>
-                        <p>Semua produk 100% legal, aman digunakan, dan bergaransi penuh.</p>
+                        <div class="feature-icon bg-accent-emerald"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h4>100% Legal & Bergaransi</h4>
+                        <p>Dilengkapi garansi penuh dan dukungan Live Chat Admin langsung di dalam web tanpa ribet.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB: PESANAN & LACAK -->
+        <!-- TAB 2: PESANAN & RIWAYAT INTERAKTIF -->
         <div id="tab-pesanan" class="main-tab-content container">
-            <div class="section-header text-center" style="margin-bottom: 2rem;">
-                <h2 id="pesanan-title">Lacak Pesanan</h2>
-                <p id="pesanan-subtitle">Masukkan Email dan ID Invoice untuk melacak status pesanan kamu.</p>
+            <div class="section-header text-center" style="margin-bottom: 1.8rem;">
+                <h2 id="pesanan-title">Lacak & Riwayat Pesanan</h2>
+                <p id="pesanan-subtitle">Ketuk kartu pesanan di bawah untuk membuka E-Receipt, menyalin akun/link tools, atau menampilkan Barcode pembayaran.</p>
+            </div>
+
+            <!-- BANNER UPGRADE AKUN ANONIM DI HALAMAN RIWAYAT PESANAN -->
+            <div id="guest-upgrade-banner-orders" class="guest-upgrade-banner" style="display:none; max-width: 880px; margin: 0 auto 1.6rem;">
+                <div class="upgrade-banner-left">
+                    <div class="upgrade-banner-icon"><i class="fa-solid fa-user-shield"></i></div>
+                    <div>
+                        <strong>Anda masuk menggunakan Sesi Anonim</strong>
+                        <p>Ubah akun Anda menjadi Member resmi agar seluruh riwayat transaksi dan garansi tersimpan permanen di cloud.</p>
+                    </div>
+                </div>
+                <button class="btn btn-warning btn-sm" onclick="window.openUpgradeMemberModal()">
+                    <i class="fa-solid fa-user-check"></i> Ubah Jadi Member
+                </button>
             </div>
             
-            <!-- Area Khusus Lacak Pesanan Manual & Gembok Email (Guest) -->
-            <div id="guest-tracking-section" style="max-width: 600px; margin: 0 auto 2.5rem; background: var(--surface); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                    <label for="track-email" style="color:var(--text); font-size:0.9rem;"><i class="fa-solid fa-lock text-warning" style="margin-right:5px;"></i> Verifikasi Email (Keamanan)</label>
-                    <input type="email" id="track-email" class="form-control" placeholder="Masukkan email yang digunakan saat pembelian">
-                    <small style="color:var(--text-muted); display:block; margin-top:6px;">Sistem akan mengingat emailmu di perangkat ini secara otomatis.</small>
+            <!-- Form Lacak Manual -->
+            <div id="guest-tracking-section" class="brutal-panel" style="max-width: 700px; margin: 0 auto 2rem;">
+                <div class="brutal-panel-title">
+                    <i class="fa-solid fa-magnifying-glass-chart text-primary"></i> CARI INVOICE PESANAN MANUAL
                 </div>
-                <div class="form-group mb-0">
-                    <label for="track-id" style="color:var(--text); font-size:0.9rem;"><i class="fa-solid fa-file-invoice" style="margin-right:5px;"></i> Invoice ID</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="track-id" class="form-control" placeholder="Contoh: VP-123456" style="text-transform: uppercase;">
-                        <button id="btn-track-order" aria-label="Cari Pesanan" class="btn btn-primary" onclick="window.trackOrder()" style="padding: 0 20px; white-space:nowrap;">
-                            <i class="fa-solid fa-magnifying-glass"></i> <span class="hide-mobile">Lacak</span>
+                <div class="grid-2col-form">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="track-email"><i class="fa-solid fa-envelope"></i> Email Saat Pembelian</label>
+                        <input type="email" id="track-email" class="form-control" placeholder="email@kamu.com">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="track-id"><i class="fa-solid fa-file-invoice"></i> Nomor Invoice</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="track-id" class="form-control" placeholder="VP-123456" style="text-transform: uppercase; font-weight: 800;">
+                            <button id="btn-track-order" aria-label="Cari Pesanan" class="btn btn-primary" onclick="window.trackOrder()" style="padding: 0 18px; white-space:nowrap;">
+                                <i class="fa-solid fa-magnifying-glass"></i> <span>Buka Struk</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hasil Lacak Manual Muncul Di Sini -->
+            <div id="track-result" style="max-width: 700px; margin: 0 auto 2.2rem; display: none;"></div>
+
+            <!-- Riwayat Pesanan Interaktif -->
+            <div id="user-history-section" style="max-width: 880px; margin: 0 auto;">
+                <div class="history-toolbar">
+                    <div>
+                        <h3><i class="fa-solid fa-clock-rotate-left text-primary"></i> Daftar Riwayat Transaksi</h3>
+                        <small style="color:var(--text-muted); font-weight:600;">Klik kartu transaksi untuk melihat detail E-Receipt & data pesanan</small>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="window.refreshOrderData()">
+                        <i class="fa-solid fa-rotate-right"></i> Segarkan
+                    </button>
+                </div>
+                
+                <div class="history-filter-pills" style="margin-bottom: 1rem;">
+                    <button class="hist-pill active" onclick="window.filterUserHistory('ALL', this)">Semua</button>
+                    <button class="hist-pill" onclick="window.filterUserHistory('UNPAID', this)">Belum Bayar</button>
+                    <button class="hist-pill" onclick="window.filterUserHistory('PENDING', this)">Menunggu Kasir / Proses</button>
+                    <button class="hist-pill" onclick="window.filterUserHistory('SUCCESS', this)">Selesai</button>
+                </div>
+
+                <div class="order-history-list" id="user-order-grid"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: PUSAT BANTUAN LIVE CHAT -->
+        <div id="tab-bantuan" class="main-tab-content container">
+            <div class="chat-modern-wrapper">
+                <!-- Sidebar Info Bantuan (Desktop) -->
+                <div class="chat-info-sidebar hide-mobile">
+                    <div class="chat-info-card">
+                        <div>
+                            <div class="chat-info-badge"><i class="fa-solid fa-headset"></i> SUPPORT CENTER</div>
+                            <h3>Customer Service Vipercell</h3>
+                            <p>Hubungi Admin secara langsung untuk konfirmasi pesanan, bantuan cara pakai tools/aplikasi, maupun klaim garansi.</p>
+                            
+                            <div class="chat-topic-list">
+                                <span class="topic-label">PESAN PINTAS CEPAT:</span>
+                                <button class="topic-btn" onclick="window.insertQuickUserChat('Halo Admin, bagaimana cara klaim garansi produk?')">
+                                    <i class="fa-solid fa-shield-halved text-primary"></i> Cara Klaim Garansi
+                                </button>
+                                <button class="topic-btn" onclick="window.insertQuickUserChat('Halo Admin, saya ingin bayar Tunai (Barcode). Apakah kasir sedang buka?')">
+                                    <i class="fa-solid fa-barcode text-primary"></i> Tanya Pembayaran Tunai
+                                </button>
+                                <button class="topic-btn" onclick="window.insertQuickUserChat('Halo Admin, mohon bantu cek status Invoice pesanan saya.')">
+                                    <i class="fa-solid fa-receipt text-primary"></i> Bantu Cek Pesanan
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="chat-persist-note">
+                            <i class="fa-solid fa-lock"></i>
+                            <span>Percakapan kamu tersimpan otomatis di perangkat ini meskipun halaman di-refresh.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kotak Utama Ruang Chat -->
+                <div class="chat-brutal-container">
+                    <div id="chat-pre-form" class="chat-pre-box">
+                        <div class="chat-avatar-large"><i class="fa-solid fa-comments"></i></div>
+                        <h3>Mulai Chat dengan Admin</h3>
+                        <p>Masukkan nama panggilanmu di bawah ini agar Admin bisa langsung membalas pesanmu.</p>
+                        <input type="text" id="chat-anon-name" class="form-control" placeholder="Ketik nama panggilan kamu..." aria-label="Nama Panggilan" style="max-width:340px; margin:0 auto; text-align:center; font-weight:700;" onkeypress="if(event.key === 'Enter') window.startAnonChat()">
+                        <button id="btn-start-chat" class="btn btn-primary" style="max-width:340px; width:100%; margin:14px auto 0;" onclick="window.startAnonChat()">
+                            <i class="fa-solid fa-paper-plane"></i> <span>Buka Ruang Obrolan</span>
                         </button>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Hasil Lacak Muncul Di Sini -->
-            <div id="track-result" style="max-width: 600px; margin: 0 auto 2.5rem; display: none;"></div>
-
-            <!-- Grid Riwayat Pesanan User (Hanya Aktif Jika Login) -->
-            <div id="user-history-section" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; max-width:1000px; margin:0 auto 1rem;">
-                    <h3 style="margin:0; font-size:1.1rem; color:var(--text);"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Transaksi Saya</h3>
-                    <button class="btn btn-outline" style="padding: 5px 12px; font-size:0.8rem;" onclick="window.refreshOrderData()">
-                        <i class="fa-solid fa-rotate-right"></i> Refresh
-                    </button>
-                </div>
-                <div class="grid" id="user-order-grid" style="grid-template-columns: 1fr; max-width:1000px; margin-left:auto; margin-right:auto;"></div>
-            </div>
-        </div>
-
-        <!-- TAB: PUSAT BANTUAN (WA STYLE) -->
-        <div id="tab-bantuan" class="main-tab-content container">
-            <div class="section-header text-center">
-                <h2>Pusat Bantuan</h2>
-                <p>Hubungi Customer Service kami secara langsung.</p>
-            </div>
-            
-            <div style="max-width: 800px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; height: 70vh; min-height: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-                
-                <!-- Layar Meminta Nama (Pre-Form) -->
-                <div id="chat-pre-form" style="display:flex; flex-direction:column; justify-content:center; padding: 2rem; height:100%; background:var(--bg);">
-                    <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: var(--primary-gradient); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 2.5rem; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);">
-                        👨‍💻
+                    
+                    <div id="chat-wa-header" class="chat-header-bar" style="display:none;">
+                        <div class="chat-admin-avatar">
+                            <i class="fa-solid fa-headset"></i>
+                            <span class="online-dot"></span>
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <h3>Admin Support Vipercell</h3>
+                            <span id="chat-header-status"><i class="fa-solid fa-bolt"></i> Aktif &bull; Siap melayani bantuan transaksi</span>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="window.changeChatNamePrompt()" title="Ubah Nama Panggilan">
+                            <i class="fa-solid fa-user-pen"></i> <span id="chat-current-user-label">Ubah Nama</span>
+                        </button>
                     </div>
-                    <p style="text-align:center; color:var(--text); margin-bottom:20px; font-size:1rem; font-weight:600;">Masukkan nama panggilanmu untuk memulai obrolan dengan Admin.</p>
-                    <input type="text" id="chat-anon-name" class="form-control" placeholder="Nama panggilan kamu..." aria-label="Nama Panggilan" style="max-width:350px; margin:0 auto; text-align:center;">
-                    <button id="btn-start-chat" class="btn btn-primary" style="max-width:350px; width:100%; margin:15px auto 0; padding: 12px; border-radius:25px;" onclick="window.startAnonChat()">
-                        <i class="fa-solid fa-paper-plane"></i> <span>Mulai Obrolan</span>
-                    </button>
-                </div>
-                
-                <!-- WA-Style Header -->
-                <div id="chat-wa-header" style="display:none; align-items:center; gap:12px; padding:15px; background:var(--surface-hover); border-bottom:1px solid var(--border);">
-                    <div style="width:45px; height:45px; border-radius:50%; background:var(--primary-gradient); display:flex; justify-content:center; align-items:center; color:white; font-size:1.6rem; position:relative; flex-shrink:0;">
-                        👨‍💻
-                        <div style="position:absolute; bottom:2px; right:0; width:12px; height:12px; background:var(--success); border-radius:50%; border:2px solid var(--surface-hover);"></div>
-                    </div>
-                    <div>
-                        <h3 style="margin:0; font-size:1.05rem; color:var(--text); font-weight:800;">Admin Vipercell</h3>
-                        <span style="font-size:0.75rem; color:var(--success);"><i class="fa-solid fa-check-double"></i> Online / Siap membantu Anda</span>
-                    </div>
-                </div>
 
-                <div class="chat-body" id="user-chat-body" style="display:none; flex:1; overflow-y:auto; padding:1.5rem; background:var(--bg);"></div>
-                <div class="chat-footer" id="user-chat-footer" style="display:none; padding:15px; background:var(--surface); border-top:1px solid var(--border); gap:10px; align-items:center;">
-                    <input type="text" id="user-chat-input" class="form-control" placeholder="Ketik pesan disini..." style="flex:1; border-radius:25px; padding: 12px 20px;" onkeypress="if(event.key === 'Enter') window.sendUserChat()" autocomplete="off">
-                    <button id="btn-send-chat" class="btn btn-primary btn-icon-only" aria-label="Kirim Pesan" onclick="window.sendUserChat()" style="background:var(--primary); color:white; border:none; width:45px; height:45px; border-radius:50%;"><i class="fa-solid fa-paper-plane"></i></button>
+                    <div class="chat-body" id="user-chat-body" style="display:none;"></div>
+
+                    <div id="chat-quick-chips" class="chat-chips-bar" style="display:none;">
+                        <button onclick="window.insertQuickUserChat('Halo Admin, mohon cek pesanan saya.')">⚡ Cek Pesanan</button>
+                        <button onclick="window.insertQuickUserChat('Halo Min, saya mau bayar Tunai Barcode.')">🏷️ Bayar Barcode</button>
+                        <button onclick="window.insertQuickUserChat('Halo, bagaimana cara klaim garansi?')">🛡️ Klaim Garansi</button>
+                    </div>
+
+                    <div class="chat-footer" id="user-chat-footer" style="display:none;">
+                        <input type="text" id="user-chat-input" class="form-control" placeholder="Ketik pesan untuk Admin di sini..." style="flex:1;" onkeypress="if(event.key === 'Enter') window.sendUserChat()" autocomplete="off">
+                        <button id="btn-send-chat" class="btn btn-primary btn-icon-only" aria-label="Kirim Pesan" onclick="window.sendUserChat()"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB: KOMUNITAS & BERITA -->
+        <!-- TAB 4: BERITA & KOMUNITAS -->
         <div id="tab-berita" class="main-tab-content container">
-            <div class="section-header">
-                <h2>Komunitas & Berita</h2>
-                <p>Info update stok, promo eksklusif, dan pengumuman terbaru Vipercell.</p>
+            <div class="section-header text-center">
+                <h2>Papan Berita & Promo Komunitas</h2>
+                <p>Klik salah satu berita di bawah untuk membaca informasi lengkap secara layar penuh.</p>
             </div>
             
-            <div style="background: rgba(37, 211, 102, 0.1); border: 1px solid #25D366; padding: 1.5rem; border-radius: 12px; text-align: center; margin-bottom: 2.5rem; max-width: 800px; margin-left: auto; margin-right: auto;">
-                <i class="fa-brands fa-whatsapp" style="font-size: 2.5rem; color: #25D366; margin-bottom: 10px;"></i>
-                <h3 style="color: var(--text); margin-bottom: 5px;">Gabung Komunitas Kami!</h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Dapatkan info promo eksklusif, update stok akun terbaru, dan panduan klaim langsung di WhatsApp kamu.</p>
-                <a id="btn-wa-channel" href="#" target="_blank" class="btn btn-success" style="background: #25D366; color: #ffffff; font-weight: bold; border:none; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);">
-                    <i class="fa-solid fa-user-group"></i> Join Saluran WA
+            <div class="community-banner-card">
+                <div class="community-icon"><i class="fa-brands fa-whatsapp"></i></div>
+                <div class="community-info">
+                    <span class="brutal-tag tag-success" style="margin-bottom:6px;">KOMUNITAS RESMI</span>
+                    <h3>Gabung Saluran WhatsApp Vipercell!</h3>
+                    <p>Dapatkan notifikasi restock akun premium murah, bagi-bagi voucher diskon, dan info menarik langsung di WhatsApp kamu.</p>
+                </div>
+                <a id="btn-wa-channel" href="#" target="_blank" class="btn btn-success">
+                    <i class="fa-brands fa-whatsapp"></i> Gabung Saluran WA
                 </a>
             </div>
             
-            <div class="tutorial-grid" id="public-news-list">
-                <div style="text-align:center; color:var(--text-muted)">Memuat berita...</div>
+            <div class="news-feed-grid" id="public-news-list">
+                <div class="brutal-empty-box" style="grid-column: 1/-1;">Memuat berita terbaru...</div>
             </div>
         </div>
 
-        <!-- TAB: PROFIL -->
+        <!-- TAB 4B: HALAMAN BACA BERITA FULL LAYAR (DENGAN TOMBOL PINTAS PRODUK TERKAIT) -->
+        <div id="tab-baca-berita" class="main-tab-content container" style="padding-top: 1.2rem;">
+            <div class="article-fullscreen-wrapper">
+                <div class="article-top-nav">
+                    <button class="btn btn-outline btn-sm" onclick="window.switchMainTab('berita')">
+                        <i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Berita
+                    </button>
+                    <button class="btn btn-outline btn-sm" onclick="window.shareCurrentArticle()">
+                        <i class="fa-solid fa-share-nodes"></i> Bagikan Info
+                    </button>
+                </div>
+
+                <article class="article-fullscreen-card">
+                    <div class="article-meta-header">
+                        <span class="brutal-tag tag-primary"><i class="fa-solid fa-bullhorn"></i> PENGUMUMAN RESMI VIPERCELL</span>
+                        <h1 id="full-news-title">Judul Artikel Berita</h1>
+                        <div class="article-author-bar">
+                            <div class="author-badge-icon"><i class="fa-solid fa-bolt"></i></div>
+                            <div>
+                                <strong>Tim Redaksi Vipercell</strong>
+                                <span>Informasi & Promo Komunitas</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="full-news-img-wrap" class="article-hero-image-box" style="display:none;">
+                        <img id="full-news-img" src="" alt="Gambar Artikel">
+                    </div>
+
+                    <div id="full-news-body" class="article-content-body"></div>
+
+                    <!-- Kotak Pintas Produk Terkait (Otomatis menyesuaikan produk yang dicentang Admin di berita ini) -->
+                    <div id="full-news-product-cta" class="article-footer-cta">
+                        <div>
+                            <strong id="full-news-cta-title">Tertarik dengan promo atau layanan di atas?</strong>
+                            <span id="full-news-cta-sub">Langsung cek ketersediaan stoknya di katalog utama kami sekarang!</span>
+                        </div>
+                        <button id="btn-full-news-action" class="btn btn-primary" onclick="window.switchMainTab('katalog')">
+                            <i class="fa-solid fa-cart-shopping"></i> <span>Lihat Katalog</span>
+                        </button>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <!-- TAB 5: PROFIL AKUN (TANPA ID PERANGKAT & TOMBOL KELUAR BERFUNGSI NORMAL) -->
         <div id="tab-profil" class="main-tab-content container">
             <div class="section-header">
-                <h2>Profil Akun</h2>
-                <p>Kelola data akun dan riwayat transaksimu.</p>
+                <h2>Profil & Pengaturan Akun</h2>
+                <p>Kelola identitas akun, nomor WhatsApp, preferensi notifikasi, dan keamananmu.</p>
             </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem;">
-                    <h3 style="color: var(--primary-light); margin-bottom: 1rem;"><i class="fa-solid fa-user-pen"></i> Info Akun</h3>
-                    
-                    <div class="form-group">
-                        <label for="prof-email">Email Terdaftar 
-                            <span id="prof-email-status" style="font-size:0.75rem; color:var(--success); margin-left:5px;">(Verified)</span>
-                        </label>
-                        <input type="email" id="prof-email" class="form-control" disabled style="background: var(--bg); opacity: 0.7;" aria-label="Email Terdaftar">
-                    </div>
-                    <div class="form-group">
-                        <label for="prof-name">Nama Panggilan</label>
-                        <input type="text" id="prof-name" class="form-control" placeholder="Masukkan nama">
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 1.5rem; flex-wrap: wrap;">
-                        <button aria-label="Simpan Profil" class="btn btn-primary" onclick="window.saveUserProfile()" style="flex:1;"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                        <button aria-label="Logout" class="btn btn-outline" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="window.logoutUser()">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
-                        </button>
+
+            <!-- BANNER KHUSUS PENGGUNA ANONIM UNTUK UBAH JADI MEMBER RESMI -->
+            <div id="guest-upgrade-banner-profile" class="guest-upgrade-banner" style="display:none; margin-bottom: 1.5rem;">
+                <div class="upgrade-banner-left">
+                    <div class="upgrade-banner-icon"><i class="fa-solid fa-user-shield"></i></div>
+                    <div>
+                        <strong>Ubah Akun Anonim Menjadi Member Resmi</strong>
+                        <p>Simpan seluruh riwayat pesanan dan garansi di perangkat ini secara permanen dengan mengaitkan Email & Password.</p>
                     </div>
                 </div>
-                
-                <div style="display:flex; flex-direction:column; gap:1.5rem;">
-                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem;">
-                        <h3 style="color: var(--text); margin-bottom: 1rem;"><i class="fa-solid fa-shield-halved"></i> Keamanan Akun</h3>
-                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom: 1rem;">Lupa sandi atau ingin mengubahnya? Kami akan mengirimkan tautan reset ke emailmu.</p>
-                        <button aria-label="Kirim Tautan Reset Sandi" class="btn btn-outline" onclick="window.sendProfileResetPassword()" style="width:100%;"><i class="fa-solid fa-envelope"></i> Kirim Link Reset Sandi</button>
+                <button class="btn btn-warning" onclick="window.openUpgradeMemberModal()">
+                    <i class="fa-solid fa-user-plus"></i> Ubah ke Member Sekarang
+                </button>
+            </div>
+            
+            <div class="profile-hero-card">
+                <div class="profile-avatar-box" id="prof-avatar-initial">V</div>
+                <div class="profile-hero-info">
+                    <div class="profile-badge-row" style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <span class="brutal-tag tag-success" id="prof-email-status"><i class="fa-solid fa-circle-check"></i> MEMBER TERVERIFIKASI</span>
                     </div>
-                    
-                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; text-align:center; flex-grow:1; display:flex; flex-direction:column; justify-content:center;">
-                        <h3 style="color: var(--text); margin-bottom: 0.5rem;"><i class="fa-solid fa-chart-simple"></i> Transaksi Berhasil</h3>
-                        <div style="font-size: 3rem; font-weight: 800; color: var(--success);" id="prof-stat-success">0</div>
-                        <p style="font-size:0.85rem; color:var(--text-muted);">Pesanan yang telah diselesaikan.</p>
+                    <h3 id="prof-display-name">Memuat Nama...</h3>
+                    <p id="prof-display-email">user@email.com</p>
+                </div>
+                <div class="profile-hero-actions">
+                    <button class="btn btn-outline btn-sm" onclick="window.switchMainTab('pesanan')">
+                        <i class="fa-solid fa-receipt"></i> Riwayat Transaksi
+                    </button>
+                    <!-- Tombol Ubah ke Member (Muncul jika Anonim) -->
+                    <button id="btn-prof-upgrade-guest" class="btn btn-warning btn-sm" style="display:none;" onclick="window.openUpgradeMemberModal()">
+                        <i class="fa-solid fa-user-shield"></i> Jadi Member
+                    </button>
+                    <!-- Tombol Keluar Sesi / Logout (Berfungsi keluar ke halaman Login baik untuk Member maupun Anonim) -->
+                    <button id="btn-prof-logout-member" class="btn btn-danger btn-sm" onclick="window.logoutUser()">
+                        <i class="fa-solid fa-right-from-bracket"></i> <span id="text-btn-logout">Keluar Akun</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="profile-stats-grid">
+                <div class="prof-stat-card">
+                    <div class="prof-stat-icon bg-accent-blue"><i class="fa-solid fa-bag-shopping"></i></div>
+                    <div>
+                        <span class="prof-stat-label">Total Pesanan</span>
+                        <h4 id="prof-stat-total">0</h4>
+                    </div>
+                </div>
+                <div class="prof-stat-card">
+                    <div class="prof-stat-icon bg-accent-emerald"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <span class="prof-stat-label">Transaksi Sukses</span>
+                        <h4 id="prof-stat-success">0</h4>
+                    </div>
+                </div>
+                <div class="prof-stat-card">
+                    <div class="prof-stat-icon bg-accent-amber"><i class="fa-solid fa-wallet"></i></div>
+                    <div>
+                        <span class="prof-stat-label">Total Belanja</span>
+                        <h4 id="prof-stat-spent">Rp0</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-settings-grid">
+                <!-- Panel Identitas -->
+                <div class="brutal-panel">
+                    <div class="brutal-panel-title">
+                        <i class="fa-solid fa-user-pen text-primary"></i> DATA IDENTITAS AKUN
+                    </div>
+                    <div class="form-group">
+                        <label for="prof-email">Alamat Email Terdaftar</label>
+                        <input type="email" id="prof-email" class="form-control" disabled style="opacity: 0.7; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group">
+                        <label for="prof-name">Nama Lengkap / Panggilan</label>
+                        <input type="text" id="prof-name" class="form-control" placeholder="Masukkan nama panggilanmu">
+                    </div>
+                    <div class="form-group">
+                        <label for="prof-phone"><i class="fa-brands fa-whatsapp text-success"></i> Nomor WhatsApp / HP Aktif</label>
+                        <input type="tel" id="prof-phone" class="form-control" placeholder="Contoh: 081234567890">
+                        <small class="form-helper">Digunakan untuk pengiriman informasi pesanan & bantuan garansi.</small>
+                    </div>
+                    <button aria-label="Simpan Profil" class="btn btn-primary" style="width: 100%;" onclick="window.saveUserProfile()">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan Profil
+                    </button>
+                </div>
+                
+                <!-- Panel Notifikasi & Keamanan -->
+                <div class="brutal-panel" style="display:flex; flex-direction:column; justify-content:space-between; gap:1.2rem;">
+                    <div>
+                        <div class="brutal-panel-title">
+                            <i class="fa-solid fa-bell text-primary"></i> NOTIFIKASI & KEAMANAN
+                        </div>
+                        
+                        <div class="notif-toggle-card">
+                            <div class="notif-toggle-info">
+                                <div class="notif-bell-circle" id="prof-notif-icon-box">
+                                    <i class="fa-solid fa-bell" id="prof-notif-icon"></i>
+                                </div>
+                                <div>
+                                    <strong>Notifikasi Pesanan & Chat</strong>
+                                    <span id="prof-notif-status-text">Status: Memeriksa...</span>
+                                </div>
+                            </div>
+                            <button id="btn-prof-toggle-notif" class="btn btn-sm btn-primary" onclick="window.toggleUserNotificationSetting()">
+                                Aktifkan
+                            </button>
+                        </div>
+
+                        <div id="prof-security-member-box">
+                            <p style="font-size:0.86rem; color:var(--text-muted); margin: 1.2rem 0 0.8rem; line-height: 1.55;">
+                                Lupa atau ingin mengganti kata sandi akunmu? Klik tombol di bawah untuk menerima link reset kata sandi ke email terdaftar.
+                            </p>
+                            <button aria-label="Kirim Tautan Reset Sandi" class="btn btn-outline" onclick="window.sendProfileResetPassword()" style="width:100%;">
+                                <i class="fa-solid fa-key"></i> Kirim Link Reset Kata Sandi
+                            </button>
+                        </div>
+
+                        <div id="prof-security-guest-box" style="display:none; margin-top: 1.2rem;">
+                            <div class="brutal-alert-box alert-warning" style="margin-bottom: 10px;">
+                                <i class="fa-solid fa-lock"></i>
+                                <span>Akun kamu saat ini masih berstatus Anonim. Kaitkan Email & Password sekarang agar riwayat transaksi tersimpan permanen!</span>
+                            </div>
+                            <button class="btn btn-warning" style="width:100%;" onclick="window.openUpgradeMemberModal()">
+                                <i class="fa-solid fa-user-check"></i> Kaitkan Email & Buat Password
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB: CHECKOUT LAYAR PENUH -->
+        <!-- TAB 6: CHECKOUT -->
         <div id="tab-checkout" class="main-tab-content container" style="padding-top:1rem;">
-            <button class="btn btn-outline" style="margin-bottom: 1.5rem; border-color:transparent; padding: 5px 10px;" onclick="window.switchMainTab('katalog')">
-                <i class="fa-solid fa-arrow-left"></i> Kembali ke Katalog
+            <button class="btn btn-outline btn-sm" style="margin-bottom: 1.2rem;" onclick="window.switchMainTab('katalog')">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Katalog Produk
             </button>
             
-            <div style="max-width: 800px; margin: 0 auto; background: var(--bg); border: none;">
-                <div style="display:flex; align-items:center; gap:15px; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--border);">
-                    <img id="buy-brand-img" src="" alt="Brand Produk" width="70" height="70" style="border-radius:12px; object-fit:cover; border:1px solid var(--border); background:var(--surface);">
-                    <div>
-                        <h2 id="buy-brand-name" style="color:var(--text); font-size:1.5rem; margin-bottom:4px; font-weight:800;"></h2>
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <span id="buy-brand-badge" class="status-badge" style="background:rgba(255,255,255,0.05); color:var(--text-muted);"></span>
-                            <span class="status-badge" style="background:rgba(16,185,129,0.1); color:var(--success); font-size:0.65rem;">
-                                <i class="fa-solid fa-cart-arrow-down"></i> <span id="buy-brand-sold">0 Terjual</span>
+            <div class="checkout-wrapper">
+                <div class="checkout-brand-header">
+                    <img id="buy-brand-img" src="" alt="Brand Produk" width="76" height="76" class="checkout-brand-logo">
+                    <div class="checkout-brand-meta">
+                        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:6px;">
+                            <span id="buy-brand-badge" class="brutal-tag tag-primary">PRODUK</span>
+                            <span class="brutal-tag tag-success">
+                                <i class="fa-solid fa-fire"></i> <span id="buy-brand-sold">0 Terjual</span>
                             </span>
                         </div>
+                        <h2 id="buy-brand-name">Nama Produk</h2>
                     </div>
                 </div>
 
-                <div class="auth-tabs-toggle" style="margin-bottom: 1.5rem; padding:4px;">
-                    <button id="tab-buy-form" class="active" onclick="window.switchBuyModalTab('form')">Pembelian</button>
-                    <button id="tab-buy-reviews" onclick="window.switchBuyModalTab('reviews')">Ulasan Pembeli</button>
+                <div class="auth-tabs-toggle" style="margin-bottom: 1.5rem; max-width: 460px;">
+                    <button id="tab-buy-form" class="active" onclick="window.switchBuyModalTab('form')">
+                        <i class="fa-solid fa-cart-shopping"></i> Form Pembelian
+                    </button>
+                    <button id="tab-buy-reviews" onclick="window.switchBuyModalTab('reviews')">
+                        <i class="fa-solid fa-star"></i> Ulasan Pembeli
+                    </button>
                 </div>
                 
-                <!-- FORM PEMBELIAN -->
                 <div id="buy-content-form">
-                    <div style="margin-bottom: 2rem;">
-                        <h4 style="font-size:1rem; margin-bottom:10px; color:var(--text); border-left: 3px solid var(--primary-light); padding-left: 8px;">1. Informasi / Tujuan</h4>
-                        
-                        <div id="buy-desc-wrapper" style="position:relative; margin-bottom: 1rem; background: var(--surface); padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
-                            <div id="buy-detail-fields" style="max-height: 80px; overflow: hidden; transition: max-height 0.4s ease;"></div>
-                            <div id="buy-desc-fade" style="position:absolute; bottom:0; left:0; width:100%; height:40px; background: linear-gradient(to top, var(--surface) 0%, transparent 100%); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;"></div>
-                            <button id="btn-desc-more" class="btn btn-outline" style="width:calc(100% - 2rem); margin: 0 auto; display:block; position:absolute; bottom: 10px; left: 1rem; font-size:0.75rem; padding: 6px; border-style:dashed; background: var(--surface);" onclick="window.toggleDescMore()">Baca Selengkapnya <i class="fa-solid fa-chevron-down"></i></button>
-                        </div>
-                    </div>
+                    <div class="checkout-split-grid">
+                        <!-- KOLOM KIRI -->
+                        <div class="checkout-main-col">
+                            <div class="checkout-step-card">
+                                <div class="step-header">
+                                    <span class="step-num">01</span>
+                                    <h4>Informasi Produk & Data Tujuan</h4>
+                                </div>
+                                <div id="buy-desc-wrapper" class="desc-expand-box">
+                                    <div id="buy-detail-fields" style="max-height: 150px; overflow: hidden; transition: max-height 0.4s ease;"></div>
+                                    <div id="buy-desc-fade" class="desc-fade-overlay"></div>
+                                    <button id="btn-desc-more" class="btn btn-outline btn-sm desc-more-btn" onclick="window.toggleDescMore()">
+                                        Baca Selengkapnya <i class="fa-solid fa-chevron-down"></i>
+                                    </button>
+                                </div>
+                            </div>
 
-                    <div style="margin-bottom: 2rem;">
-                        <h4 style="font-size:1rem; margin-bottom:10px; color:var(--text); border-left: 3px solid var(--primary-light); padding-left: 8px;">2. Pilih Nominal</h4>
-                        <div id="buy-item-grid" class="item-selection-grid" style="max-height: 250px; overflow: hidden; transition: max-height 0.4s ease;"></div>
-                        <button id="btn-items-more" class="btn btn-outline" style="width:100%; margin-top:10px; font-size:0.8rem; display:none;" onclick="window.showAllItems()">Tampilkan Lebih Banyak <i class="fa-solid fa-chevron-down"></i></button>
-                    </div>
-                    
-                    <div style="margin-top: 1.5rem; background: var(--surface); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-                        <h4 style="font-size:1rem; margin-bottom:15px; color:var(--text); border-left: 3px solid var(--primary-light); padding-left: 8px;">3. Detail Pembayaran</h4>
-                        
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; padding:10px; background:var(--bg); border-radius:10px; border:1px solid var(--border);">
-                            <span style="font-weight:600; color:var(--text-muted); font-size:0.9rem;">Jumlah Beli</span>
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <button class="btn-icon-only" style="width:35px; height:35px; font-size:1rem;" onclick="window.changeBuyQty(-1)"><i class="fa-solid fa-minus"></i></button>
-                                <input type="number" id="buy-qty" value="1" min="1" readonly style="width:50px; text-align:center; background:transparent; border:none; color:var(--text); font-weight:bold; font-size:1.1rem; outline:none; margin: 0;">
-                                <button class="btn-icon-only" style="width:35px; height:35px; font-size:1rem;" onclick="window.changeBuyQty(1)"><i class="fa-solid fa-plus"></i></button>
+                            <div class="checkout-step-card">
+                                <div class="step-header">
+                                    <span class="step-num">02</span>
+                                    <h4>Pilih Varian / Nominal Layanan</h4>
+                                </div>
+                                <div id="buy-item-grid" class="item-selection-grid" style="max-height: 380px; overflow: hidden; transition: max-height 0.4s ease;"></div>
+                                <button id="btn-items-more" class="btn btn-outline btn-sm" style="width:100%; margin-top:12px; display:none;" onclick="window.showAllItems()">
+                                    Tampilkan Semua Varian <i class="fa-solid fa-chevron-down"></i>
+                                </button>
                             </div>
                         </div>
 
-                        <div class="promo-box" style="margin-bottom:1.5rem;">
-                            <input type="text" id="buy-promo-code" aria-label="Kode Promo" class="form-control" placeholder="Punya kode promo?" style="text-transform: uppercase;">
-                            <button class="btn btn-outline" aria-label="Cek Promo" onclick="window.applyPromoDirect()"><i class="fa-solid fa-tag"></i> Cek</button>
-                        </div>
-                        <div id="buy-promo-msg" class="promo-msg" style="margin-top:-1rem; margin-bottom:1rem;"></div>
-                        
-                        <!-- Area Input Email (Akan disembunyikan JS jika user sudah Login) -->
-                        <div id="buy-email-group" class="form-group" style="margin-top: 1rem;">
-                            <label for="buy-email" style="color:var(--text);">Alamat Email (Penerima Bukti Tagihan) <small style="color:var(--danger)">*</small></label>
-                            <input type="email" id="buy-email" class="form-control" placeholder="email@kamu.com" required>
-                        </div>
-                        
-                        <div id="buy-payment-method" class="form-group" style="margin-top: 1.5rem;">
-                            <label style="color:var(--text);">Pilih Metode Pembayaran</label>
-                            <div class="type-grid" style="grid-template-columns: 1fr 1fr; margin-top:5px;">
+                        <!-- KOLOM KANAN (STICKY RINGKASAN) -->
+                        <div class="checkout-side-col">
+                            <div class="checkout-step-card sticky-checkout-box">
+                                <div class="step-header">
+                                    <span class="step-num">03</span>
+                                    <h4>Ringkasan & Pembayaran</h4>
+                                </div>
                                 
-                                <label class="type-card active" onclick="window.selectPaymentUI('qris', this)" tabindex="0" style="padding: 15px 10px;">
-                                    <input type="radio" name="payment_method" value="qris" checked style="display:none;" aria-label="Metode QRIS">
-                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
-                                        <i class="fa-solid fa-qrcode" style="font-size:1.4rem;"></i>
-                                        <strong style="font-size:1rem;">QRIS</strong>
+                                <div class="qty-control-bar">
+                                    <div>
+                                        <strong style="display:block; color:var(--text); font-size:0.9rem;">Jumlah Beli</strong>
+                                        <small id="buy-qty-subtext" style="color:var(--text-muted); font-size:0.75rem;">Kuantitas item</small>
                                     </div>
-                                    <small style="color:var(--success); font-weight:600; font-size:0.75rem;">Otomatis & Instan</small>
-                                </label>
+                                    <div class="qty-stepper">
+                                        <button class="btn-icon-only" style="width:36px; height:36px;" onclick="window.changeBuyQty(-1)"><i class="fa-solid fa-minus"></i></button>
+                                        <input type="number" id="buy-qty" value="1" min="1" readonly class="qty-input">
+                                        <button class="btn-icon-only" style="width:36px; height:36px;" onclick="window.changeBuyQty(1)"><i class="fa-solid fa-plus"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label for="buy-promo-code"><i class="fa-solid fa-ticket text-primary"></i> Punya Kode Promo?</label>
+                                    <div class="promo-box">
+                                        <input type="text" id="buy-promo-code" aria-label="Kode Promo" class="form-control" placeholder="KODE VOUCHER..." style="text-transform: uppercase; font-weight:800;">
+                                        <button class="btn btn-warning btn-sm" aria-label="Cek Promo" onclick="window.applyPromoDirect()">Pakai</button>
+                                    </div>
+                                    <div id="buy-promo-msg" class="promo-msg"></div>
+                                </div>
                                 
-                                <label class="type-card" onclick="window.selectPaymentUI('cash', this)" tabindex="0" style="padding: 15px 10px;">
-                                    <input type="radio" name="payment_method" value="cash" style="display:none;" aria-label="Metode Cash">
-                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px;">
-                                        <i class="fa-solid fa-money-bill-wave" style="font-size:1.4rem;"></i>
-                                        <strong style="font-size:1rem;">Cash / Tunai</strong>
+                                <div id="buy-email-group" class="form-group" style="margin-top: 0.8rem;">
+                                    <label for="buy-email"><i class="fa-solid fa-envelope text-primary"></i> Email Aktif (Bukti & Pelacakan) <span style="color:var(--danger)">*</span></label>
+                                    <input type="email" id="buy-email" class="form-control" placeholder="nama@email.com" required>
+                                </div>
+
+                                <div id="buy-phone-group" class="form-group" style="margin-top: 0.8rem;">
+                                    <label for="buy-phone"><i class="fa-brands fa-whatsapp text-success"></i> Nomor WhatsApp (Opsional)</label>
+                                    <input type="tel" id="buy-phone" class="form-control" placeholder="Contoh: 081234567890">
+                                </div>
+                                
+                                <div id="buy-payment-method" class="form-group" style="margin-top: 1.2rem;">
+                                    <label><i class="fa-solid fa-wallet text-primary"></i> Metode Pembayaran</label>
+                                    <div class="type-grid" style="grid-template-columns: 1fr 1fr; margin-top:6px;">
+                                        <label class="type-card active" onclick="window.selectPaymentUI('qris', this)" tabindex="0">
+                                            <input type="radio" name="payment_method" value="qris" checked style="display:none;">
+                                            <div class="pay-method-head">
+                                                <i class="fa-solid fa-qrcode"></i>
+                                                <strong>QRIS</strong>
+                                            </div>
+                                            <span class="pay-badge badge-green">Scan Otomatis</span>
+                                        </label>
+                                        
+                                        <label class="type-card" onclick="window.selectPaymentUI('cash', this)" tabindex="0">
+                                            <input type="radio" name="payment_method" value="cash" style="display:none;">
+                                            <div class="pay-method-head">
+                                                <i class="fa-solid fa-barcode"></i>
+                                                <strong>TUNAI</strong>
+                                            </div>
+                                            <span class="pay-badge badge-yellow">Barcode Kasir</span>
+                                        </label>
                                     </div>
-                                    <small style="color:var(--warning); font-weight:600; font-size:0.75rem;">Lapor Admin</small>
-                                </label>
 
-                            </div>
+                                    <div id="cash-warning-msg" class="brutal-alert-box alert-warning" style="display:none; margin-top:10px;">
+                                        <i class="fa-solid fa-barcode"></i>
+                                        <span>Kamu akan mendapatkan <b>Kode Barcode Pembayaran Tunai</b> untuk di-scan langsung oleh Admin saat bayar di tempat.</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="cart-total-box">
+                                    <div>
+                                        <span class="total-label">TOTAL BAYAR</span>
+                                        <div class="unique-code-info" id="buy-unique-info">Harga terbaik Vipercell</div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <span id="buy-total-price" class="total-nominal">Rp0</span>
+                                    </div>
+                                </div>
 
-                            <div id="cash-warning-msg" style="display:none; margin-top:10px; background:rgba(245,158,11,0.1); border:1px solid var(--warning); padding:10px; border-radius:8px;">
-                                <p style="margin:0; font-size:0.8rem; color:var(--warning); font-weight:bold;"><i class="fa-solid fa-location-dot"></i> Metode Tunai ini khusus untuk pembeli di sekitar wilayah Teluk Ambon.</p>
+                                <div id="manual-warning-msg" class="brutal-alert-box alert-danger" style="display:none; margin-top:12px;">
+                                    <i class="fa-solid fa-user-clock"></i>
+                                    <span>Varian ini diproses manual oleh Admin setelah pembayaran selesai.</span>
+                                </div>
+                                
+                                <button aria-label="Proses Pembelian" id="btn-process-buy" class="btn btn-primary btn-checkout-submit" onclick="window.processDirectCheckout()" disabled>
+                                    <i class="fa-solid fa-cart-shopping"></i> <span id="btn-process-text">Pilih Varian Dahulu</span>
+                                </button>
                             </div>
                         </div>
-                        
-                        <div class="cart-total-box" style="margin-top: 2rem; padding-top: 1.5rem;">
-                            <span>Total Bayar</span>
-                            <div style="text-align:right;">
-                                <span id="buy-total-price" style="color:var(--primary-light); font-size: 1.6rem; font-weight:900;">Rp0</span>
-                                <div class="unique-code-info" id="buy-unique-info"></div>
-                            </div>
-                        </div>
-
-                        <div id="manual-warning-msg" style="display:none; margin-top:15px; background:rgba(239,68,68,0.1); border:1px dashed var(--danger); padding:12px; border-radius:8px; text-align:center;">
-                            <p style="margin:0; font-size:0.85rem; color:var(--danger); font-weight:bold;"><i class="fa-solid fa-user-clock"></i> Harap diperhatikan: Produk ini dilayani secara manual oleh Admin.</p>
-                        </div>
-                        
-                        <button aria-label="Proses Pembelian" id="btn-process-buy" class="btn btn-primary" style="width:100%; padding:1.2rem; margin-top:1.5rem; font-size:1.1rem; box-shadow: 0 8px 20px rgba(37,99,235,0.3);" onclick="window.processDirectCheckout()" disabled>
-                            <i class="fa-solid fa-cart-shopping"></i> <span id="btn-process-text">Pilih Item Dahulu</span>
-                        </button>
                     </div>
                 </div>
 
                 <!-- ULASAN PEMBELI -->
                 <div id="buy-content-reviews" style="display:none;">
-                    <div id="review-write-container" style="display:none; background:var(--surface); padding:1.5rem; border-radius:16px; border:1px solid var(--border); margin-bottom:2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                        <h4 style="font-size:1.1rem; margin-bottom:10px; color:var(--primary-light); font-weight:800;">Berikan Ulasanmu</h4>
-                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px;">Terima kasih telah berbelanja! Bagaimana produk ini?</p>
+                    <div id="review-write-container" class="checkout-step-card" style="display:none;">
+                        <div class="step-header">
+                            <span class="step-num"><i class="fa-solid fa-star"></i></span>
+                            <h4>Tulis Ulasan Transaksi Kamu</h4>
+                        </div>
+                        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:15px;">Bagaimana kepuasanmu berbelanja produk ini di Vipercell?</p>
                         
-                        <div class="star-rating" id="review-stars" style="color:var(--text-muted); font-size:2rem; margin-bottom:15px; cursor:pointer; display:flex; gap:10px; justify-content:center;">
+                        <div class="star-rating" id="review-stars">
                             <i class="fa-solid fa-star" onclick="window.setReviewStar(1)"></i>
                             <i class="fa-solid fa-star" onclick="window.setReviewStar(2)"></i>
                             <i class="fa-solid fa-star" onclick="window.setReviewStar(3)"></i>
                             <i class="fa-solid fa-star" onclick="window.setReviewStar(4)"></i>
                             <i class="fa-solid fa-star" onclick="window.setReviewStar(5)"></i>
                         </div>
-                        <textarea id="review-text" class="form-control" placeholder="Tulis pengalaman belanjamu disini..." rows="3" style="margin-bottom:15px; resize:none;"></textarea>
-                        <button id="btn-submit-review" class="btn btn-success" style="width:100%; padding:12px; font-size:1rem;" onclick="window.submitReview()"><i class="fa-solid fa-paper-plane"></i> Kirim Ulasan</button>
+                        <textarea id="review-text" class="form-control" placeholder="Tulis ulasan jujurmu di sini..." rows="3" style="margin-bottom:15px; resize:none;"></textarea>
+                        <button id="btn-submit-review" class="btn btn-success" style="width:100%;" onclick="window.submitReview()">
+                            <i class="fa-solid fa-paper-plane"></i> Kirim Ulasan Sekarang
+                        </button>
                     </div>
                     
-                    <h4 style="font-size:1rem; margin-bottom:15px; color:var(--text); border-bottom:2px solid var(--surface-hover); padding-bottom:10px;">Ulasan Terbaru</h4>
-                    <div id="review-list-container" style="display:flex; flex-direction:column; gap:15px;">
-                        <div style="text-align:center; color:var(--text-muted); padding:3rem;"><i class="fa-regular fa-comment-dots" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i><br>Belum ada ulasan untuk produk ini.</div>
+                    <div class="checkout-step-card">
+                        <div class="step-header">
+                            <span class="step-num"><i class="fa-solid fa-comments"></i></span>
+                            <h4>Ulasan Pembeli Terverifikasi</h4>
+                        </div>
+                        <div id="review-list-container" style="display:flex; flex-direction:column; gap:14px;">
+                            <div class="brutal-empty-box">Belum ada ulasan untuk produk ini.</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- TAB: AUTHENTICATION -->
+        <!-- TAB 7: HALAMAN GERBANG MASUK / DAFTAR (TAMPIL PERTAMA KALI SAAT BELUM LOGIN) -->
         <div id="tab-auth" class="main-tab-content container">
-            <div class="auth-fullscreen-card reveal">
-                <div class="auth-header-text">
-                    <h2 id="auth-title">Masuk Akun</h2>
-                    <p id="auth-subtitle">Silakan masuk untuk melanjutkan transaksi.</p>
+            <div class="auth-modern-wrapper reveal">
+                <div class="auth-promo-side hide-mobile">
+                    <span class="auth-side-badge">SELAMAT DATANG DI VIPERCELL</span>
+                    <h3>Satu Platform untuk Semua Kebutuhan Digitalmu.</h3>
+                    <p>Pilih metode aksesmu: masuk menggunakan akun Member untuk menyimpan riwayat E-Receipt permanen, atau masuk cepat sebagai Anonim.</p>
+                    <div class="auth-benefit-list">
+                        <div class="auth-benefit-item">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <div>
+                                <strong>Riwayat E-Receipt Otomatis</strong>
+                                <span>Tidak takut lupa atau kehilangan kode Invoice pesanan.</span>
+                            </div>
+                        </div>
+                        <div class="auth-benefit-item">
+                            <i class="fa-solid fa-bolt"></i>
+                            <div>
+                                <strong>Pengiriman Detik Itu Juga</strong>
+                                <span>Sistem memproses pesanan otomatis 24 jam nonstop.</span>
+                            </div>
+                        </div>
+                        <div class="auth-benefit-item">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <div>
+                                <strong>Proteksi 1 HP 1 Akun Anonim</strong>
+                                <span>Bisa belanja cepat tanpa daftar dan dikaitkan jadi Member kapan saja.</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="auth-tabs-toggle" id="auth-tabs-container">
-                    <button aria-label="Tab Masuk" id="tab-login" class="active" onclick="window.switchAuthTab('login')">Masuk</button>
-                    <button aria-label="Tab Daftar" id="tab-register" onclick="window.switchAuthTab('register')">Daftar Baru</button>
-                </div>
-                
-                <div id="form-login" class="auth-form-body">
-                    <div class="form-group"><label for="auth-l-email">Alamat Email</label><input type="email" id="auth-l-email" class="form-control" placeholder="Contoh: user@email.com"></div>
-                    <div class="form-group"><label for="auth-l-pass">Kata Sandi</label><input type="password" id="auth-l-pass" class="form-control" placeholder="Masukkan kata sandi"></div>
-                    <div style="text-align: right; margin-bottom: 1.5rem;"><a href="#" style="font-size: 0.8rem; color: var(--primary-light); font-weight:600;" onclick="window.showResetPassword()">Lupa Kata Sandi?</a></div>
+
+                <div class="auth-form-side">
+                    <div class="auth-header-text">
+                        <h2 id="auth-title">Masuk ke Vipercell</h2>
+                        <p id="auth-subtitle">Silakan masuk ke akun kamu atau pilih akses cepat di bawah.</p>
+                    </div>
                     
-                    <button aria-label="Proses Masuk" id="btn-do-login" class="btn btn-primary btn-auth-action" onclick="window.processLogin()">
-                        <i class="fa-solid fa-arrow-right-to-bracket"></i> <span>Masuk Sekarang</span>
-                    </button>
-                </div>
-                
-                <div id="form-register" class="auth-form-body" style="display: none;">
-                    <div class="form-group"><label for="auth-r-name">Nama Panggilan</label><input type="text" id="auth-r-name" class="form-control" placeholder="Siapa namamu?"></div>
-                    <div class="form-group"><label for="auth-r-email">Alamat Email</label><input type="email" id="auth-r-email" class="form-control" placeholder="Email aktif kamu"></div>
-                    <div class="form-group"><label for="auth-r-pass">Kata Sandi (Min 6 Karakter)</label><input type="password" id="auth-r-pass" class="form-control" placeholder="Buat kata sandi yang aman"></div>
+                    <div class="auth-tabs-toggle" id="auth-tabs-container">
+                        <button aria-label="Tab Masuk" id="tab-login" class="active" onclick="window.switchAuthTab('login')">
+                            <i class="fa-solid fa-right-to-bracket"></i> Masuk Akun
+                        </button>
+                        <button aria-label="Tab Daftar" id="tab-register" onclick="window.switchAuthTab('register')">
+                            <i class="fa-solid fa-user-plus"></i> Daftar Member
+                        </button>
+                    </div>
                     
-                    <button aria-label="Proses Daftar" id="btn-do-register" class="btn btn-primary btn-auth-action" style="margin-top:1rem;" onclick="window.processRegister()">
-                        <i class="fa-solid fa-user-plus"></i> <span>Buat Akun Baru</span>
-                    </button>
-                </div>
-                
-                <div id="form-reset" class="auth-form-body" style="display: none;">
-                    <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1.5rem; text-align:center;">Masukkan email terdaftar kamu. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi.</p>
-                    <div class="form-group"><label for="auth-res-email">Email Terdaftar</label><input type="email" id="auth-res-email" class="form-control" placeholder="email@kamu.com"></div>
+                    <!-- FORM LOGIN -->
+                    <div id="form-login" class="auth-form-body">
+                        <div class="form-group">
+                            <label for="auth-l-email">Alamat Email</label>
+                            <div class="input-icon-wrap">
+                                <i class="fa-regular fa-envelope"></i>
+                                <input type="email" id="auth-l-email" class="form-control" placeholder="nama@email.com">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="auth-l-pass">Kata Sandi</label>
+                            <div class="input-icon-wrap">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="auth-l-pass" class="form-control" placeholder="Masukkan kata sandi" onkeypress="if(event.key === 'Enter') window.processLogin()">
+                                <button type="button" class="pass-eye-btn" onclick="window.togglePassVisibility('auth-l-pass', this)"><i class="fa-regular fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div style="text-align: right; margin-bottom: 1.3rem;">
+                            <a href="javascript:void(0)" style="font-size: 0.82rem; color: var(--primary); font-weight:800;" onclick="window.showResetPassword()">Lupa Kata Sandi?</a>
+                        </div>
+                        
+                        <button aria-label="Proses Masuk" id="btn-do-login" class="btn btn-primary btn-auth-action" onclick="window.processLogin()">
+                            <i class="fa-solid fa-arrow-right-to-bracket"></i> <span>Masuk Sekarang</span>
+                        </button>
+                    </div>
                     
-                    <button aria-label="Proses Reset" id="btn-do-reset" class="btn btn-primary btn-auth-action" onclick="window.processReset()">
-                        <i class="fa-solid fa-paper-plane"></i> <span>Kirim Link Reset</span>
-                    </button>
-                    <button aria-label="Batal" class="btn btn-outline btn-auth-action" style="margin-top: 10px;" onclick="window.switchAuthTab('login')">Kembali ke Login</button>
+                    <!-- FORM REGISTER -->
+                    <div id="form-register" class="auth-form-body" style="display: none;">
+                        <div class="form-group">
+                            <label for="auth-r-name">Nama Lengkap / Panggilan</label>
+                            <div class="input-icon-wrap">
+                                <i class="fa-regular fa-user"></i>
+                                <input type="text" id="auth-r-name" class="form-control" placeholder="Siapa nama panggilanmu?">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="auth-r-phone">Nomor WhatsApp / HP Aktif</label>
+                            <div class="input-icon-wrap">
+                                <i class="fa-brands fa-whatsapp"></i>
+                                <input type="tel" id="auth-r-phone" class="form-control" placeholder="Contoh: 081234567890">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="auth-r-email">Alamat Email Aktif</label>
+                            <div class="input-icon-wrap">
+                                <i class="fa-regular fa-envelope"></i>
+                                <input type="email" id="auth-r-email" class="form-control" placeholder="nama@email.com">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="auth-r-pass">Buat Kata Sandi (Min. 6 Karakter)</label>
+                            <div class="input-icon-wrap">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="auth-r-pass" class="form-control" placeholder="Minimal 6 karakter" onkeypress="if(event.key === 'Enter') window.processRegister()">
+                                <button type="button" class="pass-eye-btn" onclick="window.togglePassVisibility('auth-r-pass', this)"><i class="fa-regular fa-eye"></i></button>
+                            </div>
+                        </div>
+                        
+                        <button aria-label="Proses Daftar" id="btn-do-register" class="btn btn-primary btn-auth-action" style="margin-top:0.6rem;" onclick="window.processRegister()">
+                            <i class="fa-solid fa-user-check"></i> <span>Buat Akun Member</span>
+                        </button>
+                    </div>
+                    
+                    <!-- FORM RESET PASSWORD -->
+                    <div id="form-reset" class="auth-form-body" style="display: none;">
+                        <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:1.2rem; line-height:1.5;">Masukkan alamat email yang terdaftar. Kami akan mengirimkan tautan resmi untuk membuat kata sandi baru.</p>
+                        <div class="form-group">
+                            <label for="auth-res-email">Email Terdaftar</label>
+                            <div class="input-icon-wrap">
+                                <i class="fa-regular fa-envelope"></i>
+                                <input type="email" id="auth-res-email" class="form-control" placeholder="nama@email.com">
+                            </div>
+                        </div>
+                        
+                        <button aria-label="Proses Reset" id="btn-do-reset" class="btn btn-primary btn-auth-action" onclick="window.processReset()">
+                            <i class="fa-solid fa-paper-plane"></i> <span>Kirim Tautan Reset</span>
+                        </button>
+                        <button aria-label="Batal" class="btn btn-outline btn-auth-action" style="margin-top: 10px;" onclick="window.switchAuthTab('login')">Kembali ke Login</button>
+                    </div>
+                    
+                    <div id="auth-divider" class="auth-divider">
+                        <hr> <span>ATAU AKSES CEPAT</span> <hr>
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <button aria-label="Lanjut Google" id="auth-google-btn" class="btn btn-outline btn-auth-action" onclick="window.processGoogleLogin()">
+                            <i class="fa-brands fa-google" style="color:#ea4335; font-size:1.15rem;"></i> <span id="text-google-btn">Lanjutkan dengan Google</span>
+                        </button>
+                        <!-- Tombol Masuk sebagai Anonim tepat di bawah Login Google -->
+                        <button aria-label="Masuk sebagai Anonim" id="auth-guest-btn" class="btn btn-warning btn-auth-action" onclick="window.processAnonymousLogin()">
+                            <i class="fa-solid fa-user-secret" style="font-size:1.1rem;"></i> <span id="text-guest-btn">Masuk sebagai Anonim</span>
+                        </button>
+                    </div>
                 </div>
-                
-                <div id="auth-divider" class="auth-divider">
-                    <hr> <span>ATAU</span> <hr>
-                </div>
-                
-                <button aria-label="Lanjut Google" id="auth-google-btn" class="btn btn-outline btn-auth-action" style="border-color: rgba(234,67,53,0.5); color: #ea4335; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="window.processGoogleLogin()">
-                    <i class="fa-brands fa-google" style="font-size:1.2rem;"></i> <span id="text-google-btn">Masuk dengan Google</span>
-                </button>
             </div>
         </div>
 
-        <!-- Footer -->
+        <!-- FOOTER -->
         <footer class="footer-new reveal">
-            <div class="footer-left">
-                <div class="footer-brand">
-                    <img id="footer-logo-img-2" src="" alt="Footer Logo" width="35" height="35" style="display:none; border-radius: 8px;">
-                    <h2 id="footer-logo-text-2">VIPER<span>CELL</span></h2>
+            <div class="container footer-inner">
+                <div class="footer-left">
+                    <div class="footer-brand">
+                        <img id="footer-logo-img-2" src="" alt="Footer Logo" width="36" height="36" style="display:none;" class="logo-img">
+                        <h2 id="footer-logo-text-2">VIPER<span>CELL</span></h2>
+                    </div>
+                    <div class="footer-tagline">Pusat Aplikasi Premium, Top Up Game & Tools Digital &bull; Otomatis 24/7 &bull; Bergaransi</div>
+                    <div class="footer-social-links">
+                        <a href="#" id="footer-ig-btn" class="soc-btn soc-ig" target="_blank" style="display:none;" aria-label="Instagram"><i class="fa-brands fa-instagram"></i> Instagram</a>
+                        <a href="#" id="footer-tt-btn" class="soc-btn soc-tt" target="_blank" style="display:none;" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i> TikTok</a>
+                    </div>
                 </div>
-                <div class="footer-tagline">Akun premium &bull; Harga pelajar &bull; Keamanan terjamin</div>
-                <div class="footer-social-links">
-                    <a href="#" id="footer-ig-btn" class="soc-btn soc-ig" target="_blank" style="display:none;" aria-label="Instagram"><i class="fa-brands fa-instagram"></i> IG</a>
-                    <a href="#" id="footer-tt-btn" class="soc-btn soc-tt" target="_blank" style="display:none;" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i> TikTok</a>
+                
+                <div class="footer-right">
+                    <span style="font-weight:800; color:var(--text);">Butuh Bantuan Langsung?</span>
+                    <a href="#" id="footer-wa-link" target="_blank" class="wa-contact-btn" title="Customer Service / Bantuan" aria-label="WhatsApp Bantuan">
+                        <i class="fa-brands fa-whatsapp"></i> <span id="footer-wa-display">Hubungi WhatsApp CS</span>
+                    </a>
                 </div>
             </div>
-            
-            <div class="footer-right">
-                Bantuan & Laporan? Hubungi Kami
-                <a href="#" id="footer-wa-link" target="_blank" class="wa-contact-btn" title="Customer Service / Bantuan" aria-label="WhatsApp Bantuan">
-                    <i class="fa-brands fa-whatsapp"></i> <span id="footer-wa-display">CS WhatsApp</span>
-                </a>
-            </div>
-            
             <div class="bottom-nav-spacer"></div>
         </footer>
 
-        <!-- BOTTOM NAVIGATION -->
-        <nav class="bottom-nav" aria-label="Navigasi Bawah">
+        <!-- BOTTOM NAVIGATION KHUSUS MOBILE (Otomatis Tersembunyi Saat Belum Login / auth-locked) -->
+        <nav class="bottom-nav" id="mobile-bottom-nav" aria-label="Navigasi Bawah">
             <a onclick="window.switchMainTab('katalog')" id="nav-bot-katalog" class="active" role="button">
-                <i class="fa-solid fa-shop"></i><span>Katalog</span>
+                <i class="fa-solid fa-store"></i><span>Katalog</span>
             </a>
             <a onclick="window.switchMainTab('pesanan')" id="nav-bot-pesanan" role="button">
-                <i class="fa-solid fa-receipt"></i><span id="nav-text-pesanan-mob">Lacak</span>
-                <span id="user-order-badge-mobile" class="notif-dot" style="top:5px; right:15px;"></span>
+                <i class="fa-solid fa-receipt"></i><span id="nav-text-pesanan-mob">Pesanan</span>
+                <span id="user-order-badge-mobile" class="notif-dot" style="top:6px; right:22%;"></span>
+            </a>
+            <a onclick="window.switchMainTab('berita')" id="nav-bot-berita" role="button">
+                <i class="fa-solid fa-newspaper"></i><span>Berita</span>
             </a>
             <a onclick="window.switchMainTab('bantuan')" id="nav-bot-bantuan" role="button">
                 <i class="fa-solid fa-headset"></i><span>Bantuan</span>
+                <span id="user-chat-badge-mobile" class="notif-dot" style="top:6px; right:22%;"></span>
             </a>
-            <a onclick="window.switchMainTab('berita')" id="nav-bot-berita" role="button">
-                <i class="fa-solid fa-newspaper"></i><span>Komunitas</span>
-            </a>
-            <a onclick="if(document.getElementById('nav-profil').style.display !== 'none'){ window.switchMainTab('profil'); } else { window.switchMainTab('auth'); }" id="nav-bot-profil" role="button">
-                <i class="fa-solid fa-circle-user"></i><span>Akun</span>
+            <a onclick="window.switchMainTab('profil')" id="nav-bot-profil" role="button">
+                <i class="fa-solid fa-circle-user"></i><span id="nav-text-profil-mob">Profil</span>
             </a>
         </nav>
     </div> 
 
-    <!-- PAYMENT QRIS MODAL -->
+    <!-- MODAL UPGRADE AKUN ANONIM MENJADI MEMBER RESMI (UID TETAP SAMA & TANPA HILANG DATA) -->
+    <div class="modal-overlay" id="modal-upgrade-member">
+        <div class="modal-content" style="max-width: 460px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-user-shield text-primary"></i> Ubah ke Member Resmi</h2>
+                <button class="close-btn" aria-label="Tutup" onclick="window.closeModal('modal-upgrade-member')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="brutal-alert-box alert-warning" style="margin-bottom: 1rem;">
+                <i class="fa-solid fa-link"></i>
+                <span>Seluruh riwayat transaksi dan sesi chat kamu saat ini akan <b>otomatis terhubung</b> ke akun Member baru tanpa hilang sedikit pun!</span>
+            </div>
+
+            <div class="form-group">
+                <label for="upg-name">Nama Lengkap / Panggilan <span style="color:var(--danger)">*</span></label>
+                <input type="text" id="upg-name" class="form-control" placeholder="Contoh: Budi Santoso">
+            </div>
+            <div class="form-group">
+                <label for="upg-phone"><i class="fa-brands fa-whatsapp text-success"></i> Nomor WhatsApp Aktif <span style="color:var(--danger)">*</span></label>
+                <input type="tel" id="upg-phone" class="form-control" placeholder="Contoh: 081234567890">
+            </div>
+            <div class="form-group">
+                <label for="upg-email">Alamat Email Aktif <span style="color:var(--danger)">*</span></label>
+                <input type="email" id="upg-email" class="form-control" placeholder="email@kamu.com">
+            </div>
+            <div class="grid-2col-form" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.2rem;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label for="upg-pass">Password Baru <span style="color:var(--danger)">*</span></label>
+                    <input type="password" id="upg-pass" class="form-control" placeholder="Min. 6 Karakter">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label for="upg-pass-confirm">Ulangi Password <span style="color:var(--danger)">*</span></label>
+                    <input type="password" id="upg-pass-confirm" class="form-control" placeholder="Konfirmasi">
+                </div>
+            </div>
+
+            <button id="btn-submit-upgrade" class="btn btn-primary" style="width:100%; padding: 13px;" onclick="window.upgradeAnonymousToMember()">
+                <i class="fa-solid fa-user-check"></i> <span>Kaitkan & Simpan Jadi Member</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 1: PEMBAYARAN QRIS OTOMATIS -->
     <div class="modal-overlay" id="modal-payment">
-        <div class="modal-content" style="max-width: 400px; text-align: center; background: var(--surface); padding: 2rem 1.5rem;">
-            <div class="modal-header" style="border-bottom: none; justify-content: center; margin-bottom: 0;">
-                <h2 id="pay-modal-title" style="font-size: 1.3rem; color: var(--primary-light);">Segera Lakukan Pembayaran!</h2>
-                <button class="close-btn" aria-label="Tutup" onclick="window.closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button>
+        <div class="modal-content qris-fintech-modal">
+            <div class="qris-top-bar">
+                <div class="qris-brand-badge">
+                    <i class="fa-solid fa-qrcode"></i> QRIS NATIONAL PAYMENT
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div id="qris-timer-display" class="qris-timer-pill" style="display:none;">
+                        <i class="fa-regular fa-clock"></i> <span id="qris-time-left">04:00</span>
+                    </div>
+                    <button class="close-btn" aria-label="Tutup" onclick="window.closeModal('modal-payment')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             
             <div id="qris-main-ui">
-                <p id="pay-modal-desc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Scan QRIS di bawah ini menggunakan aplikasi e-Wallet atau M-Banking Anda sebelum waktu habis.</p>
-                <div id="qris-payment-section" class="qris-box">
-                    
-                    <div id="qris-timer-display" style="font-size:1.2rem; font-weight:800; color:var(--danger); margin-bottom:10px; display:none;">
-                        <i class="fa-solid fa-stopwatch"></i> <span id="qris-time-left">04:00</span>
-                    </div>
-                    
-                    <!-- AREA ID INVOICE UNTUK DICOPY USER -->
-                    <div style="background: rgba(37,99,235,0.1); border: 1px dashed var(--primary-light); padding: 10px; border-radius: 8px; margin-bottom: 15px;">
-                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">ID Pesanan (Invoice):</p>
-                        <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
-                            <strong id="pay-modal-invoice-id" style="color: var(--text); font-size: 1.1rem; letter-spacing: 1px;">-</strong>
-                            <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem;" onclick="window.copyInvoiceIdModal()"><i class="fa-regular fa-copy"></i></button>
+                <div class="qris-summary-strip">
+                    <div class="qris-strip-item">
+                        <span>NOMOR INVOICE</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <strong id="pay-modal-invoice-id">-</strong>
+                            <button class="mini-copy-btn" onclick="window.copyInvoiceIdModal()" title="Salin Invoice"><i class="fa-regular fa-copy"></i></button>
                         </div>
-                        <!-- Peringatan ini penting banget buat Guest -->
-                        <small id="pay-modal-guest-warning" style="display: block; color: var(--warning); font-size: 0.75rem; margin-top: 5px; font-weight: bold;">
-                            *PENTING: Harap salin dan simpan ID ini untuk melacak pesanan Anda!
-                        </small>
                     </div>
-                    
-                    <!-- Area QRIS + Tombol Unduh -->
-                    <div style="background: white; padding: 15px; border-radius: 12px; display: inline-block; margin-bottom:10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                        <div id="qrcode-container" style="margin-bottom:15px;"></div>
-                        <button id="btn-download-qris" class="btn btn-outline btn-sm" style="width:100%; border-color:var(--border); color:var(--text); font-weight:700;" onclick="window.downloadQRIS()">
-                            <i class="fa-solid fa-download"></i> Simpan QRIS
-                        </button>
-                    </div>
-                    
-                    <div id="qris-error-msg" style="display:none; color:var(--danger); font-size:0.85rem; background:rgba(239,68,68,0.1); padding:10px; border-radius:8px;">Terjadi kesalahan saat memuat QRIS. Hubungi Admin.</div>
-                    
-                    <div style="margin-top: 1rem; border-top: 2px dashed var(--border); padding-top: 1rem;">
-                        <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.3rem;">Total Tagihan (Otomatis Sesuai)</p>
-                        <div style="display:flex; justify-content:center; align-items:center; gap:10px;">
-                            <p id="pay-total-display" style="color: var(--text); font-size: 1.6rem; font-weight: 800; line-height: 1; margin:0;">Rp0</p>
-                            <button id="btn-copy-nominal" aria-label="Salin Nominal" class="btn btn-outline" style="padding:5px 10px;" onclick="window.copyNominal()" title="Salin Angka"><i class="fa-regular fa-copy"></i></button>
+                    <div class="qris-strip-divider"></div>
+                    <div class="qris-strip-item" style="text-align:right;">
+                        <span>TOTAL PEMBAYARAN</span>
+                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:6px;">
+                            <strong id="pay-total-display" class="text-primary" style="font-size:1.25rem;">Rp0</strong>
+                            <button id="btn-copy-nominal" class="mini-copy-btn" onclick="window.copyNominal()" title="Salin Nominal"><i class="fa-regular fa-copy"></i></button>
                         </div>
                     </div>
                 </div>
-                <!-- Tombol "Sudah Bayar" Arahkan ke Tab Pesanan / Lacak sesuai JS nanti -->
-                <button aria-label="Sudah Bayar" id="btn-final-pay" class="btn btn-success" style="width:100%; padding:1rem; font-size:1.1rem; border-radius: 12px; font-weight: 700; margin-top: 15px; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);" onclick="window.goToPesananFromPay()">Saya Sudah Bayar</button>
+
+                <small id="pay-modal-guest-warning" class="qris-guest-alert">
+                    <i class="fa-solid fa-circle-exclamation"></i> Simpan Nomor Invoice di atas atau Ubah ke Member agar riwayat tersimpan permanen!
+                </small>
+                
+                <div id="qris-payment-section" class="qris-stage-box">
+                    <div id="qris-capture-area" class="qris-white-frame">
+                        <div class="qris-frame-head">
+                            <strong>VIPERCELL INDONESIA</strong>
+                            <span>NMID: Otomatis Sesuai Tagihan</span>
+                        </div>
+                        <div id="qrcode-container" class="qrcode-canvas-wrap"></div>
+                        <div class="qris-supported-banks">
+                            Menerima GoPay &bull; DANA &bull; OVO &bull; ShopeePay &bull; BCA &bull; Mandiri &bull; BRI &bull; Semua QRIS
+                        </div>
+                    </div>
+                    
+                    <div id="qris-error-msg" class="brutal-alert-box alert-danger" style="display:none; margin-top:10px;">
+                        Gagal merakit kode QRIS. Silakan hubungi Admin.
+                    </div>
+                </div>
+
+                <div class="qris-steps-mini">
+                    <span><b>1.</b> Scan / Simpan Gambar QR</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span><b>2.</b> Bayar Sesuai Total</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span><b>3.</b> Otomatis Selesai</span>
+                </div>
+
+                <div class="qris-action-row">
+                    <button id="btn-download-qris" class="btn btn-outline" style="flex:1;" onclick="window.downloadQRIS()">
+                        <i class="fa-solid fa-download"></i> Unduh QRIS
+                    </button>
+                    <button aria-label="Sudah Bayar" id="btn-final-pay" class="btn btn-success" style="flex:1.4;" onclick="window.goToPesananFromPay()">
+                        <i class="fa-solid fa-circle-check"></i> Saya Sudah Bayar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- CERDAS ALERT / DIALOG CEPAT -->
+    <!-- MODAL 2: TIKET BARCODE PEMBAYARAN TUNAI -->
+    <div class="modal-overlay" id="modal-cash-barcode">
+        <div class="modal-content qris-fintech-modal">
+            <div class="qris-top-bar">
+                <div class="qris-brand-badge" style="color:var(--warning);">
+                    <i class="fa-solid fa-barcode"></i> TIKET KASIR TUNAI
+                </div>
+                <button class="close-btn" aria-label="Tutup" onclick="window.closeModal('modal-cash-barcode')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <p style="font-size:0.82rem; color:var(--text-muted); font-weight:600; margin-bottom:12px;">
+                Tunjukkan <b>Kode Barcode</b> di bawah ini kepada Admin Vipercell untuk di-scan saat melakukan pembayaran tunai.
+            </p>
+
+            <div id="cash-barcode-capture" class="cash-retail-ticket">
+                <div class="retail-ticket-head">
+                    <span class="retail-store-name">VIPERCELL CASHIER</span>
+                    <span class="retail-ticket-badge">BAYAR TUNAI</span>
+                </div>
+                <div class="retail-barcode-box">
+                    <svg id="cash-barcode-svg"></svg>
+                </div>
+                <div class="retail-ticket-details">
+                    <div class="retail-row">
+                        <span>KODE PEMBAYARAN</span>
+                        <strong id="cash-modal-inv">-</strong>
+                    </div>
+                    <div class="retail-row">
+                        <span>ITEM PESANAN</span>
+                        <strong id="cash-modal-item" style="max-width:180px; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">-</strong>
+                    </div>
+                    <div class="retail-row total">
+                        <span>HARUS DIBAYAR</span>
+                        <strong id="cash-modal-total">Rp0</strong>
+                    </div>
+                </div>
+                <div class="retail-ticket-foot">
+                    *Berlaku untuk pembayaran tunai langsung di wilayah Teluk Ambon
+                </div>
+            </div>
+
+            <div class="qris-action-row" style="margin-top: 14px;">
+                <button class="btn btn-outline" style="flex:1;" onclick="window.downloadCashBarcode()">
+                    <i class="fa-solid fa-download"></i> Simpan Struk
+                </button>
+                <button class="btn btn-primary" style="flex:1.4;" onclick="window.confirmCashBarcodeToChat()">
+                    <i class="fa-solid fa-headset"></i> Hubungi Kasir / Admin
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: E-RECEIPT RINCIAN PESANAN -->
+    <div class="modal-overlay" id="modal-order-detail">
+        <div class="modal-content" style="max-width: 540px; padding: 0; overflow: hidden;">
+            <div class="modal-header" style="padding: 1.1rem 1.4rem; margin-bottom: 0; background: var(--surface-hover);">
+                <h2><i class="fa-solid fa-file-invoice text-primary"></i> E-Receipt Transaksi</h2>
+                <button class="close-btn" aria-label="Tutup" onclick="window.closeModal('modal-order-detail')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="modal-order-detail-body" style="padding: 1.35rem; max-height: 82dvh; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- CERDAS ALERT -->
     <div class="msg-overlay" id="custom-alert">
         <div class="msg-box">
             <div id="ca-icon" class="msg-icon info"><i class="fa-solid fa-circle-info"></i></div>
             <h3 id="ca-title" class="msg-title">Info</h3>
             <p id="ca-desc" class="msg-desc"></p>
             <div id="ca-extra-action"></div>
-            <button aria-label="Tutup" class="btn btn-outline" style="width: 100%; margin-top: 0.8rem;" onclick="window.closeAlert()">Tutup</button>
+            <button aria-label="Tutup" class="btn btn-outline" style="width: 100%; margin-top: 1rem;" onclick="window.closeAlert()">Tutup</button>
         </div>
     </div>
     
     <!-- MODAL KONFIRMASI -->
     <div class="msg-overlay" id="modal-confirm">
         <div class="msg-box">
-            <div class="msg-icon" id="mc-icon-container" style="font-size:2.5rem; margin-bottom:0.5rem; color:var(--primary-light);">
+            <div class="msg-icon" id="mc-icon-container">
                 <i id="mc-icon" class="fa-solid fa-circle-question"></i>
             </div>
             <h3 id="mc-title" class="msg-title">Konfirmasi</h3>
             <p id="mc-desc" class="msg-desc" style="margin-bottom:1.5rem;"></p>
             <div style="display:flex; gap:10px;" id="mc-btn-group">
-                <button aria-label="Batal" class="btn btn-outline" style="flex:1;" onclick="window.resolveConfirm(false)">Tidak</button>
-                <button aria-label="Konfirmasi" class="btn btn-primary" id="mc-confirm-btn" style="flex:1; background:var(--primary); border-color:var(--primary);" onclick="window.resolveConfirm(true)">Ya, Yakin</button>
+                <button aria-label="Batal" class="btn btn-outline" style="flex:1;" onclick="window.resolveConfirm(false)">Batal</button>
+                <button aria-label="Konfirmasi" class="btn btn-primary" id="mc-confirm-btn" style="flex:1;" onclick="window.resolveConfirm(true)">Ya, Lanjutkan</button>
             </div>
         </div>
     </div>
 
     <script type="module" src="js/store.js" defer></script>
 
-    <!-- SCRIPT FRONTEND KOSMETIK: PWA, UI TABS, & SALIN INVOICE -->
+    <!-- SCRIPT PWA & UTILITAS HALAMAN -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Reg Failed:', err));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Reg Error:', err));
             });
         }
 
@@ -664,7 +1227,7 @@
             pwaPrompt.style.display = 'none';
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
+                await deferredPrompt.userChoice;
                 deferredPrompt = null;
             }
         });
@@ -673,6 +1236,19 @@
             pwaPrompt.style.display = 'none';
             localStorage.setItem('pwa_prompt_dismissed', 'true');
         });
+
+        window.togglePassVisibility = function(inputId, btnEl) {
+            const inp = document.getElementById(inputId);
+            if (!inp) return;
+            const icon = btnEl.querySelector('i');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                if (icon) icon.className = 'fa-regular fa-eye-slash';
+            } else {
+                inp.type = 'password';
+                if (icon) icon.className = 'fa-regular fa-eye';
+            }
+        };
 
         window.switchBuyModalTab = function(tabName) {
             document.getElementById('tab-buy-form').classList.remove('active');
@@ -683,23 +1259,17 @@
             
             document.getElementById('tab-buy-' + tabName).classList.add('active');
             document.getElementById('buy-content-' + tabName).style.display = 'block';
-        };
-
-        window.changeBuyQty = function(change) {
-            const input = document.getElementById('buy-qty');
-            let current = parseInt(input.value) || 1;
-            let newVal = current + change;
-            if (newVal < 1) newVal = 1;
-            input.value = newVal;
             
-            if(window.calculateDirectBuyTotal) window.calculateDirectBuyTotal();
+            if (tabName === 'reviews' && typeof window.renderReviewsUI === 'function') {
+                window.renderReviewsUI();
+            }
         };
 
         window.toggleDescMore = function() {
             const box = document.getElementById('buy-detail-fields');
             const fade = document.getElementById('buy-desc-fade');
             const btn = document.getElementById('btn-desc-more');
-            box.style.maxHeight = '1500px'; 
+            box.style.maxHeight = '2000px'; 
             fade.style.display = 'none'; 
             btn.style.display = 'none'; 
         };
@@ -707,7 +1277,7 @@
         window.showAllItems = function() {
             const grid = document.getElementById('buy-item-grid');
             const btn = document.getElementById('btn-items-more');
-            grid.style.maxHeight = '1500px'; 
+            grid.style.maxHeight = '3000px'; 
             btn.style.display = 'none';
         };
         
@@ -728,26 +1298,30 @@
             }
         };
 
-        // Fungsi Unduh Gambar QRIS
         window.downloadQRIS = function() {
-            const qrElement = document.getElementById('qrcode-container');
-            const btnDownload = document.getElementById('btn-download-qris');
+            const qrElement = document.getElementById('qris-capture-area') || document.getElementById('qrcode-container');
             if(!qrElement) return;
 
-            // Sembunyikan sementara tombol agar tidak ikut terfoto
-            const ogDisplay = btnDownload.style.display;
-            btnDownload.style.display = 'none';
-
-            html2canvas(qrElement, { backgroundColor: '#ffffff' }).then(canvas => {
-                btnDownload.style.display = ogDisplay; // Kembalikan tombol
+            html2canvas(qrElement, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'QRIS_Vipercell_Pembayaran.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             });
-        }
+        };
+
+        window.downloadCashBarcode = function() {
+            const barcodeEl = document.getElementById('cash-barcode-capture');
+            if(!barcodeEl) return;
+
+            html2canvas(barcodeEl, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Tiket_Tunai_Vipercell.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        };
         
-        // Fungsi Salin ID Invoice di Modal Pembayaran
         window.copyInvoiceIdModal = function() {
             const invIdEl = document.getElementById('pay-modal-invoice-id');
             if(invIdEl && invIdEl.innerText !== '-') {
@@ -755,7 +1329,7 @@
                     if(window.showToast) window.showToast('Tersalin', 'ID Invoice berhasil disalin ke Papan Klip.', 'success');
                 });
             }
-        }
+        };
     </script>
 </body>
 </html>
