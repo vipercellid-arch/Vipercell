@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vipercell-store-v28.9';
+const CACHE_NAME = 'vipercell-pwa-v30.2.4';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
