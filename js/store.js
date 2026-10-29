@@ -13245,7 +13245,7 @@ window.backToMemberPlusTabFromComparison = function() {
 // Kunci Pergerakan Latar Belakang Saat Modal / Pop-Up Terbuka (Poin #4)
 function syncUserModalScrollLock() {
     const anyActive = Array.from(document.querySelectorAll('.modal-overlay')).some(
-        el => el.classList.contains('active') || el.style.display === 'flex'
+        el => el.classList.contains('active')
     );
     document.documentElement.classList.toggle('v302-modal-scroll-locked', anyActive);
     document.body.classList.toggle('v302-modal-scroll-locked', anyActive);
@@ -16358,133 +16358,8 @@ window.sendUserEmailVerificationLink = async function() {
     }
 };
 
-// 4. Handler Custom Action URL Firebase Auth (?mode=resetPassword & ?mode=verifyEmail & ?oobCode=...) (Usulan #1)
-let _activeFirebaseOobCode = '';
-let _activeFirebaseResetEmail = '';
-
-window.closeFirebaseEmailActionModal = function() {
-    const modal = document.getElementById('modal-firebase-email-action');
-    if (modal) {
-        modal.classList.remove('active');
-        modal.style.display = 'none';
-    }
-    document.body.classList.remove('v302-modal-scroll-locked');
-};
-
-window.handleIncomingFirebaseAuthActionUrl = async function() {
-    try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const mode = (urlParams.get('mode') || '').trim();
-        const oobCode = (urlParams.get('oobCode') || '').trim();
-        if (!mode || !oobCode) return;
-
-        // Bersihkan query URL di address bar agar tidak diproses ulang saat refresh
-        const cleanUrl = window.location.origin + window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-
-        const modal = document.getElementById('modal-firebase-email-action');
-        const titleEl = document.getElementById('fb-action-modal-title');
-        const resetBody = document.getElementById('fb-action-reset-pass-body');
-        const verifyBody = document.getElementById('fb-action-verify-status-body');
-        const emailLbl = document.getElementById('fb-action-reset-email-label');
-        const statusIcon = document.getElementById('fb-action-status-icon');
-        const statusHead = document.getElementById('fb-action-status-heading');
-        const statusDesc = document.getElementById('fb-action-status-desc');
-
-        if (!modal) return;
-
-        if (mode === 'resetPassword') {
-            try {
-                const emailAccount = await verifyPasswordResetCode(auth, oobCode);
-                _activeFirebaseOobCode = oobCode;
-                _activeFirebaseResetEmail = emailAccount || '';
-                if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-key text-primary"></i> Atur Ulang Kata Sandi';
-                if (emailLbl) emailLbl.innerText = _activeFirebaseResetEmail;
-                if (resetBody) resetBody.style.display = 'block';
-                if (verifyBody) verifyBody.style.display = 'none';
-                modal.style.display = 'flex';
-                modal.classList.add('active');
-                document.body.classList.add('v302-modal-scroll-locked');
-                setTimeout(() => document.getElementById('fb-action-new-pass')?.focus(), 120);
-            } catch (err) {
-                window.customAlert('Tautan Kedaluwarsa', 'Tautan ganti kata sandi ini sudah digunakan atau sudah kedaluwarsa. Silakan minta tautan baru di menu Lupa Kata Sandi.', 'error');
-            }
-        } else if (mode === 'verifyEmail') {
-            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-envelope-circle-check text-success"></i> Verifikasi Email Akun';
-            if (resetBody) resetBody.style.display = 'none';
-            if (verifyBody) verifyBody.style.display = 'block';
-            try {
-                await applyActionCode(auth, oobCode);
-                if (currentUser && typeof currentUser.reload === 'function') {
-                    await currentUser.reload().catch(() => {});
-                }
-                window.syncUserEmailVerificationStatusUi();
-                if (statusIcon) {
-                    statusIcon.style.background = '#10b981';
-                    statusIcon.innerHTML = '<i class="fa-solid fa-check"></i>';
-                }
-                if (statusHead) statusHead.innerText = 'Email Berhasil Diverifikasi!';
-                if (statusDesc) statusDesc.innerText = 'Alamat email akun Vipercell kamu kini telah resmi terverifikasi.';
-            } catch (err) {
-                if (statusIcon) {
-                    statusIcon.style.background = '#ef4444';
-                    statusIcon.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-                }
-                if (statusHead) statusHead.innerText = 'Tautan Tidak Berlaku';
-                if (statusDesc) statusDesc.innerText = 'Tautan verifikasi email ini sudah pernah digunakan atau sudah kedaluwarsa.';
-            }
-            modal.style.display = 'flex';
-            modal.classList.add('active');
-            document.body.classList.add('v302-modal-scroll-locked');
-        }
-    } catch (e) {}
-};
-
-window.submitFirebaseCustomResetPassword = async function() {
-    if (!_activeFirebaseOobCode) return;
-    const p1 = (document.getElementById('fb-action-new-pass')?.value || '').trim();
-    const p2 = (document.getElementById('fb-action-confirm-pass')?.value || '').trim();
-    if (p1.length < 6) {
-        return window.customAlert('Kata Sandi Kurang Panjang', 'Masukkan kata sandi baru minimal 6 karakter.', 'warning');
-    }
-    if (p1 !== p2) {
-        return window.customAlert('Konfirmasi Tidak Sama', 'Kata sandi baru dan ulangi kata sandi tidak sama.', 'warning');
-    }
-
-    const btn = document.getElementById('btn-fb-action-save-pass');
-    const ogHtml = btn ? btn.innerHTML : '';
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
-    }
-
-    try {
-        await confirmPasswordReset(auth, _activeFirebaseOobCode, p1);
-        const savedEmail = _activeFirebaseResetEmail;
-        _activeFirebaseOobCode = '';
-        _activeFirebaseResetEmail = '';
-        window.closeFirebaseEmailActionModal();
-        window.switchAuthTab('login');
-        const loginEm = document.getElementById('auth-l-email');
-        if (loginEm && savedEmail) loginEm.value = savedEmail;
-        window.customAlert('Kata Sandi Diperbarui', 'Kata sandi baru kamu berhasil disimpan! Silakan masuk menggunakan kata sandi baru tersebut.', 'success');
-    } catch (e) {
-        window.customAlert('Gagal Menyimpan Sandi', 'Tautan reset kata sandi sudah kedaluwarsa. Silakan minta ulang tautan baru.', 'error');
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = ogHtml;
-        }
-    }
-};
-
-// Jalankan deteksi Custom Action URL saat halaman dimuat
-setTimeout(() => {
-    window.handleIncomingFirebaseAuthActionUrl();
-}, 250);
-
-// 5. Auto-Clean Sesi Perangkat Kedaluwarsa (>30 Hari) Secara Otomatis (Usulan #8)
-const V3025_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 Hari
+// 4. Auto-Clean Sesi Perangkat Kedaluwarsa (>30 Hari) Secara Otomatis
+const V3025_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 window.cleanExpiredUserLoginSessionsV3025 = async function() {
     if (!currentUser || currentUser.isAnonymous || !userProfile || userProfile.isGuest) return;
@@ -16520,9 +16395,56 @@ window.recordCurrentUserLoginActivity = async function(userObj, forceNewRecord =
     window.syncUserEmailVerificationStatusUi();
 };
 
-// 6. Perbaikan Pop-Up Banner: Tampil Setiap Kali Masuk ke Web Maupun Saat Login (Poin #5)
+// 5. Fungsi Pembuka Kunci Scroll Anti-Freeze (Memastikan Layar Tidak Pernah Membeku Saat Pop-Up / Modal Ditutup)
+window.forceReleaseAllScrollLocksV3025 = function() {
+    const anyModalStillActive = Array.from(document.querySelectorAll('.modal-overlay')).some(
+        el => el.classList.contains('active')
+    );
+    if (!anyModalStillActive) {
+        document.documentElement.classList.remove('v302-modal-scroll-locked');
+        document.body.classList.remove('v302-modal-scroll-locked', 'v302-scroll-locked', 'no-scroll', 'preloader-locked');
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+    }
+};
+
+// 6. Perbaikan Pop-Up Banner & Penutupan Pop-Up Tanpa Efek Freeze
 let _v3025PopupShownOnInitialEntry = false;
 let _v3025PopupShownAfterLogin = false;
+let _v3025PopupClosedByUser = false;
+let _v3025PopupDebounceTimer = null;
+
+window.closeInitialPopupBanner = function() {
+    _v3025PopupClosedByUser = true;
+    if (_v3025PopupDebounceTimer) {
+        clearTimeout(_v3025PopupDebounceTimer);
+        _v3025PopupDebounceTimer = null;
+    }
+    const modal = document.getElementById('modal-initial-popup-banner');
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+        const oldYt = modal.querySelector('.popup-yt-wrap');
+        if (oldYt) oldYt.remove();
+    }
+    window.forceReleaseAllScrollLocksV3025();
+    setTimeout(window.forceReleaseAllScrollLocksV3025, 60);
+    setTimeout(window.forceReleaseAllScrollLocksV3025, 220);
+};
+
+const _origCloseModalV3025 = window.closeModal;
+window.closeModal = function(id) {
+    if (typeof _origCloseModalV3025 === 'function') {
+        _origCloseModalV3025(id);
+    }
+    const el = document.getElementById(id);
+    if (el) {
+        el.classList.remove('active');
+        if (el.style.display === 'flex') el.style.display = 'none';
+    }
+    window.forceReleaseAllScrollLocksV3025();
+    setTimeout(window.forceReleaseAllScrollLocksV3025, 60);
+};
 
 window.maybeShowInitialPopupBanner = function(forceOnLogin = false) {
     if (typeof applyAuthoritativeBannersToSiteSettings === 'function') {
@@ -16535,8 +16457,9 @@ window.maybeShowInitialPopupBanner = function(forceOnLogin = false) {
     if (forceOnLogin) {
         if (_v3025PopupShownAfterLogin) return;
         _v3025PopupShownAfterLogin = true;
+        _v3025PopupClosedByUser = false;
     } else {
-        if (_v3025PopupShownOnInitialEntry) return;
+        if (_v3025PopupShownOnInitialEntry || _v3025PopupClosedByUser) return;
         _v3025PopupShownOnInitialEntry = true;
     }
 
@@ -16570,25 +16493,32 @@ window.maybeShowInitialPopupBanner = function(forceOnLogin = false) {
     }
 
     modal.style.display = 'flex';
-    setTimeout(() => modal.classList.add('active'), 20);
+    modal.classList.add('active');
 };
 
-// Pastikan Pop-Up Banner langsung tampil begitu dokumen pengaturan banner / mainConfig dimuat saat masuk web
+function scheduleInitialPopupBannerOnce() {
+    if (_v3025PopupShownOnInitialEntry || _v3025PopupClosedByUser) return;
+    if (_v3025PopupDebounceTimer) clearTimeout(_v3025PopupDebounceTimer);
+    _v3025PopupDebounceTimer = setTimeout(() => {
+        _v3025PopupDebounceTimer = null;
+        window.maybeShowInitialPopupBanner(false);
+    }, 260);
+}
+
 onSnapshot(doc(db, pathSettings, 'banners_config'), (snap) => {
     if (!snap.exists()) return;
     const d = snap.data() || {};
     siteSettings = { ...siteSettings, ...d };
-    setTimeout(() => window.maybeShowInitialPopupBanner(false), 180);
+    scheduleInitialPopupBannerOnce();
 }, () => {});
 
 onSnapshot(doc(db, pathSettings, 'mainConfig'), (snap) => {
     if (!snap.exists()) return;
     const d = snap.data() || {};
     siteSettings = { ...siteSettings, ...d };
-    setTimeout(() => window.maybeShowInitialPopupBanner(false), 220);
+    scheduleInitialPopupBannerOnce();
 }, () => {});
 
-// Tampilkan juga saat user baru selesai login jika sebelumnya sudah menutup pop-up di halaman login
 const _origProcessLoginV3025 = window.processLogin;
 window.processLogin = async function() {
     if (typeof _origProcessLoginV3025 === 'function') {
@@ -16601,3 +16531,9 @@ window.processLogin = async function() {
         }
     }
 };
+
+// Pastikan segera setelah halaman siap, kunci preloader/no-scroll dibersihkan
+window.addEventListener('load', () => {
+    setTimeout(window.forceReleaseAllScrollLocksV3025, 350);
+    setTimeout(window.forceReleaseAllScrollLocksV3025, 1200);
+});

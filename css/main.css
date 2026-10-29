@@ -6774,3 +6774,22 @@ button.btn-working-indicator,
         conic-gradient(from var(--v3024-beam-angle, 0deg), #09090b 0deg, #facc15 70deg, #ffffff 120deg, #f87171 180deg, #09090b 260deg, #facc15 330deg, #09090b 360deg) !important;
     color: #ffffff !important;
 }
+
+/* === VIPERCELL v30.2.5: ANTI-FREEZE SCROLL & POPUP OVERLAY FIX === */
+.modal-overlay:not(.active),
+#modal-initial-popup-banner:not(.active),
+#payment-success-overlay:not(.active),
+#memberplus-welcome-overlay:not(.active) {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+html:not(.v302-modal-scroll-locked),
+body:not(.v302-modal-scroll-locked):not(.preloader-locked) {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y !important;
+}
