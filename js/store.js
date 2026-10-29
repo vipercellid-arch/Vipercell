@@ -6,7 +6,7 @@
 import { 
     db, auth,
     signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    sendPasswordResetEmail, updatePassword, GoogleAuthProvider, EmailAuthProvider, linkWithCredential, deleteUser,
+    sendPasswordResetEmail, verifyPasswordResetCode, confirmPasswordReset, applyActionCode, sendEmailVerification, updatePassword, GoogleAuthProvider, EmailAuthProvider, linkWithCredential, deleteUser,
     signInWithPopup, onAuthStateChanged,
     signOut, setPersistence, browserLocalPersistence,
     doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, collection, addDoc, increment, arrayUnion, query, where, getDocs, runTransaction 
@@ -15336,15 +15336,7 @@ window.closeCategorySubviewToHome = function() {
     window.renderBanners();
 };
 
-// Listener sinkronisasi pengaturan WA dari dokumen settings/wa_config
-onSnapshot(doc(db, pathSettings, 'wa_config'), (snap) => {
-    if (!snap.exists()) return;
-    const d = snap.data() || {};
-    siteSettings = { ...siteSettings, ...d };
-    if (typeof window.syncWaIntegrationVisibilityUser === 'function') {
-        window.syncWaIntegrationVisibilityUser();
-    }
-}, () => {});
+
 
 /* === VIPERCELL v30.2.4 MASTER PATCH === */
 
@@ -16180,5 +16172,432 @@ window.processGoogleLogin = async function() {
         window._isVerifyingGoogleLoginPreReg = false;
         if (btnText) btnText.innerText = ogText;
         if (btn) btn.disabled = false;
+    }
+};
+
+/* === VIPERCELL v30.2.5 MASTER PATCH === */
+
+// 1. Nonaktifkan Seluruh Logika & Pengiriman WhatsApp di Web User (100% Dihapus)
+window.isWaIntegrationActive = function() {
+    return false;
+};
+window.sendVipercellWhatsAppMessage = async function() {
+    return { ok: false, disabled: true };
+};
+window.requestProfileWaOtp = async function() {};
+window.verifyProfileWaOtpCode = async function() {};
+window.toggleUserTwoFactorLogin = async function() {};
+window.toggleUserWaOptOut = async function() {};
+window.checkAndTriggerTwoFactorLoginChallenge = async function() { return false; };
+
+window.syncWaIntegrationVisibilityUser = function() {
+    const profPhoneGrp = document.getElementById('prof-wa-phone-group');
+    if (profPhoneGrp) profPhoneGrp.style.display = 'none';
+    const regPhoneGrp = document.getElementById('auth-r-phone-group');
+    if (regPhoneGrp) regPhoneGrp.style.display = 'none';
+    const resetTabs = document.getElementById('auth-reset-method-tabs');
+    if (resetTabs) resetTabs.style.display = 'none';
+    const boxWa = document.getElementById('auth-reset-wa-box');
+    if (boxWa) boxWa.style.display = 'none';
+    const boxEmail = document.getElementById('auth-reset-email-box');
+    if (boxEmail) boxEmail.style.display = 'block';
+    window.syncUserEmailVerificationStatusUi();
+};
+
+// 2. Simpan Profil & Pendaftaran Member Tanpa Ketergantungan Nomor WA
+window.saveUserProfile = async function() {
+    if (!currentUser) return;
+    const name = (document.getElementById('prof-name')?.value || '').trim();
+    if (!name) {
+        window.customAlert('Nama Kosong', 'Nama panggilan tidak boleh kosong.', 'warning');
+        return;
+    }
+    const isMember = Boolean(currentUser && !currentUser.isAnonymous && !userProfile.isGuest);
+    const effectiveUid = isMember ? currentUser.uid : (boundLegacyGuestUid || currentUser.uid);
+
+    try {
+        await setDoc(doc(db, pathUsers, effectiveUid), {
+            name: name,
+            updatedAt: Date.now()
+        }, { merge: true });
+        userProfile.name = name;
+        if (typeof applyUserSessionToUI === 'function') applyUserSessionToUI();
+        window.showToast('Profil Tersimpan', 'Nama panggilan berhasil diperbarui.', 'success');
+    } catch (e) {
+        window.customAlert('Gagal Menyimpan', 'Tidak dapat menyimpan perubahan profil.', 'error');
+    }
+};
+
+window.processRegister = async function() {
+    const name = (document.getElementById('auth-r-name')?.value || '').trim();
+    const em = (document.getElementById('auth-r-email')?.value || '').trim().toLowerCase();
+    const pw = (document.getElementById('auth-r-pass')?.value || '').trim();
+    const pinVal = (document.getElementById('auth-r-pin')?.value || '').replace(/[^0-9]/g, '').trim();
+
+    if (!name || !em || pw.length < 6) {
+        window.customAlert('Data Belum Lengkap', 'Lengkapi Nama Panggilan, Email, dan Kata Sandi minimal 6 karakter.', 'warning');
+        return;
+    }
+    if (pinVal.length !== 6) {
+        window.customAlert('PIN Transaksi Wajib 6 Angka', 'Masukkan 6 angka PIN Transaksi Saldo pada formulir pendaftaran.', 'warning');
+        return;
+    }
+    if (['123456', '654321', '000000', '111111', '222222', '333333', '444444', '555555', '666666', '777777', '888888', '999999'].includes(pinVal)) {
+        window.customAlert('Kombinasi PIN Terlalu Mudah', 'Gunakan kombinasi 6 angka PIN yang tidak berurutan atau kembar demi keamanan saldo kamu.', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('btn-do-register');
+    const ogHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Memproses...</span>';
+        btn.disabled = true;
+    }
+
+    try {
+        boundLegacyGuestUid = null;
+        await clearMultiLayerToken('vipercell_anon_uid');
+        localStorage.removeItem('vipercell_anon_session_started_at');
+        localStorage.setItem('vipercell_active_session_mode', 'member');
+
+        if (auth.currentUser && auth.currentUser.isAnonymous) {
+            await signOut(auth).catch(() => {});
+        }
+
+        const cred = await createUserWithEmailAndPassword(auth, em, pw);
+        const pinHash = await window.sha256Hex(pinVal);
+        const nowMs = Date.now();
+
+        const newMemberObj = {
+            uid: cred.user.uid,
+            email: em,
+            name: name,
+            role: 'member',
+            isRegisteredMember: true,
+            hasPasswordSet: true,
+            trxPin: pinVal,
+            trxPinHash: pinHash,
+            trxPinUpdatedAt: nowMs,
+            isAnonymous: false,
+            isGuest: false,
+            isBlocked: false,
+            isDeleted: false,
+            verified: true,
+            deviceId: currentDeviceId,
+            createdAt: nowMs
+        };
+
+        await setDoc(doc(db, pathUsers, cred.user.uid), newMemberObj, { merge: true });
+        localStorage.setItem(`vipercell_trx_pin_${cred.user.uid}`, pinVal);
+        localStorage.setItem('vipercell_member_email', em);
+
+        if (typeof sendEmailVerification === 'function') {
+            sendEmailVerification(cred.user).catch(() => {});
+        }
+
+        currentUser = cred.user;
+        userProfile = newMemberObj;
+        setAuthGateLock(false);
+        if (typeof applyUserSessionToUI === 'function') applyUserSessionToUI();
+        if (typeof window.updateUserTrxPinProfileUI === 'function') window.updateUserTrxPinProfileUI();
+        window.switchMainTab('katalog');
+        window.showToast('Pendaftaran Berhasil', `Selamat datang, ${name}!`, 'success');
+    } catch (e) {
+        let errMsg = 'Email sudah terdaftar atau format email salah.';
+        if (e.code === 'auth/email-already-in-use') {
+            errMsg = 'Email ini sudah terdaftar. Silakan masuk di tab Masuk.';
+        }
+        window.customAlert('Gagal Mendaftar', errMsg, 'error');
+    } finally {
+        if (btn) {
+            btn.innerHTML = ogHtml || '<i class="fa-solid fa-user-check"></i> <span>Buat Akun Member</span>';
+            btn.disabled = false;
+        }
+    }
+};
+
+// 3. Status Verifikasi Email & Pengiriman Link Verifikasi di Tab Keamanan Profil
+window.syncUserEmailVerificationStatusUi = function() {
+    const statusEl = document.getElementById('prof-email-verify-status-text');
+    const btnEl = document.getElementById('btn-prof-send-verify-email');
+    if (!statusEl || !btnEl) return;
+    const isVerified = Boolean(currentUser && currentUser.emailVerified);
+    if (isVerified) {
+        statusEl.innerText = 'Terverifikasi Resmi';
+        statusEl.style.color = '#10b981';
+        btnEl.style.display = 'none';
+    } else {
+        statusEl.innerText = 'Belum Diverifikasi';
+        statusEl.style.color = 'var(--warning)';
+        btnEl.style.display = 'inline-flex';
+    }
+};
+
+window.sendUserEmailVerificationLink = async function() {
+    if (!currentUser || currentUser.isAnonymous) return;
+    if (currentUser.emailVerified) {
+        window.syncUserEmailVerificationStatusUi();
+        return window.showToast('Sudah Terverifikasi', 'Email akun kamu sudah terverifikasi.', 'success');
+    }
+    const btn = document.getElementById('btn-prof-send-verify-email');
+    const ogHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim...';
+    }
+    try {
+        await sendEmailVerification(currentUser);
+        window.customAlert('Tautan Verifikasi Terkirim', `Tautan verifikasi telah dikirim ke <b>${window.escapeHtml(currentUser.email || '')}</b>. Silakan cek kotak masuk atau folder spam email kamu.`, 'success');
+    } catch (e) {
+        window.customAlert('Gagal Mengirim Email', 'Tunggu beberapa saat sebelum meminta ulang tautan verifikasi.', 'warning');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = ogHtml;
+        }
+    }
+};
+
+// 4. Handler Custom Action URL Firebase Auth (?mode=resetPassword & ?mode=verifyEmail & ?oobCode=...) (Usulan #1)
+let _activeFirebaseOobCode = '';
+let _activeFirebaseResetEmail = '';
+
+window.closeFirebaseEmailActionModal = function() {
+    const modal = document.getElementById('modal-firebase-email-action');
+    if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+    }
+    document.body.classList.remove('v302-modal-scroll-locked');
+};
+
+window.handleIncomingFirebaseAuthActionUrl = async function() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = (urlParams.get('mode') || '').trim();
+        const oobCode = (urlParams.get('oobCode') || '').trim();
+        if (!mode || !oobCode) return;
+
+        // Bersihkan query URL di address bar agar tidak diproses ulang saat refresh
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+
+        const modal = document.getElementById('modal-firebase-email-action');
+        const titleEl = document.getElementById('fb-action-modal-title');
+        const resetBody = document.getElementById('fb-action-reset-pass-body');
+        const verifyBody = document.getElementById('fb-action-verify-status-body');
+        const emailLbl = document.getElementById('fb-action-reset-email-label');
+        const statusIcon = document.getElementById('fb-action-status-icon');
+        const statusHead = document.getElementById('fb-action-status-heading');
+        const statusDesc = document.getElementById('fb-action-status-desc');
+
+        if (!modal) return;
+
+        if (mode === 'resetPassword') {
+            try {
+                const emailAccount = await verifyPasswordResetCode(auth, oobCode);
+                _activeFirebaseOobCode = oobCode;
+                _activeFirebaseResetEmail = emailAccount || '';
+                if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-key text-primary"></i> Atur Ulang Kata Sandi';
+                if (emailLbl) emailLbl.innerText = _activeFirebaseResetEmail;
+                if (resetBody) resetBody.style.display = 'block';
+                if (verifyBody) verifyBody.style.display = 'none';
+                modal.style.display = 'flex';
+                modal.classList.add('active');
+                document.body.classList.add('v302-modal-scroll-locked');
+                setTimeout(() => document.getElementById('fb-action-new-pass')?.focus(), 120);
+            } catch (err) {
+                window.customAlert('Tautan Kedaluwarsa', 'Tautan ganti kata sandi ini sudah digunakan atau sudah kedaluwarsa. Silakan minta tautan baru di menu Lupa Kata Sandi.', 'error');
+            }
+        } else if (mode === 'verifyEmail') {
+            if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-envelope-circle-check text-success"></i> Verifikasi Email Akun';
+            if (resetBody) resetBody.style.display = 'none';
+            if (verifyBody) verifyBody.style.display = 'block';
+            try {
+                await applyActionCode(auth, oobCode);
+                if (currentUser && typeof currentUser.reload === 'function') {
+                    await currentUser.reload().catch(() => {});
+                }
+                window.syncUserEmailVerificationStatusUi();
+                if (statusIcon) {
+                    statusIcon.style.background = '#10b981';
+                    statusIcon.innerHTML = '<i class="fa-solid fa-check"></i>';
+                }
+                if (statusHead) statusHead.innerText = 'Email Berhasil Diverifikasi!';
+                if (statusDesc) statusDesc.innerText = 'Alamat email akun Vipercell kamu kini telah resmi terverifikasi.';
+            } catch (err) {
+                if (statusIcon) {
+                    statusIcon.style.background = '#ef4444';
+                    statusIcon.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                }
+                if (statusHead) statusHead.innerText = 'Tautan Tidak Berlaku';
+                if (statusDesc) statusDesc.innerText = 'Tautan verifikasi email ini sudah pernah digunakan atau sudah kedaluwarsa.';
+            }
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+            document.body.classList.add('v302-modal-scroll-locked');
+        }
+    } catch (e) {}
+};
+
+window.submitFirebaseCustomResetPassword = async function() {
+    if (!_activeFirebaseOobCode) return;
+    const p1 = (document.getElementById('fb-action-new-pass')?.value || '').trim();
+    const p2 = (document.getElementById('fb-action-confirm-pass')?.value || '').trim();
+    if (p1.length < 6) {
+        return window.customAlert('Kata Sandi Kurang Panjang', 'Masukkan kata sandi baru minimal 6 karakter.', 'warning');
+    }
+    if (p1 !== p2) {
+        return window.customAlert('Konfirmasi Tidak Sama', 'Kata sandi baru dan ulangi kata sandi tidak sama.', 'warning');
+    }
+
+    const btn = document.getElementById('btn-fb-action-save-pass');
+    const ogHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+    }
+
+    try {
+        await confirmPasswordReset(auth, _activeFirebaseOobCode, p1);
+        const savedEmail = _activeFirebaseResetEmail;
+        _activeFirebaseOobCode = '';
+        _activeFirebaseResetEmail = '';
+        window.closeFirebaseEmailActionModal();
+        window.switchAuthTab('login');
+        const loginEm = document.getElementById('auth-l-email');
+        if (loginEm && savedEmail) loginEm.value = savedEmail;
+        window.customAlert('Kata Sandi Diperbarui', 'Kata sandi baru kamu berhasil disimpan! Silakan masuk menggunakan kata sandi baru tersebut.', 'success');
+    } catch (e) {
+        window.customAlert('Gagal Menyimpan Sandi', 'Tautan reset kata sandi sudah kedaluwarsa. Silakan minta ulang tautan baru.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = ogHtml;
+        }
+    }
+};
+
+// Jalankan deteksi Custom Action URL saat halaman dimuat
+setTimeout(() => {
+    window.handleIncomingFirebaseAuthActionUrl();
+}, 250);
+
+// 5. Auto-Clean Sesi Perangkat Kedaluwarsa (>30 Hari) Secara Otomatis (Usulan #8)
+const V3025_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 Hari
+
+window.cleanExpiredUserLoginSessionsV3025 = async function() {
+    if (!currentUser || currentUser.isAnonymous || !userProfile || userProfile.isGuest) return;
+    const rawList = Array.isArray(userProfile.loginHistory) ? userProfile.loginHistory : [];
+    if (rawList.length === 0) return;
+
+    const nowMs = Date.now();
+    const curSid = window.getOrCreateDeviceSessionId ? window.getOrCreateDeviceSessionId() : '';
+    const filtered = rawList.filter(item => {
+        if (!item) return false;
+        if (curSid && item.sessionId === curSid) return true;
+        const ts = Number(item.lastActiveAt || item.loginAt || 0);
+        if (!ts) return true;
+        return (nowMs - ts) <= V3025_SESSION_TTL_MS;
+    });
+
+    if (filtered.length !== rawList.length) {
+        userProfile.loginHistory = filtered;
+        await setDoc(doc(db, pathUsers, currentUser.uid), {
+            loginHistory: filtered,
+            updatedAt: nowMs
+        }, { merge: true }).catch(() => {});
+    }
+};
+
+const _origRecordLoginV3024 = window.recordCurrentUserLoginActivity;
+window.recordCurrentUserLoginActivity = async function(userObj, forceNewRecord = false) {
+    if (!userObj || userObj.isAnonymous) return;
+    if (typeof _origRecordLoginV3024 === 'function') {
+        await _origRecordLoginV3024(userObj, false);
+    }
+    await window.cleanExpiredUserLoginSessionsV3025();
+    window.syncUserEmailVerificationStatusUi();
+};
+
+// 6. Perbaikan Pop-Up Banner: Tampil Setiap Kali Masuk ke Web Maupun Saat Login (Poin #5)
+let _v3025PopupShownOnInitialEntry = false;
+let _v3025PopupShownAfterLogin = false;
+
+window.maybeShowInitialPopupBanner = function(forceOnLogin = false) {
+    if (typeof applyAuthoritativeBannersToSiteSettings === 'function') {
+        applyAuthoritativeBannersToSiteSettings();
+    }
+    const enabled = Boolean(siteSettings && siteSettings.popupBannerEnabled === true);
+    const rawUrl = String((siteSettings && siteSettings.popupBannerImg) || '').trim();
+    if (!enabled || !rawUrl) return;
+
+    if (forceOnLogin) {
+        if (_v3025PopupShownAfterLogin) return;
+        _v3025PopupShownAfterLogin = true;
+    } else {
+        if (_v3025PopupShownOnInitialEntry) return;
+        _v3025PopupShownOnInitialEntry = true;
+    }
+
+    const modal = document.getElementById('modal-initial-popup-banner');
+    const imgEl = document.getElementById('v301-popup-banner-img');
+    const footEl = document.getElementById('v301-popup-banner-footer');
+    const titleEl = document.getElementById('v301-popup-banner-title');
+    if (!modal || !imgEl) return;
+
+    const ytId = window.extractYoutubeVideoIdV3023 ? window.extractYoutubeVideoIdV3023(rawUrl) : '';
+    if (imgEl.parentElement) {
+        const oldYt = imgEl.parentElement.querySelector('.popup-yt-wrap');
+        if (oldYt) oldYt.remove();
+        if (ytId && typeof window.buildSilentYoutubeEmbedHtmlV3023 === 'function') {
+            imgEl.style.display = 'none';
+            imgEl.parentElement.insertAdjacentHTML('afterbegin', window.buildSilentYoutubeEmbedHtmlV3023(ytId, 'popup-yt-wrap'));
+        } else {
+            imgEl.src = rawUrl;
+            imgEl.style.display = 'block';
+        }
+    }
+
+    const titleStr = String(siteSettings.popupBannerTitle || '').trim();
+    if (footEl && titleEl) {
+        if (titleStr) {
+            titleEl.innerText = titleStr;
+            footEl.style.display = 'block';
+        } else {
+            footEl.style.display = 'none';
+        }
+    }
+
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 20);
+};
+
+// Pastikan Pop-Up Banner langsung tampil begitu dokumen pengaturan banner / mainConfig dimuat saat masuk web
+onSnapshot(doc(db, pathSettings, 'banners_config'), (snap) => {
+    if (!snap.exists()) return;
+    const d = snap.data() || {};
+    siteSettings = { ...siteSettings, ...d };
+    setTimeout(() => window.maybeShowInitialPopupBanner(false), 180);
+}, () => {});
+
+onSnapshot(doc(db, pathSettings, 'mainConfig'), (snap) => {
+    if (!snap.exists()) return;
+    const d = snap.data() || {};
+    siteSettings = { ...siteSettings, ...d };
+    setTimeout(() => window.maybeShowInitialPopupBanner(false), 220);
+}, () => {});
+
+// Tampilkan juga saat user baru selesai login jika sebelumnya sudah menutup pop-up di halaman login
+const _origProcessLoginV3025 = window.processLogin;
+window.processLogin = async function() {
+    if (typeof _origProcessLoginV3025 === 'function') {
+        await _origProcessLoginV3025();
+    }
+    if (currentUser && !currentUser.isAnonymous) {
+        const modal = document.getElementById('modal-initial-popup-banner');
+        if (modal && !modal.classList.contains('active')) {
+            setTimeout(() => window.maybeShowInitialPopupBanner(true), 350);
+        }
     }
 };

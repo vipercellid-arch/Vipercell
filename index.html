@@ -835,25 +835,7 @@
                             <label for="prof-name">Nama Panggilan</label>
                             <input type="text" id="prof-name" class="form-control" placeholder="Nama panggilan kamu">
                         </div>
-                        <div class="form-group" id="prof-wa-phone-group">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                                <label for="prof-phone" style="margin:0;"><i class="fa-brands fa-whatsapp" style="color:#10b981;"></i> Nomor WhatsApp</label>
-                                <span id="prof-wa-verified-badge" class="brutal-tag tag-amber" style="font-size:0.6rem;">BELUM VERIFIKASI</span>
-                            </div>
-                            <div style="display:flex; gap:8px;">
-                                <input type="tel" id="prof-phone" class="form-control" inputmode="numeric" placeholder="Contoh: 081234567890" oninput="this.value=this.value.replace(/[^0-9+]/g,'')">
-                                <button type="button" id="btn-prof-send-wa-otp" class="btn btn-success btn-sm" style="white-space:nowrap;" onclick="window.requestProfileWaOtp()">
-                                    <i class="fa-brands fa-whatsapp"></i> Kirim OTP
-                                </button>
-                            </div>
-                            <div id="prof-wa-otp-verify-box" style="display:none; margin-top:8px; padding:10px; border-radius:10px; border:2px dashed var(--primary); background:var(--bg);">
-                                <label for="prof-wa-otp-input" style="font-size:0.74rem;">Masukkan 6 Digit Kode OTP dari WhatsApp</label>
-                                <div style="display:flex; gap:8px; margin-top:4px;">
-                                    <input type="tel" id="prof-wa-otp-input" class="form-control code-mono" maxlength="6" inputmode="numeric" placeholder="6 digit OTP">
-                                    <button type="button" class="btn btn-primary btn-sm" onclick="window.verifyProfileWaOtpCode()">Verifikasi</button>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="form-group" id="prof-wa-phone-group" style="display:none !important;"></div>
                         <button aria-label="Simpan Profil" class="btn btn-primary" style="width: 100%;" onclick="window.saveUserProfile()">
                             <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan Profil
                         </button>
@@ -877,35 +859,19 @@
                                 Aktifkan
                             </button>
                         </div>
-                        <div class="notif-toggle-card" id="prof-2fa-login-card" style="margin-bottom: 1rem;">
+                        <div class="notif-toggle-card" id="prof-email-verify-card" style="margin-bottom: 1rem;">
                             <div class="notif-toggle-info">
-                                <div class="notif-bell-circle" style="background:rgba(16,185,129,0.14); color:#10b981;">
-                                    <i class="fa-solid fa-shield-halved"></i>
+                                <div class="notif-bell-circle" style="background:rgba(37,99,235,0.14); color:var(--primary);">
+                                    <i class="fa-solid fa-envelope-circle-check"></i>
                                 </div>
                                 <div>
-                                    <strong>Verifikasi 2 Langkah (OTP Login)</strong>
-                                    <span id="prof-2fa-status-text">Nonaktif</span>
+                                    <strong>Status Verifikasi Email</strong>
+                                    <span id="prof-email-verify-status-text">Memeriksa...</span>
                                 </div>
                             </div>
-                            <label class="switch" style="margin:0;">
-                                <input type="checkbox" id="prof-2fa-login-toggle" onchange="window.toggleUserTwoFactorLogin(this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="notif-toggle-card" id="prof-wa-optout-card" style="margin-bottom: 1rem;">
-                            <div class="notif-toggle-info">
-                                <div class="notif-bell-circle" style="background:rgba(239,68,68,0.14); color:#ef4444;">
-                                    <i class="fa-brands fa-whatsapp"></i>
-                                </div>
-                                <div>
-                                    <strong>Jangan Hubungi via WhatsApp</strong>
-                                    <span id="prof-wa-optout-status-text">Nonaktif (Menerima Pesan WA)</span>
-                                </div>
-                            </div>
-                            <label class="switch" style="margin:0;">
-                                <input type="checkbox" id="prof-wa-optout-toggle" onchange="window.toggleUserWaOptOut(this.checked)">
-                                <span class="slider"></span>
-                            </label>
+                            <button type="button" id="btn-prof-send-verify-email" class="btn btn-sm btn-outline" onclick="window.sendUserEmailVerificationLink()">
+                                <i class="fa-regular fa-paper-plane"></i> Verifikasi
+                            </button>
                         </div>
                         <div id="prof-security-member-box">
                             <button id="btn-prof-reset-pass" aria-label="Ubah Kata Sandi" class="btn btn-outline" onclick="window.sendProfileResetPassword()" style="width:100%;">
@@ -1770,16 +1736,6 @@
                     </div>
                     
                     <div id="form-reset" class="auth-form-body" style="display: none;">
-                        <!-- Pilihan Metode Pemulihan: Email vs OTP WhatsApp -->
-                        <div id="auth-reset-method-tabs" class="v30-topup-tabs-bar" style="margin-bottom:0.9rem;">
-                            <button type="button" id="btn-reset-mode-email" class="v30-topup-tab-btn active" onclick="window.switchUserResetMethod('email')">
-                                <i class="fa-regular fa-envelope"></i> VIA EMAIL
-                            </button>
-                            <button type="button" id="btn-reset-mode-wa" class="v30-topup-tab-btn" onclick="window.switchUserResetMethod('wa')">
-                                <i class="fa-brands fa-whatsapp"></i> VIA OTP WA
-                            </button>
-                        </div>
-
                         <div id="auth-reset-email-box">
                             <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.8rem; font-weight:700;">
                                 Masukkan email akun kamu untuk menerima tautan penggantian kata sandi.
@@ -2257,70 +2213,63 @@
         </div>
     </div>
 
-    <!-- MODAL VERIFIKASI 2 LANGKAH (OTP LOGIN 2FA v30.2.3) -->
-    <div id="twofactor-login-modal" class="modal-overlay" style="display:none; z-index: 99995;">
-        <div class="modal-box" style="max-width: 400px; padding: 1.35rem;">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:0.85rem;">
-                <div style="width:40px; height:40px; border-radius:10px; border:2px solid #09090b; background:#10b981; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <div>
-                    <h3 style="margin:0; font-size:1.02rem;">Verifikasi OTP Login</h3>
-                    <span id="twofactor-login-target-label" style="font-size:0.75rem; color:var(--text-muted);">Kode 6 digit dikirim ke WhatsApp</span>
-                </div>
-            </div>
-            <div class="form-group" style="margin-bottom:0.75rem;">
-                <input type="tel" id="twofactor-login-otp-input" class="form-control code-mono" maxlength="6" inputmode="numeric" placeholder="Masukkan 6 Digit OTP" style="text-align:center; font-size:1.18rem; font-weight:900; letter-spacing:4px;" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-            </div>
-            <div style="display:flex; gap:8px; margin-bottom:0.65rem;">
-                <button type="button" id="btn-verify-2fa-login" class="btn btn-primary" style="flex:1;" onclick="window.verifyTwoFactorLoginOtp()">
-                    Konfirmasi
-                </button>
-                <button type="button" id="btn-resend-2fa-login" class="btn btn-outline btn-sm" onclick="window.resendTwoFactorLoginOtp()">
-                    Kirim Ulang
-                </button>
-            </div>
-            <button type="button" class="btn btn-outline btn-sm" style="width:100%;" onclick="window.cancelTwoFactorLoginSession()">
-                Batal &amp; Keluar
-            </button>
-        </div>
+    
     </div>
 
-
-    <!-- MODAL WAJIB SETEL KATA SANDI & PIN TRANSAKSI (v30.2.4) -->
-    <div id="modal-google-mandatory-pass-pin" class="modal-overlay" style="display:none; z-index:10060;">
-        <div class="modal-content" style="max-width:420px; border:3px solid #09090b; box-shadow:6px 6px 0 #09090b;">
-            <div class="modal-header" style="border-bottom:2.5px solid #09090b;">
-                <h3 style="margin:0; font-size:1rem; font-weight:900;"><i class="fa-solid fa-user-lock text-primary"></i> Lengkapi Keamanan Akun</h3>
+    <!-- MODAL CUSTOM ACTION URL FIREBASE AUTH: RESET PASSWORD & VERIFIKASI EMAIL (v30.2.5) -->
+    <div id="modal-firebase-email-action" class="modal-overlay" style="display:none; z-index:100005;">
+        <div class="modal-content" style="max-width:430px; border:3px solid #09090b; box-shadow:7px 7px 0 #09090b; border-radius:18px;">
+            <div class="modal-header" style="border-bottom:2.5px solid #09090b; padding-bottom:10px; margin-bottom:14px;">
+                <h3 id="fb-action-modal-title" style="margin:0; font-size:1.05rem; font-weight:900;">
+                    <i class="fa-solid fa-key text-primary"></i> Atur Ulang Kata Sandi
+                </h3>
+                <button type="button" class="close-btn" onclick="window.closeFirebaseEmailActionModal()" aria-label="Tutup">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <div style="padding:1rem 0 0.5rem;">
-                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.9rem; font-weight:700;">
-                    Setel Kata Sandi dan 6 angka PIN Transaksi terlebih dahulu untuk mengaktifkan akun kamu.
-                </p>
+
+            <!-- Panel 1: Form Ganti Kata Sandi Baru dari Link Email (?mode=resetPassword&oobCode=...) -->
+            <div id="fb-action-reset-pass-body" style="display:none;">
+                <div class="brutal-alert-box alert-info" style="margin-bottom:0.9rem;">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <div>
+                        <strong style="display:block; font-size:0.78rem;">Akun Email Terverifikasi</strong>
+                        <span id="fb-action-reset-email-label" class="code-mono" style="font-size:0.76rem; font-weight:800;">-</span>
+                    </div>
+                </div>
                 <div class="form-group">
-                    <label for="mandatory-setup-pass">Kata Sandi Akun (Min. 6 Karakter)</label>
+                    <label for="fb-action-new-pass">Kata Sandi Baru (Min. 6 Karakter)</label>
                     <div class="input-icon-wrap">
                         <i class="fa-solid fa-lock"></i>
-                        <input type="password" id="mandatory-setup-pass" class="form-control" placeholder="Minimal 6 karakter" autocomplete="new-password">
-                        <button type="button" class="pass-eye-btn" onclick="window.togglePassVisibility('mandatory-setup-pass', this)"><i class="fa-regular fa-eye"></i></button>
+                        <input type="password" id="fb-action-new-pass" class="form-control" placeholder="Masukkan kata sandi baru" autocomplete="new-password">
+                        <button type="button" class="pass-eye-btn" onclick="window.togglePassVisibility('fb-action-new-pass', this)"><i class="fa-regular fa-eye"></i></button>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="mandatory-setup-pin">PIN Transaksi Saldo (6 Angka)</label>
+                    <label for="fb-action-confirm-pass">Ulangi Kata Sandi Baru</label>
                     <div class="input-icon-wrap">
                         <i class="fa-solid fa-shield-halved"></i>
-                        <input type="password" id="mandatory-setup-pin" class="form-control code-mono" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="6 angka PIN (Contoh: 258369)" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)">
-                        <button type="button" class="pass-eye-btn" onclick="window.togglePassVisibility('mandatory-setup-pin', this)"><i class="fa-regular fa-eye"></i></button>
+                        <input type="password" id="fb-action-confirm-pass" class="form-control" placeholder="Ketik ulang kata sandi baru" autocomplete="new-password" onkeypress="if(event.key==='Enter') window.submitFirebaseCustomResetPassword()">
+                        <button type="button" class="pass-eye-btn" onclick="window.togglePassVisibility('fb-action-confirm-pass', this)"><i class="fa-regular fa-eye"></i></button>
                     </div>
                 </div>
-                <div style="display:flex; gap:8px; margin-top:1rem;">
-                    <button type="button" id="btn-save-mandatory-pass-pin" class="btn btn-primary" style="flex:1;" onclick="window.submitMandatoryGooglePassAndPin()">
-                        <i class="fa-solid fa-check-circle"></i> <span>Simpan &amp; Lanjutkan</span>
-                    </button>
-                    <button type="button" class="btn btn-outline" onclick="window.cancelMandatoryGooglePassAndPin()">
-                        Batal
-                    </button>
+                <button type="button" id="btn-fb-action-save-pass" class="btn btn-primary" style="width:100%; margin-top:0.4rem;" onclick="window.submitFirebaseCustomResetPassword()">
+                    <i class="fa-solid fa-check-circle"></i> <span>Simpan Kata Sandi Baru</span>
+                </button>
+            </div>
+
+            <!-- Panel 2: Status Verifikasi Email / Pemulihan Email (?mode=verifyEmail&oobCode=...) -->
+            <div id="fb-action-verify-status-body" style="display:none; text-align:center; padding:0.5rem 0;">
+                <div id="fb-action-status-icon" style="width:62px; height:62px; border-radius:50%; margin:0 auto 12px; border:3px solid #09090b; box-shadow:3px 3px 0 #09090b; background:#10b981; color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.65rem;">
+                    <i class="fa-solid fa-check"></i>
                 </div>
+                <h4 id="fb-action-status-heading" style="margin:0 0 6px; font-size:1.05rem; font-weight:900;">Email Berhasil Diverifikasi</h4>
+                <p id="fb-action-status-desc" style="font-size:0.82rem; color:var(--text-muted); font-weight:700; margin:0 0 1.1rem;">
+                    Alamat email akun kamu telah terverifikasi.
+                </p>
+                <button type="button" class="btn btn-primary" style="width:100%;" onclick="window.closeFirebaseEmailActionModal()">
+                    <i class="fa-solid fa-arrow-right"></i> <span>Lanjutkan ke Toko</span>
+                </button>
             </div>
         </div>
     </div>
