@@ -5044,9 +5044,9 @@ window.confirmAndExecuteCheckout = async function() {
 
     let invId = (p.isPascaProduct && verifiedPascaInquiry?.ref_id)
         ? verifiedPascaInquiry.ref_id
-        : ('VP-' + Math.floor(100000 + Math.random() * 900000));
+        : ((window.generateSecureOrderIdV3026 ? window.generateSecureOrderIdV3026('VP') : ('VP-' + Math.floor(100000 + Math.random() * 900000))));
     while (!verifiedPascaInquiry?.ref_id && orders.some(o => o.id === invId)) {
-        invId = 'VP-' + Math.floor(100000 + Math.random() * 900000);
+        invId = (window.generateSecureOrderIdV3026 ? window.generateSecureOrderIdV3026('VP') : ('VP-' + Math.floor(100000 + Math.random() * 900000)));
     }
 
     const durationDays = parseInt(selectedProductForBuy.durationDays || 0, 10);
@@ -8254,9 +8254,9 @@ window.processTopupBalanceCheckout = async function() {
         }
     }
     const finalTotal = rawAmt + uniqueCode;
-    let invId = 'TOPUP-' + Math.floor(100000 + Math.random() * 900000);
+    let invId = (window.generateSecureOrderIdV3026 ? window.generateSecureOrderIdV3026('TOPUP') : ('TOPUP-' + Math.floor(100000 + Math.random() * 900000)));
     while (orders.some(o => o.id === invId)) {
-        invId = 'TOPUP-' + Math.floor(100000 + Math.random() * 900000);
+        invId = (window.generateSecureOrderIdV3026 ? window.generateSecureOrderIdV3026('TOPUP') : ('TOPUP-' + Math.floor(100000 + Math.random() * 900000)));
     }
 
     const userEm = userProfile.email || currentUser?.email || 'member@vipercell.com';
@@ -10857,9 +10857,9 @@ window.processMemberPlusSubscriptionCheckout = async function() {
 
     const now = Date.now();
     const finalTotal = mpPrice;
-    let invId = 'MPLUS-' + Math.floor(100000 + Math.random() * 900000);
+    let invId = (window.generateSecureOrderIdV3026 ? window.generateSecureOrderIdV3026('MPLUS') : ('MPLUS-' + Math.floor(100000 + Math.random() * 900000)));
     while (orders.some(o => o.id === invId)) {
-        invId = 'MPLUS-' + Math.floor(100000 + Math.random() * 900000);
+        invId = (window.generateSecureOrderIdV3026 ? window.generateSecureOrderIdV3026('MPLUS') : ('MPLUS-' + Math.floor(100000 + Math.random() * 900000)));
     }
 
     const userEm = userProfile.email || currentUser.email || 'member@vipercell.com';
@@ -16537,3 +16537,657 @@ window.addEventListener('load', () => {
     setTimeout(window.forceReleaseAllScrollLocksV3025, 350);
     setTimeout(window.forceReleaseAllScrollLocksV3025, 1200);
 });
+
+/* === VIPERCELL v30.2.6 SECURITY HARDENING PATCH === */
+
+// 1. Generator ID Transaksi Kriptografis Acak Berentropi Tinggi (Anti-IDOR / Anti-Tebak ID)
+window.generateSecureOrderIdV3026 = function(prefix = 'VP') {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const arr = new Uint8Array(10);
+    if (window.crypto && window.crypto.getRandomValues) {
+        window.crypto.getRandomValues(arr);
+    } else {
+        for (let i = 0; i < 10; i++) arr[i] = Math.floor(Math.random() * 256);
+    }
+    let code = '';
+    for (let i = 0; i < 10; i++) {
+        code += chars[arr[i] % chars.length];
+    }
+    return `${prefix}-${code}`;
+};
+
+// 2. Salted SHA-256 PIN Hash & Server-Synced Brute-Force Lockout (Tanpa Menyimpan PIN Polos di Firestore)
+window.computeSaltedPinHashV3026 = async function(uid, pinStr) {
+    const cleanUid = String(uid || 'guest').trim();
+    const cleanPin = String(pinStr || '').trim();
+    return await window.sha256Hex(`VPC_PIN_SALT_v3026_${cleanUid}_${cleanPin}`);
+};
+
+window.hasUserConfiguredTrxPinV3026 = function() {
+    if (!userProfile) return false;
+    if (userProfile.trxPinSaltedHash || userProfile.trxPinHash || userProfile.hasTrxPin === true) return true;
+    const rawPin = String(userProfile.trxPin || localStorage.getItem(`vipercell_trx_pin_${currentUser?.uid || ''}`) || '').trim();
+    return rawPin.length === 6;
+};
+
+// Migrasi otomatis PIN angka polos lama di Firestore ke Salted Hash saat profil dimuat
+window.migrateLegacyPlainPinIfNeededV3026 = async function() {
+    if (!currentUser || currentUser.isAnonymous || !userProfile || userProfile.isGuest) return;
+    const rawPin = String(userProfile.trxPin || '').trim();
+    if (/^\d{6}$/.test(rawPin)) {
+        try {
+            const saltedHash = await window.computeSaltedPinHashV3026(currentUser.uid, rawPin);
+            const plainHash = await window.sha256Hex(rawPin);
+            await setDoc(doc(db, pathUsers, currentUser.uid), {
+                trxPin: '******',
+                hasTrxPin: true,
+                trxPinSaltedHash: saltedHash,
+                trxPinHash: plainHash,
+                trxPinUpdatedAt: Date.now()
+            }, { merge: true });
+            userProfile.trxPin = '******';
+            userProfile.hasTrxPin = true;
+            userProfile.trxPinSaltedHash = saltedHash;
+            userProfile.trxPinHash = plainHash;
+            localStorage.setItem(`vipercell_trx_pin_${currentUser.uid}`, '******');
+        } catch (e) {}
+    }
+};
+
+window.verifyUserTrxPinSecureV3026 = async function(enteredPin) {
+    const uid = currentUser?.uid || userProfile?.uid || '';
+    const cleanEntered = String(enteredPin || '').replace(/[^0-9]/g, '').trim();
+    if (!uid || cleanEntered.length !== 6) {
+        return { ok: false, message: 'Masukkan 6 digit PIN Transaksi kamu.' };
+    }
+
+    // Ambil data kunci terbaru dari Firestore agar tidak bisa diakali dengan hapus cache browser
+    let uData = userProfile || {};
+    try {
+        const uSnap = await getDoc(doc(db, pathUsers, uid));
+        if (uSnap.exists()) {
+            uData = { ...uData, ...uSnap.data() };
+        }
+    } catch (e) {}
+
+    const nowMs = Date.now();
+    const lockUntilMs = Math.max(
+        Number(uData.pinLockedUntil || 0),
+        Number(localStorage.getItem(`vipercell_pin_lock_until_${uid}`) || 0)
+    );
+    if (lockUntilMs > nowMs) {
+        const remSec = Math.ceil((lockUntilMs - nowMs) / 1000);
+        const mins = Math.ceil(remSec / 60);
+        return {
+            ok: false,
+            locked: true,
+            lockedSec: remSec,
+            message: `PIN dikunci sementara karena 5x percobaan salah. Silakan tunggu ${mins} menit lagi.`
+        };
+    }
+
+    const enteredSaltedHash = await window.computeSaltedPinHashV3026(uid, cleanEntered);
+    const enteredPlainHash = await window.sha256Hex(cleanEntered);
+
+    let isMatch = false;
+    if (uData.trxPinSaltedHash && enteredSaltedHash === uData.trxPinSaltedHash) {
+        isMatch = true;
+    } else if (uData.trxPinHash && enteredPlainHash === uData.trxPinHash) {
+        isMatch = true;
+    } else if (uData.trxPin && /^\d{6}$/.test(String(uData.trxPin)) && cleanEntered === String(uData.trxPin)) {
+        isMatch = true;
+    }
+
+    if (isMatch) {
+        localStorage.removeItem(`vipercell_pin_fails_${uid}`);
+        localStorage.removeItem(`vipercell_pin_lock_until_${uid}`);
+        await setDoc(doc(db, pathUsers, uid), {
+            pinFailCount: 0,
+            pinLockedUntil: 0,
+            trxPin: '******',
+            hasTrxPin: true,
+            trxPinSaltedHash: enteredSaltedHash,
+            trxPinHash: enteredPlainHash
+        }, { merge: true }).catch(() => {});
+        userProfile.pinFailCount = 0;
+        userProfile.pinLockedUntil = 0;
+        userProfile.trxPin = '******';
+        userProfile.hasTrxPin = true;
+        userProfile.trxPinSaltedHash = enteredSaltedHash;
+        userProfile.trxPinHash = enteredPlainHash;
+        return { ok: true };
+    }
+
+    const nextFails = (Number(uData.pinFailCount || 0) || 0) + 1;
+    const isNowLocked = nextFails >= 5;
+    const nextLockUntil = isNowLocked ? (nowMs + 15 * 60 * 1000) : 0;
+
+    localStorage.setItem(`vipercell_pin_fails_${uid}`, String(isNowLocked ? 0 : nextFails));
+    if (isNowLocked) {
+        localStorage.setItem(`vipercell_pin_lock_until_${uid}`, String(nextLockUntil));
+    }
+
+    await setDoc(doc(db, pathUsers, uid), {
+        pinFailCount: isNowLocked ? 0 : nextFails,
+        pinLockedUntil: nextLockUntil,
+        updatedAt: nowMs
+    }, { merge: true }).catch(() => {});
+
+    userProfile.pinFailCount = isNowLocked ? 0 : nextFails;
+    userProfile.pinLockedUntil = nextLockUntil;
+
+    const remTries = Math.max(0, 5 - nextFails);
+    return {
+        ok: false,
+        locked: isNowLocked,
+        lockedSec: isNowLocked ? 900 : 0,
+        remainingTries: remTries,
+        message: isNowLocked
+            ? 'PIN salah 5x! Demi keamanan saldo, transaksi dikunci selama 15 menit.'
+            : `PIN salah! Sisa percobaan: ${remTries}x`
+    };
+};
+
+// Override Verifikasi PIN pada Checkout & Aksi Kustom menggunakan Salted Hash + Server Lockout
+window.verifyPinForCustomAction = async function() {
+    if (window._pinVerifyingLock) return;
+    const enteredPin = (document.getElementById('chk-confirm-trx-pin')?.value || '').trim();
+    if (!enteredPin || enteredPin.length < 6) return;
+
+    window._pinVerifyingLock = true;
+    try {
+        const res = await window.verifyUserTrxPinSecureV3026(enteredPin);
+        if (!res.ok) {
+            const inpPin = document.getElementById('chk-confirm-trx-pin');
+            if (inpPin) inpPin.value = '';
+            window.syncMbankingPinDotsUI();
+            const dotsRow = document.getElementById('chk-pin-dots-row');
+            if (dotsRow) {
+                dotsRow.classList.remove('pin-error-shake');
+                void dotsRow.offsetWidth;
+                dotsRow.classList.add('pin-error-shake');
+            }
+            const helperEl = document.getElementById('chk-confirm-pin-helper');
+            if (helperEl) {
+                helperEl.style.color = 'var(--danger)';
+                helperEl.innerText = res.message;
+            }
+            if (res.locked) {
+                window.customAlert('PIN Dikunci 15 Menit', res.message, 'error');
+            }
+            return;
+        }
+        const cb = window._customFullPinVerifiedCallback;
+        window._customFullPinVerifiedCallback = null;
+        window._isFullPinStageOpen = false;
+        window.closeModal('modal-checkout-confirm');
+        if (typeof cb === 'function') {
+            await cb();
+        }
+    } finally {
+        window._pinVerifyingLock = false;
+    }
+};
+
+const _origConfirmAndExecuteCheckoutV3025 = window.confirmAndExecuteCheckout;
+window.confirmAndExecuteCheckout = async function() {
+    if (isProcessingCheckout || !pendingConfirmedCheckoutPayload || !selectedProductForBuy) return;
+    const p = pendingConfirmedCheckoutPayload;
+
+    if (p.paymentMethod === 'balance' && !(selectedProductForBuy.isCheckUsernameProduct === true || p.baseTotal === 0)) {
+        if (!window._isFullPinStageOpen) {
+            window.openFullPinStageForCheckout(p.baseTotal, null);
+            return;
+        }
+        const enteredPin = (document.getElementById('chk-confirm-trx-pin')?.value || '').trim();
+        if (!enteredPin || enteredPin.length < 6) {
+            window.showToast('Masukkan 6 Digit PIN', 'Ketik lengkap 6 digit PIN Transaksi kamu.', 'warning');
+            return;
+        }
+        const verRes = await window.verifyUserTrxPinSecureV3026(enteredPin);
+        if (!verRes.ok) {
+            const inpPin = document.getElementById('chk-confirm-trx-pin');
+            if (inpPin) inpPin.value = '';
+            window.syncMbankingPinDotsUI();
+            const dotsRow = document.getElementById('chk-pin-dots-row');
+            if (dotsRow) {
+                dotsRow.classList.remove('pin-error-shake');
+                void dotsRow.offsetWidth;
+                dotsRow.classList.add('pin-error-shake');
+            }
+            const helperEl = document.getElementById('chk-confirm-pin-helper');
+            if (helperEl) {
+                helperEl.style.color = 'var(--danger)';
+                helperEl.innerText = verRes.message;
+            }
+            if (verRes.locked) {
+                window.customAlert('PIN Dikunci 15 Menit', verRes.message, 'error');
+            } else {
+                window.showToast('PIN Salah', verRes.message, 'error');
+            }
+            return;
+        }
+        // Agar fungsi asli _origConfirmAndExecuteCheckoutV3025 lolos pengecekan string lokalnya setelah diverifikasi aman:
+        userProfile.trxPin = enteredPin;
+    }
+
+    try {
+        await _origConfirmAndExecuteCheckoutV3025();
+    } finally {
+        if (userProfile && userProfile.trxPin && userProfile.trxPin !== '******') {
+            userProfile.trxPin = '******';
+        }
+    }
+};
+
+// Override Simpan & Reset PIN di Profil agar Hanya Menyimpan Salted Hash di Firestore
+window.saveUserTransactionPin = async function() {
+    const isMember = Boolean(currentUser && !currentUser.isAnonymous && !userProfile.isGuest);
+    if (!isMember || !currentUser?.uid) {
+        window.customAlert('Khusus Member', 'Silakan masuk sebagai Member untuk mengatur PIN Transaksi.', 'warning');
+        return;
+    }
+
+    const oldPinVal = (document.getElementById('prof-old-trx-pin')?.value || '').trim();
+    const newPinVal = (document.getElementById('prof-new-trx-pin')?.value || '').trim();
+    const confPinVal = (document.getElementById('prof-confirm-trx-pin')?.value || '').trim();
+
+    if (window.hasUserConfiguredTrxPinV3026() && (userProfile.trxPinSaltedHash || userProfile.trxPinHash)) {
+        const verOld = await window.verifyUserTrxPinSecureV3026(oldPinVal);
+        if (!verOld.ok) {
+            window.customAlert('PIN Lama Tidak Sesuai', verOld.message || 'Masukkan 6 digit PIN Transaksi lama kamu dengan benar.', 'error');
+            return;
+        }
+    }
+    if (!/^\d{6}$/.test(newPinVal)) {
+        window.customAlert('Format PIN Harus 6 Angka', 'PIN Transaksi wajib terdiri dari tepat 6 digit angka (0-9).', 'warning');
+        return;
+    }
+    if (['123456', '654321', '000000', '111111', '222222', '333333', '444444', '555555', '666666', '777777', '888888', '999999'].includes(newPinVal)) {
+        window.customAlert('Kombinasi PIN Terlalu Mudah', 'Gunakan kombinasi 6 angka PIN yang tidak berurutan atau kembar.', 'warning');
+        return;
+    }
+    if (newPinVal !== confPinVal) {
+        window.customAlert('Konfirmasi PIN Berbeda', 'Ketik ulang 6 digit PIN baru yang sama pada kolom konfirmasi.', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('btn-save-user-trx-pin');
+    const ogHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan PIN...';
+    }
+
+    try {
+        const saltedHash = await window.computeSaltedPinHashV3026(currentUser.uid, newPinVal);
+        const plainHash = await window.sha256Hex(newPinVal);
+        const nowMs = Date.now();
+
+        await setDoc(doc(db, pathUsers, currentUser.uid), {
+            trxPin: '******',
+            hasTrxPin: true,
+            trxPinSaltedHash: saltedHash,
+            trxPinHash: plainHash,
+            pinFailCount: 0,
+            pinLockedUntil: 0,
+            trxPinUpdatedAt: nowMs
+        }, { merge: true });
+
+        userProfile.trxPin = '******';
+        userProfile.hasTrxPin = true;
+        userProfile.trxPinSaltedHash = saltedHash;
+        userProfile.trxPinHash = plainHash;
+        localStorage.setItem(`vipercell_trx_pin_${currentUser.uid}`, '******');
+
+        ['prof-old-trx-pin', 'prof-new-trx-pin', 'prof-confirm-trx-pin'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+
+        window.updateUserTrxPinProfileUI();
+        window.showToast('PIN Tersimpan', 'PIN Transaksi 6 digit berhasil diamankan dengan enkripsi hash.', 'success');
+    } catch (e) {
+        window.customAlert('Gagal Menyimpan PIN', 'Tidak dapat memperbarui PIN Transaksi.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = ogHtml;
+        }
+    }
+};
+
+window.submitResetTrxPinWithPassword = async function() {
+    const isMember = Boolean(currentUser && !currentUser.isAnonymous && !userProfile.isGuest);
+    if (!isMember || !currentUser?.uid) return;
+
+    const accountEmail = (currentUser.email || userProfile.email || '').trim();
+    const passVal = (document.getElementById('reset-pin-account-password')?.value || '').trim();
+    const newPinVal = (document.getElementById('reset-pin-new')?.value || '').trim();
+    const confPinVal = (document.getElementById('reset-pin-confirm')?.value || '').trim();
+
+    if (!passVal) {
+        window.customAlert('Kata Sandi Kosong', 'Masukkan kata sandi akun kamu untuk verifikasi keamanan.', 'warning');
+        return;
+    }
+    if (!/^\d{6}$/.test(newPinVal)) {
+        window.customAlert('Format PIN Harus 6 Angka', 'PIN Transaksi baru wajib terdiri dari tepat 6 digit angka (0-9).', 'warning');
+        return;
+    }
+    if (['123456', '654321', '000000', '111111', '222222', '333333', '444444', '555555', '666666', '777777', '888888', '999999'].includes(newPinVal)) {
+        window.customAlert('Kombinasi PIN Terlalu Mudah', 'Gunakan kombinasi 6 angka PIN yang tidak berurutan atau kembar.', 'warning');
+        return;
+    }
+    if (newPinVal !== confPinVal) {
+        window.customAlert('Konfirmasi PIN Berbeda', 'Ketik ulang 6 digit PIN baru yang sama pada kolom konfirmasi.', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('btn-submit-reset-trx-pin');
+    const ogHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memverifikasi...';
+    }
+
+    try {
+        await signInWithEmailAndPassword(auth, accountEmail, passVal);
+        const saltedHash = await window.computeSaltedPinHashV3026(currentUser.uid, newPinVal);
+        const plainHash = await window.sha256Hex(newPinVal);
+        const nowMs = Date.now();
+
+        await setDoc(doc(db, pathUsers, currentUser.uid), {
+            trxPin: '******',
+            hasTrxPin: true,
+            trxPinSaltedHash: saltedHash,
+            trxPinHash: plainHash,
+            pinFailCount: 0,
+            pinLockedUntil: 0,
+            trxPinUpdatedAt: nowMs
+        }, { merge: true });
+
+        userProfile.trxPin = '******';
+        userProfile.hasTrxPin = true;
+        userProfile.trxPinSaltedHash = saltedHash;
+        userProfile.trxPinHash = plainHash;
+        localStorage.setItem(`vipercell_trx_pin_${currentUser.uid}`, '******');
+
+        window.closeModal('modal-forgot-trx-pin');
+        window.updateUserTrxPinProfileUI();
+        window.showToast('PIN Berhasil Direset', 'PIN Transaksi 6 digit baru kamu sudah aktif.', 'success');
+    } catch (err) {
+        window.customAlert('Kata Sandi Salah', 'Kata sandi akun yang kamu masukkan tidak sesuai.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = ogHtml;
+        }
+    }
+};
+
+// 3. Proteksi Anti-IDOR pada Fitur Lacak ID Transaksi (Sembunyikan Kredensial/SN Jika Bukan Pemilik Transaksi)
+function maskEmailForPublicTrackV3026(emailStr) {
+    const s = String(emailStr || '').trim();
+    if (!s.includes('@')) return '***';
+    const [u, d] = s.split('@');
+    return `${u.slice(0, 2)}***@${d}`;
+}
+
+window.trackOrder = async function() {
+    const trackInp = document.getElementById('track-id');
+    if (!trackInp) return;
+    const invId = trackInp.value.trim().replace(/^#/, '').toUpperCase();
+    trackInp.value = invId;
+
+    if (!invId) {
+        window.customAlert('ID Kosong', 'Masukkan Nomor ID Transaksi.', 'warning');
+        return;
+    }
+
+    const resBox = document.getElementById('track-result');
+    let order = orders.find(o => (o.id || '').toUpperCase() === invId);
+
+    if (!order) {
+        try {
+            const q = query(collection(db, pathOrders), where('id', '==', invId));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                const d = snap.docs[0];
+                order = { dbId: d.id, ...d.data() };
+            }
+        } catch (e) {}
+    }
+
+    if (!order) {
+        if (resBox) {
+            resBox.style.display = 'block';
+            resBox.innerHTML = `<div class="brutal-alert-box alert-danger"><i class="fa-solid fa-circle-xmark"></i> <span>ID Transaksi <b>#${window.escapeHtml(invId)}</b> tidak ditemukan.</span></div>`;
+        }
+        return;
+    }
+
+    // Cek apakah pengguna yang sedang melacak adalah pemilik sah pesanan ini
+    const myUid = (currentUser && !currentUser.isAnonymous) ? currentUser.uid : '';
+    const myEmail = (currentUser && !currentUser.isAnonymous) ? String(currentUser.email || userProfile?.email || '').trim().toLowerCase() : '';
+    const ordUid = String(order.userId || '').trim();
+    const ordEmail = String(order.userEmail || order.buyerEmail || '').trim().toLowerCase();
+    const isOwner = Boolean((myUid && ordUid && myUid === ordUid) || (myEmail && ordEmail && myEmail === ordEmail));
+
+    let orderToRender = order;
+    if (!isOwner) {
+        orderToRender = {
+            ...order,
+            userEmail: maskEmailForPublicTrackV3026(order.userEmail || order.buyerEmail || ''),
+            buyerEmail: maskEmailForPublicTrackV3026(order.buyerEmail || order.userEmail || ''),
+            plnTokenNumber: order.plnTokenNumber ? '****-****-****-**** (Login Akun Pemilik)' : '',
+            digiflazzSn: order.digiflazzSn ? '******** (Disembunyikan)' : '',
+            adminReply: order.adminReply
+                ? '[DATA KREDENSIAL / SN DILINDUNGI PRIVASI]\nSilakan masuk (login) menggunakan akun pemilik pesanan ini untuk melihat rincian SN, kode voucher, atau data akun.'
+                : ''
+        };
+    }
+
+    if (resBox) {
+        resBox.style.display = 'block';
+        resBox.innerHTML = buildFullReceiptHTML(orderToRender);
+        resBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+};
+window.trackOrderByIdOnly = window.trackOrder;
+
+// 4. Syarat Kata Sandi Baru Minimal 8 Karakter & Simpan Salted PIN Hash Saat Daftar / Setup Akun
+const _origProcessRegisterV3025 = window.processRegister;
+window.processRegister = async function() {
+    const name = (document.getElementById('auth-r-name')?.value || '').trim();
+    const em = (document.getElementById('auth-r-email')?.value || '').trim().toLowerCase();
+    const pw = (document.getElementById('auth-r-pass')?.value || '').trim();
+    const pinVal = (document.getElementById('auth-r-pin')?.value || '').replace(/[^0-9]/g, '').trim();
+
+    if (!name || !em || pw.length < 8) {
+        window.customAlert('Kata Sandi Minimal 8 Karakter', 'Lengkapi Nama Panggilan, Email, dan Kata Sandi minimal 8 karakter.', 'warning');
+        return;
+    }
+    if (pinVal.length !== 6) {
+        window.customAlert('PIN Transaksi Wajib 6 Angka', 'Masukkan 6 angka PIN Transaksi Saldo pada formulir pendaftaran.', 'warning');
+        return;
+    }
+    if (['123456', '654321', '000000', '111111', '222222', '333333', '444444', '555555', '666666', '777777', '888888', '999999'].includes(pinVal)) {
+        window.customAlert('Kombinasi PIN Terlalu Mudah', 'Gunakan kombinasi 6 angka PIN yang tidak berurutan atau kembar.', 'warning');
+        return;
+    }
+
+    const btn = document.getElementById('btn-do-register');
+    const ogHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Memproses...</span>';
+        btn.disabled = true;
+    }
+
+    try {
+        boundLegacyGuestUid = null;
+        await clearMultiLayerToken('vipercell_anon_uid');
+        localStorage.removeItem('vipercell_anon_session_started_at');
+        localStorage.setItem('vipercell_active_session_mode', 'member');
+
+        if (auth.currentUser && auth.currentUser.isAnonymous) {
+            await signOut(auth).catch(() => {});
+        }
+
+        const cred = await createUserWithEmailAndPassword(auth, em, pw);
+        const saltedHash = await window.computeSaltedPinHashV3026(cred.user.uid, pinVal);
+        const plainHash = await window.sha256Hex(pinVal);
+        const nowMs = Date.now();
+
+        const newMemberObj = {
+            uid: cred.user.uid,
+            email: em,
+            name: name,
+            role: 'member',
+            balance: 0,
+            isRegisteredMember: true,
+            hasPasswordSet: true,
+            hasTrxPin: true,
+            trxPin: '******',
+            trxPinSaltedHash: saltedHash,
+            trxPinHash: plainHash,
+            pinFailCount: 0,
+            pinLockedUntil: 0,
+            trxPinUpdatedAt: nowMs,
+            isAnonymous: false,
+            isGuest: false,
+            isBlocked: false,
+            isDeleted: false,
+            verified: true,
+            deviceId: currentDeviceId,
+            createdAt: nowMs
+        };
+
+        await setDoc(doc(db, pathUsers, cred.user.uid), newMemberObj, { merge: true });
+        localStorage.setItem(`vipercell_trx_pin_${cred.user.uid}`, '******');
+        localStorage.setItem('vipercell_member_email', em);
+
+        if (typeof sendEmailVerification === 'function') {
+            sendEmailVerification(cred.user).catch(() => {});
+        }
+
+        currentUser = cred.user;
+        userProfile = newMemberObj;
+        setAuthGateLock(false);
+        if (typeof applyUserSessionToUI === 'function') applyUserSessionToUI();
+        if (typeof window.updateUserTrxPinProfileUI === 'function') window.updateUserTrxPinProfileUI();
+        window.switchMainTab('katalog');
+        window.showToast('Pendaftaran Berhasil', `Selamat datang, ${name}!`, 'success');
+    } catch (e) {
+        let errMsg = 'Email sudah terdaftar atau format email salah.';
+        if (e.code === 'auth/email-already-in-use') {
+            errMsg = 'Email ini sudah terdaftar. Silakan masuk di tab Masuk.';
+        }
+        window.customAlert('Gagal Mendaftar', errMsg, 'error');
+    } finally {
+        if (btn) {
+            btn.innerHTML = ogHtml || '<i class="fa-solid fa-user-check"></i> <span>Buat Akun Member</span>';
+            btn.disabled = false;
+        }
+    }
+};
+
+window.submitMandatoryGooglePassAndPin = async function() {
+    if (!currentUser || currentUser.isAnonymous) return;
+    const passVal = (document.getElementById('mandatory-setup-pass')?.value || '').trim();
+    const pinVal = (document.getElementById('mandatory-setup-pin')?.value || '').replace(/[^0-9]/g, '').trim();
+
+    if (passVal.length < 8) {
+        return window.customAlert('Kata Sandi Minimal 8 Karakter', 'Masukkan kata sandi akun minimal 8 karakter.', 'warning');
+    }
+    if (pinVal.length !== 6) {
+        return window.customAlert('PIN Wajib 6 Angka', 'Masukkan 6 angka PIN Transaksi Saldo kamu.', 'warning');
+    }
+    if (['123456', '654321', '000000', '111111', '222222', '333333', '444444', '555555', '666666', '777777', '888888', '999999'].includes(pinVal)) {
+        return window.customAlert('PIN Terlalu Mudah', 'Gunakan kombinasi 6 angka PIN yang tidak berurutan atau kembar.', 'warning');
+    }
+
+    const btn = document.getElementById('btn-save-mandatory-pass-pin');
+    const ogHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+    }
+
+    try {
+        try {
+            await updatePassword(currentUser, passVal);
+        } catch (pwErr) {
+            if (currentUser.email && typeof EmailAuthProvider !== 'undefined' && typeof linkWithCredential === 'function') {
+                const cred = EmailAuthProvider.credential(currentUser.email, passVal);
+                await linkWithCredential(currentUser, cred).catch(() => {});
+            }
+        }
+
+        const saltedHash = await window.computeSaltedPinHashV3026(currentUser.uid, pinVal);
+        const plainHash = await window.sha256Hex(pinVal);
+        const nowMs = Date.now();
+        await setDoc(doc(db, pathUsers, currentUser.uid), {
+            hasPasswordSet: true,
+            isRegisteredMember: true,
+            hasTrxPin: true,
+            trxPin: '******',
+            trxPinSaltedHash: saltedHash,
+            trxPinHash: plainHash,
+            pinFailCount: 0,
+            pinLockedUntil: 0,
+            trxPinUpdatedAt: nowMs,
+            updatedAt: nowMs
+        }, { merge: true });
+
+        userProfile.hasPasswordSet = true;
+        userProfile.isRegisteredMember = true;
+        userProfile.hasTrxPin = true;
+        userProfile.trxPin = '******';
+        userProfile.trxPinSaltedHash = saltedHash;
+        userProfile.trxPinHash = plainHash;
+        localStorage.setItem(`vipercell_trx_pin_${currentUser.uid}`, '******');
+
+        const modal = document.getElementById('modal-google-mandatory-pass-pin');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
+        window.forceReleaseAllScrollLocksV3025();
+        if (typeof window.updateUserTrxPinProfileUI === 'function') window.updateUserTrxPinProfileUI();
+        setAuthGateLock(false);
+        window.switchMainTab('katalog');
+        window.showToast('Keamanan Aktif', 'Kata sandi dan PIN Transaksi berhasil diamankan!', 'success');
+    } catch (e) {
+        window.customAlert('Gagal Menyimpan', window.escapeHtml(e.message || 'Tidak dapat menyimpan kata sandi & PIN.'), 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = ogHtml;
+        }
+    }
+};
+
+// 5. Anti-Spam Cooldown & Batas Panjang Karakter pada Chat Admin & Usulan Produk
+let _v3026LastChatSentMs = 0;
+const _origSendUserChatV3025 = window.sendUserChat;
+window.sendUserChat = async function() {
+    const inp = document.getElementById('user-chat-input');
+    const txt = (inp?.value || '').trim();
+    if (!txt) return;
+    if (txt.length > 500) {
+        return window.showToast('Pesan Terlalu Panjang', 'Pesan chat maksimal 500 karakter.', 'warning');
+    }
+    const nowMs = Date.now();
+    if (nowMs - _v3026LastChatSentMs < 3000) {
+        return window.showToast('Tunggu Sebentar', 'Jeda pengiriman pesan 3 detik untuk mencegah spam.', 'warning');
+    }
+    _v3026LastChatSentMs = nowMs;
+    if (typeof _origSendUserChatV3025 === 'function') {
+        return await _origSendUserChatV3025();
+    }
+};
+
+// Jalankan migrasi PIN lama ke Salted Hash secara otomatis setelah profil user dimuat
+setTimeout(() => {
+    window.migrateLegacyPlainPinIfNeededV3026();
+}, 1800);
